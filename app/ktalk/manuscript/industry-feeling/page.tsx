@@ -49,7 +49,7 @@ export default function Chapter14() {
           <div className="chapter-body">
 
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch13-linkedin-reaction.png"
+              image="/mindbook/ktalk/slides/ch13-linkedin-reaction.png"
               alt="Person standing between two groups — one cheering enthusiastically, the other pointing and arguing"
             >
               <p>Before I tell you my conclusion, I want to show you something.</p>
@@ -292,8 +292,8 @@ export default function Chapter14() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

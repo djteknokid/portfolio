@@ -50,7 +50,7 @@ export default function Chapter2() {
 
             {/* ── Slide: designer directing AI ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch2-designer-directing-ai.png"
+              image="/mindbook/ktalk/slides/ch2-designer-directing-ai.png"
               alt="A person standing at a whiteboard covered in wireframes, directing a robot assistant that holds a pen"
             >
               <p>Let me give you a little context on how I got here.</p>
@@ -119,7 +119,7 @@ export default function Chapter2() {
 
             {/* ── Slide: PM transition ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch2-pm-transition.png"
+              image="/mindbook/ktalk/slides/ch2-pm-transition.png"
               alt="Person at a desk holding up a cap labeled PM, looking at it thoughtfully"
             >
               <p>And now, I&rsquo;ve made another move.</p>
@@ -170,8 +170,8 @@ export default function Chapter2() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

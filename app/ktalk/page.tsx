@@ -196,7 +196,7 @@ function HeroSlide({ total, index }: SlideProps) {
           조율의 시대
         </p>
 
-        <Link href="/koreatalk/manuscript" style={{
+        <Link href="/ktalk/manuscript" style={{
           display: "inline-block",
           border: `1px solid rgba(255,255,255,0.18)`,
           color: T.stone,

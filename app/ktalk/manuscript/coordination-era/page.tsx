@@ -78,7 +78,7 @@ export default function Chapter14() {
             <p>My hypothesis is this:</p>
 
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch14-coordination-era.png"
+              image="/mindbook/ktalk/slides/ch14-coordination-era.png"
               alt="Person standing in a field looking up at a timeline of tools — hand drafting, rulers, desktop computer, smartphone, AI brain, puzzle pieces"
             >
               <p>
@@ -408,8 +408,8 @@ export default function Chapter14() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

@@ -50,7 +50,7 @@ export default function Chapter8Ko() {
               marginTop: "var(--sp-4)",
               letterSpacing: "0.04em",
             }}>
-              <Link href="/koreatalk/manuscript/signals-intro" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
+              <Link href="/ktalk/manuscript/signals-intro" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
                 Read in English →
               </Link>
             </p>
@@ -389,8 +389,8 @@ export default function Chapter8Ko() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/ko/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/ko/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/ko/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/ko/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

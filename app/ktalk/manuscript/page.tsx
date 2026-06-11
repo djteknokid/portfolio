@@ -128,7 +128,7 @@ export default function ManuscriptCover() {
         {/* CTA */}
         <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: "12px" }}>
           <Link
-            href="/koreatalk/manuscript/intro"
+            href="/ktalk/manuscript/intro"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -146,7 +146,7 @@ export default function ManuscriptCover() {
             Start Reading <span aria-hidden>→</span>
           </Link>
           <Link
-            href="/koreatalk/manuscript/ko"
+            href="/ktalk/manuscript/ko"
             style={{
               fontFamily: "var(--font-inter), system-ui, sans-serif",
               fontSize: "11px",
@@ -191,7 +191,7 @@ export default function ManuscriptCover() {
                   {sectionChapters.map((c) => (
                     <Link
                       key={c.slug}
-                      href={`/koreatalk/manuscript/${c.slug}`}
+                      href={`/ktalk/manuscript/${c.slug}`}
                       className="toc-chapter-row"
                     >
                       <span className="toc-chapter-title">{c.number}. {c.title}</span>

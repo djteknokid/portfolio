@@ -50,7 +50,7 @@ export default function Chapter1() {
 
             {/* ── Slide: career path ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch1-career-path.png"
+              image="/mindbook/ktalk/slides/ch1-career-path.png"
               alt="Career path: GoPro → Google Product Designer → Google AI UX Engineer → SAP Product Designer → SAP Principal PM"
               caption="GoPro · Google · Google AI · SAP Designer · SAP PM"
             >
@@ -106,7 +106,7 @@ export default function Chapter1() {
 
             {/* ── Slide: AI noise ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch1-ai-noise.png"
+              image="/mindbook/ktalk/slides/ch1-ai-noise.png"
               alt="Flood of AI tools on the left, person at laptop thinking about coordination on the right"
             >
               <p>Every day there&rsquo;s a new AI tool.</p>
@@ -138,7 +138,7 @@ export default function Chapter1() {
 
             {/* ── Slide: coordination era ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch1-coordination-era.png"
+              image="/mindbook/ktalk/slides/ch1-coordination-era.png"
               alt="Designer coding, PM prototyping, engineer giving feedback, AI contributing — all converging toward a shared goal"
             >
               <p>What I want to talk about is something I think we&rsquo;re missing.</p>
@@ -185,8 +185,8 @@ export default function Chapter1() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

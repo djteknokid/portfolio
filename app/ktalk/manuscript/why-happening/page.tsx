@@ -146,7 +146,7 @@ export default function Chapter4() {
 
             {/* ── Slide: PM explains prototype ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch4-pm-explains.png"
+              image="/mindbook/ktalk/slides/ch4-pm-explains.png"
               alt="Person in an LA cap looking uncertain at a wireframe printout while a colleague leans in pointing at it"
             >
               <p>Now let me tell you something from the PM side of the table.</p>
@@ -202,7 +202,7 @@ export default function Chapter4() {
 
             {/* ── Slide: value question ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch4-value-question.png"
+              image="/mindbook/ktalk/slides/ch4-value-question.png"
               alt="Person standing in front of a massive complex flowchart, scratching their head with a pencil"
             >
               <p>And that&rsquo;s when I realized something.</p>
@@ -271,8 +271,8 @@ export default function Chapter4() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

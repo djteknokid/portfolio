@@ -50,7 +50,7 @@ export default function Chapter11() {
           <div className="chapter-body">
 
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch11-complaints.png"
+              image="/mindbook/ktalk/slides/ch11-complaints.png"
               alt="Three people at a conference table arguing in front of a massive complex flowchart on the wall behind them"
             >
               <p>This is probably the signal that convinced me the most.</p>
@@ -226,8 +226,8 @@ export default function Chapter11() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

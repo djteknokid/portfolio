@@ -91,7 +91,7 @@ export default function ManuscriptSidebar({ chapters, currentSlug }: Props) {
           ✕
         </button>
 
-        <Link href="/koreatalk/manuscript" className="sidebar__back">← Manuscript</Link>
+        <Link href="/ktalk/manuscript" className="sidebar__back">← Manuscript</Link>
         <div style={{ flex: 1 }}>
           <p className="sidebar__part-label" style={{ color: "rgba(255,255,255,0.85)" }}>The Coordination Era</p>
           <p style={{
@@ -107,7 +107,7 @@ export default function ManuscriptSidebar({ chapters, currentSlug }: Props) {
           {chapters.map((c) => (
             <Link
               key={c.slug}
-              href={`/koreatalk/manuscript/${c.slug}`}
+              href={`/ktalk/manuscript/${c.slug}`}
               className="sidebar__chapter-link"
               onClick={() => setOpen(false)}
               style={{

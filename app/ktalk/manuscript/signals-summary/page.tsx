@@ -73,7 +73,7 @@ export default function Chapter13() {
             <p>Shared understanding is scarce.</p>
 
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch12-coordination-problem.png"
+              image="/mindbook/ktalk/slides/ch12-coordination-problem.png"
               alt="Three people at a round table, each holding a different shape — triangle, square, circle — with mismatched pieces scattered between them"
             >
               <p>The ability to make a decision and move — together, confidently, in the same
@@ -117,8 +117,8 @@ export default function Chapter13() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

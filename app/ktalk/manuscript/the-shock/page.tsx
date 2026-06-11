@@ -49,7 +49,7 @@ export default function Chapter3() {
 
             {/* ── Slide: design review shock ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch3-design-review.png"
+              image="/mindbook/ktalk/slides/ch3-design-review.png"
               alt="Person holding a laptop prototype in a meeting room — half the room cheering, the other half looking uneasy"
             >
               <p>Let me paint a picture.</p>
@@ -87,7 +87,7 @@ export default function Chapter3() {
 
             {/* ── Slide: PM sketch ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch3-pm-sketch.png"
+              image="/mindbook/ktalk/slides/ch3-pm-sketch.png"
               alt="Person standing, showing a rough wireframe sketch to a colleague seated at a desk"
             >
               <p>Because here&rsquo;s the thing.</p>
@@ -115,7 +115,7 @@ export default function Chapter3() {
 
             {/* ── Slide: speed vs fidelity ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch3-speed-vs-fidelity.png"
+              image="/mindbook/ktalk/slides/ch3-speed-vs-fidelity.png"
               alt="Left: people riding a rocket fast. Right: two people carefully laying stone bricks by hand."
             >
               <p>What changed is two things.</p>
@@ -192,7 +192,7 @@ export default function Chapter3() {
 
             {/* ── Slide: designer overwhelmed ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch3-designer-overwhelmed.png"
+              image="/mindbook/ktalk/slides/ch3-designer-overwhelmed.png"
               alt="Person at a desk with hands on head, surrounded by scattered sketches, overwhelmed"
             >
               <p>So the designer in that meeting room — they&rsquo;re not being paranoid.</p>
@@ -235,8 +235,8 @@ export default function Chapter3() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

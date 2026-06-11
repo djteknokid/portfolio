@@ -68,7 +68,7 @@ export default function Chapter5() {
 
             {/* ── Slide: floor raised ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch5-floor-raised.png"
+              image="/mindbook/ktalk/slides/ch5-floor-raised.png"
               alt="Person standing on a rising platform being pushed upward, pressing against a low ceiling"
             >
               <p>Let me introduce an idea that becomes important for the rest of this talk.</p>
@@ -150,7 +150,7 @@ export default function Chapter5() {
 
             {/* ── Slide: film photographer ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch5-film-photographer.png"
+              image="/mindbook/ktalk/slides/ch5-film-photographer.png"
               alt="Person in a darkroom holding up a strip of film negatives, prints hanging on a line behind them"
             >
               <p>Before digital cameras, being a photographer meant something very specific.</p>
@@ -211,7 +211,7 @@ export default function Chapter5() {
 
             {/* ── Slide: wedding photographer ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch5-wedding-photographer.png"
+              image="/mindbook/ktalk/slides/ch5-wedding-photographer.png"
               alt="Photographer from behind, shooting a wedding party on a scenic terrace"
             >
               <p>The photographers who thrived weren&rsquo;t asking:</p>
@@ -324,10 +324,10 @@ export default function Chapter5() {
           {/* Prev / Next */}
           <nav className="chapter-nav chapter-prose">
             {prev
-              ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link>
+              ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link>
               : <span />}
             {next
-              ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link>
+              ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link>
               : <span />}
           </nav>
 

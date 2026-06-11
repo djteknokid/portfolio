@@ -58,7 +58,7 @@ export default function Chapter7() {
 
             {/* ── Slide: photographer + player ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch7-photographer-player.png"
+              image="/mindbook/ktalk/slides/ch7-photographer-player.png"
               alt="A wedding photographer and an NBA center standing back to back, surrounded by binary code"
             >
               <p>OK.</p>
@@ -116,7 +116,7 @@ export default function Chapter7() {
 
             {/* ── Slide: who survived ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch7-who-survived.png"
+              image="/mindbook/ktalk/slides/ch7-who-survived.png"
               alt="Photographer and NBA center standing together on a first-place podium, surrounded by others looking up"
             >
               <p>And when the floor rose, the market stopped rewarding the old thing.</p>
@@ -176,7 +176,7 @@ export default function Chapter7() {
 
             {/* ── Slide: three steps ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch7-three-steps.png"
+              image="/mindbook/ktalk/slides/ch7-three-steps.png"
               alt="Three-panel illustration: Step 1 technology raises the floor, Step 2 market changes the KPI, Step 3 professionals raise the ceiling"
             >
               <p>Every major technology shift follows the same sequence.</p>
@@ -219,7 +219,7 @@ export default function Chapter7() {
 
             {/* ── Slide: pattern table ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch7-pattern-table.png"
+              image="/mindbook/ktalk/slides/ch7-pattern-table.png"
               alt="Table showing Technology Shift → Floor Raised → New KPI across Desktop Publishing, Photography, Website Builders, YouTube, Digital Music, and AI"
             >
               <p>Technology raises the floor.</p>
@@ -383,10 +383,10 @@ export default function Chapter7() {
 
           <nav className="chapter-nav chapter-prose">
             {prev
-              ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link>
+              ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link>
               : <span />}
             {next
-              ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link>
+              ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link>
               : <span />}
           </nav>
 

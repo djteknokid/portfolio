@@ -76,7 +76,7 @@ export default function Chapter8() {
             <hr />
 
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch8-artifact-overflow.png"
+              image="/mindbook/ktalk/slides/ch8-artifact-overflow.png"
               alt="Person overwhelmed at a laptop with wireframes and design artifacts flying everywhere"
             >
               <p>
@@ -183,7 +183,7 @@ export default function Chapter8() {
             </p>
 
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch8-meetings-different.png"
+              image="/mindbook/ktalk/slides/ch8-meetings-different.png"
               alt="Person juggling multiple flying design artifacts — wireframes, images, video frames — from behind a laptop"
             >
               <p>The meetings felt different.</p>
@@ -196,7 +196,7 @@ export default function Chapter8() {
             <hr />
 
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch8-everyone-has-prototype.png"
+              image="/mindbook/ktalk/slides/ch8-everyone-has-prototype.png"
               alt="Three people at a meeting table — each holding a thick stack of printed prototypes, arguing past each other"
             >
               <p>There were more ideas.</p>
@@ -280,8 +280,8 @@ export default function Chapter8() {
           </div>
 
           <nav className="chapter-nav chapter-prose">
-            {prev ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
-            {next ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
+            {prev ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link> : <span />}
+            {next ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link> : <span />}
           </nav>
         </article>
       </main>

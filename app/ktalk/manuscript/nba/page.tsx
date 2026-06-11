@@ -72,7 +72,7 @@ export default function Chapter6() {
 
             {/* ── Slide: NBA center ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch6-nba-center.png"
+              image="/mindbook/ktalk/slides/ch6-nba-center.png"
               alt="A dominant center (#34) dunking over defenders near the basket"
             >
               <p>If you grew up watching basketball in the 90s, the game was simple.</p>
@@ -96,7 +96,7 @@ export default function Chapter6() {
 
             {/* ── Slide: three-point revolution ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch6-three-point.png"
+              image="/mindbook/ktalk/slides/ch6-three-point.png"
               alt="Slim guard (#30) launching a three-pointer while a large center stands watching near the basket"
             >
               <p>Then something happened.</p>
@@ -208,7 +208,7 @@ export default function Chapter6() {
 
             {/* ── Slide: modern bigs ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch6-modern-bigs.png"
+              image="/mindbook/ktalk/slides/ch6-modern-bigs.png"
               alt="Three modern NBA big men shooting jump shots from the perimeter — Jokic, Wembanyama, Towns"
             >
               <p>And if you watch basketball today, that&rsquo;s exactly what happened.</p>
@@ -252,7 +252,7 @@ export default function Chapter6() {
 
             {/* ── Slide: playbook ── */}
             <SlideRow
-              image="/mindbook/koreatalk/slides/ch6-playbook.png"
+              image="/mindbook/ktalk/slides/ch6-playbook.png"
               alt="Coach's clipboard showing a basketball play with five players and movement arrows"
             >
               <p>Think about the Warriors dynasty.</p>
@@ -300,10 +300,10 @@ export default function Chapter6() {
 
           <nav className="chapter-nav chapter-prose">
             {prev
-              ? <Link href={`/koreatalk/manuscript/${prev.slug}`}>← {prev.title}</Link>
+              ? <Link href={`/ktalk/manuscript/${prev.slug}`}>← {prev.title}</Link>
               : <span />}
             {next
-              ? <Link href={`/koreatalk/manuscript/${next.slug}`}>{next.title} →</Link>
+              ? <Link href={`/ktalk/manuscript/${next.slug}`}>{next.title} →</Link>
               : <span />}
           </nav>
 
