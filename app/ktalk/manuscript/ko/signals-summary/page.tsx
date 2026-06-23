@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -139,49 +144,51 @@ export default function Chapter13Ko() {
 
             <hr />
 
-            <p>우리는 더 이상 창작 문제가 없습니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch12-coordination-problem.png" alt="Three people at a round table, each holding a different shape — triangle, square, circle — with mismatched pieces scattered between them">
+              <p>우리는 더 이상 창작 문제가 없습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>우리는 조율 문제가 있습니다.</p>
+              <p>우리는 조율 문제가 있습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>한 번 생각해 보세요.</p>
+              <p>한 번 생각해 보세요.</p>
 
-            <hr />
+              <hr />
 
-            <p>여러분이 경험했던 가장 답답한 팀은 어떤 팀이었습니까?</p>
+              <p>여러분이 경험했던 가장 답답한 팀은 어떤 팀이었습니까?</p>
 
-            <hr />
+              <hr />
 
-            <p>만들 수 없어서 멈춰 있던 팀이었습니까?</p>
+              <p>만들 수 없어서 멈춰 있던 팀이었습니까?</p>
 
-            <hr />
+              <hr />
 
-            <p>아니면 결정하지 못해서 멈춰 있던 팀이었습니까?</p>
+              <p>아니면 결정하지 못해서 멈춰 있던 팀이었습니까?</p>
 
-            <hr />
+              <hr />
 
-            <p>데이터를 다르게 해석하는 사람들.</p>
+              <p>데이터를 다르게 해석하는 사람들.</p>
 
-            <p>서로 경쟁하는 프로토타입들.</p>
+              <p>서로 경쟁하는 프로토타입들.</p>
 
-            <p>무엇을 선택해야 하는지 모르는 팀.</p>
+              <p>무엇을 선택해야 하는지 모르는 팀.</p>
 
-            <p>권한은 있는데 기준이 없는 조직.</p>
+              <p>권한은 있는데 기준이 없는 조직.</p>
 
-            <hr />
+              <hr />
 
-            <p>회의가 끝날 때마다</p>
+              <p>회의가 끝날 때마다</p>
 
-            <p>&ldquo;이건 오프라인으로 이야기해보죠.&rdquo;</p>
+              <p>&ldquo;이건 오프라인으로 이야기해보죠.&rdquo;</p>
 
-            <p>라고 말하지만,</p>
+              <p>라고 말하지만,</p>
 
-            <hr />
+              <hr />
 
-            <p>그 오프라인 대화조차 아무것도 해결하지 못하는 상황.</p>
+              <p>그 오프라인 대화조차 아무것도 해결하지 못하는 상황.</p>
+            </SlideRow>
 
             <hr />
 

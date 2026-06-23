@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -100,14 +105,16 @@ export default function Chapter14Ko() {
 
             <hr />
 
-            <p>
-              제품 개발(Product Development)의 다음 경쟁력은
-              창작(Creation)이 아닙니다.
-            </p>
+            <SlideRow image="/mindbook/ktalk/slides/ch14-coordination-era.png" alt="Person standing in a field looking up at a timeline of tools — hand drafting, rulers, desktop computer, smartphone, AI brain, puzzle pieces">
+              <p>
+                제품 개발(Product Development)의 다음 경쟁력은
+                창작(Creation)이 아닙니다.
+              </p>
 
-            <hr />
+              <hr />
 
-            <p>조율(Coordination)입니다.</p>
+              <p>조율(Coordination)입니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -135,17 +142,22 @@ export default function Chapter14Ko() {
 
             <hr />
 
-            <p>그러니까 질문은</p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch14-market-rewarding.png"
+              alt="Person receiving a trophy on stage in front of an applauding audience"
+            >
+              <p>그러니까 질문은</p>
 
-            <p>이것들이 존재했느냐가 아닙니다.</p>
+              <p>이것들이 존재했느냐가 아닙니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>질문은 이것입니다.</p>
+              <p>질문은 이것입니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>시장은 지금 무엇을 보상하고 있는가?</p>
+              <p>시장은 지금 무엇을 보상하고 있는가?</p>
+            </SlideRow>
 
             <hr />
 
@@ -203,31 +215,36 @@ export default function Chapter14Ko() {
 
             <hr />
 
-            <p>제가 말하는 조율은</p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch14-group-alignment.png"
+              alt="Person leading a group of professionals walking in the same direction"
+            >
+              <p>제가 말하는 조율은</p>
 
-            <p>서로 다른 사람들을 하나의 방향으로 움직이게 하는 능력입니다.</p>
+              <p>서로 다른 사람들을 하나의 방향으로 움직이게 하는 능력입니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>서로 다른 정보를 가진 사람들.</p>
+              <p>서로 다른 정보를 가진 사람들.</p>
 
-            <p>서로 다른 목표를 가진 사람들.</p>
+              <p>서로 다른 목표를 가진 사람들.</p>
 
-            <p>서로 다른 우선순위를 가진 사람들.</p>
+              <p>서로 다른 우선순위를 가진 사람들.</p>
 
-            <p>서로 다른 의견을 가진 사람들.</p>
+              <p>서로 다른 의견을 가진 사람들.</p>
 
-            <hr />
+              <hr />
 
-            <p>그 사람들이</p>
+              <p>그 사람들이</p>
 
-            <p>무엇이 중요한지 함께 이해하게 만들고,</p>
+              <p>무엇이 중요한지 함께 이해하게 만들고,</p>
 
-            <hr />
+              <hr />
 
-            <p>그 이해를 바탕으로</p>
+              <p>그 이해를 바탕으로</p>
 
-            <p>같은 방향으로 움직이게 만드는 능력입니다.</p>
+              <p>같은 방향으로 움직이게 만드는 능력입니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -367,25 +384,35 @@ export default function Chapter14Ko() {
 
             <hr />
 
-            <p><strong>Wave 1</strong></p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch14-wave2-collective.png"
+              alt="Person with multiple arms at a wall of monitors — each screen showing a networked brain"
+            >
+              <p><strong>Wave 1</strong></p>
 
-            <p>개인의 레버리지.</p>
+              <p>개인의 레버리지.</p>
 
-            <p>한 사람이 열 사람의 일을 하는 시대.</p>
+              <p>한 사람이 열 사람의 일을 하는 시대.</p>
 
-            <p>지금 모두가 이야기하는 시대입니다.</p>
+              <p>지금 모두가 이야기하는 시대입니다.</p>
 
-            <p>그리고 맞습니다. 실제로 존재합니다.</p>
+              <p>그리고 맞습니다. 실제로 존재합니다.</p>
+            </SlideRow>
 
             <hr />
 
-            <p><strong>Wave 2</strong></p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch14-wave2-team.png"
+              alt="Team gathered around a shared screen, aligned on the same design"
+            >
+              <p><strong>Wave 2</strong></p>
 
-            <p>집단의 레버리지.</p>
+              <p>집단의 레버리지.</p>
 
-            <p>열 사람이 하나의 시스템처럼 움직이는 시대.</p>
+              <p>열 사람이 하나의 시스템처럼 움직이는 시대.</p>
 
-            <p>저는 그것이 다음 단계라고 생각합니다.</p>
+              <p>저는 그것이 다음 단계라고 생각합니다.</p>
+            </SlideRow>
 
             <hr />
 

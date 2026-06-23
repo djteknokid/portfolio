@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -58,25 +63,27 @@ export default function Chapter7Ko() {
 
           <div className="chapter-body">
 
-            <p>좋습니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch7-photographer-player.png" alt="A wedding photographer and an NBA center standing back to back, surrounded by binary code">
+              <p>좋습니다.</p>
 
-            <p>이제 두 이야기를 나란히 놓고 봅시다.</p>
+              <p>이제 두 이야기를 나란히 놓고 봅시다.</p>
 
-            <p>한 명의 웨딩 사진작가.</p>
+              <p>한 명의 웨딩 사진작가.</p>
 
-            <p>그리고 한 명의 NBA 센터.</p>
+              <p>그리고 한 명의 NBA 센터.</p>
 
-            <hr />
+              <hr />
 
-            <p>겉으로 보기에는 전혀 관련이 없어 보입니다.</p>
+              <p>겉으로 보기에는 전혀 관련이 없어 보입니다.</p>
 
-            <p>한 사람은 사진을 찍고,</p>
+              <p>한 사람은 사진을 찍고,</p>
 
-            <p>한 사람은 농구를 합니다.</p>
+              <p>한 사람은 농구를 합니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>하지만 저는 사실 같은 이야기라고 생각합니다.</p>
+              <p>하지만 저는 사실 같은 이야기라고 생각합니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -127,35 +134,37 @@ export default function Chapter7Ko() {
 
             <hr />
 
-            <p>그리고 바닥이 올라가자</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch7-who-survived.png" alt="Photographer and NBA center standing together on a first-place podium, surrounded by others looking up">
+              <p>그리고 바닥이 올라가자</p>
 
-            <p>시장은 더 이상 예전과 같은 것을 보상하지 않기 시작했습니다.</p>
+              <p>시장은 더 이상 예전과 같은 것을 보상하지 않기 시작했습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>물론 하루아침에 일어난 일은 아닙니다.</p>
+              <p>물론 하루아침에 일어난 일은 아닙니다.</p>
 
-            <p>하지만 결국 그렇게 되었습니다.</p>
+              <p>하지만 결국 그렇게 되었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>살아남은 사진작가는</p>
+              <p>살아남은 사진작가는</p>
 
-            <p>사진을 조금 더 선명하게 찍는 사람이 아니었습니다.</p>
+              <p>사진을 조금 더 선명하게 찍는 사람이 아니었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>결혼식을 더 특별하게 만드는 사람이었습니다.</p>
+              <p>결혼식을 더 특별하게 만드는 사람이었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>살아남은 센터는</p>
+              <p>살아남은 센터는</p>
 
-            <p>골밑 플레이를 조금 더 잘하는 사람이 아니었습니다.</p>
+              <p>골밑 플레이를 조금 더 잘하는 사람이 아니었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>새로운 농구에서 팀이 승리하도록 돕는 사람이었습니다.</p>
+              <p>새로운 농구에서 팀이 승리하도록 돕는 사람이었습니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -203,23 +212,25 @@ export default function Chapter7Ko() {
 
             <p><strong>패턴</strong></p>
 
-            <p>
-              저는 모든 기술 혁신이 거의 비슷한 순서로 움직인다고 생각합니다.
-            </p>
+            <SlideRow image="/mindbook/ktalk/slides/ch7-three-steps.png" alt="Three-panel illustration: Step 1 technology raises the floor, Step 2 market changes the KPI, Step 3 professionals raise the ceiling">
+              <p>
+                저는 모든 기술 혁신이 거의 비슷한 순서로 움직인다고 생각합니다.
+              </p>
 
-            <hr />
+              <hr />
 
-            <p><strong>1단계. 기술이 바닥을 올린다.</strong></p>
+              <p><strong>1단계. 기술이 바닥을 올린다.</strong></p>
 
-            <p>원래는 희소했던 능력이</p>
+              <p>원래는 희소했던 능력이</p>
 
-            <p>더 많은 사람들에게 열립니다.</p>
+              <p>더 많은 사람들에게 열립니다.</p>
 
-            <p>더 많은 사람들이 할 수 있게 되고,</p>
+              <p>더 많은 사람들이 할 수 있게 되고,</p>
 
-            <p>더 많은 사람들이 참여하게 되고,</p>
+              <p>더 많은 사람들이 참여하게 되고,</p>
 
-            <p>더 많은 사람들이 만들 수 있게 됩니다.</p>
+              <p>더 많은 사람들이 만들 수 있게 됩니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -248,18 +259,20 @@ export default function Chapter7Ko() {
 
             <hr />
 
-            <p>기술은 바닥을 올립니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch7-pattern-table.png" alt="Table showing Technology Shift → Floor Raised → New KPI across Desktop Publishing, Photography, Website Builders, YouTube, Digital Music, and AI">
+              <p>기술은 바닥을 올립니다.</p>
 
-            <p>시장은 KPI를 바꿉니다.</p>
+              <p>시장은 KPI를 바꿉니다.</p>
 
-            <p>전문가는 천장을 올립니다.</p>
+              <p>전문가는 천장을 올립니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>
-              이 패턴을 보고 나니까
-              갑자기 다른 산업에서도 같은 현상이 보이기 시작했습니다.
-            </p>
+              <p>
+                이 패턴을 보고 나니까
+                갑자기 다른 산업에서도 같은 현상이 보이기 시작했습니다.
+              </p>
+            </SlideRow>
 
             <div style={{
               maxWidth: "680px",

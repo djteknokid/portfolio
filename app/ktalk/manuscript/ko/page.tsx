@@ -19,6 +19,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 

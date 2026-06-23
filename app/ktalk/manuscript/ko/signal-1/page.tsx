@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -66,6 +71,10 @@ export default function Chapter9Ko() {
 
             <hr />
 
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch9-artifact-expensive.png"
+              alt="Designer working under pressure at laptop while stakeholders wait impatiently"
+            >
             <p>오랫동안 제품 개발(Product Development)의 세계에서</p>
 
             <p>결과물을 만드는 일은 비싼 일이었습니다.</p>
@@ -77,6 +86,7 @@ export default function Chapter9Ko() {
             <p>목업은 기술이 필요했습니다.</p>
 
             <p>프로토타입은 더 많은 기술이 필요했습니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -156,6 +166,10 @@ export default function Chapter9Ko() {
 
             <hr />
 
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch9-everyone-has-prototype.png"
+              alt="Team meeting with walls covered in wireframes and prototypes, everyone pointing at different things"
+            >
             <p>요즘 회의실에 들어가 보세요.</p>
 
             <hr />
@@ -171,6 +185,7 @@ export default function Chapter9Ko() {
             <p>모두가 의견을 가지고 있습니다.</p>
 
             <p>그리고 이제는 그 의견을 시각적으로 표현한 결과물도 가지고 있습니다.</p>
+            </SlideRow>
 
             <hr />
 

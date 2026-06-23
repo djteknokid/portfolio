@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -74,61 +79,65 @@ export default function Chapter6Ko() {
 
             <hr />
 
-            <p>90년대 농구를 보셨던 분들은 기억하실 겁니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch6-nba-center.png" alt="A dominant center (#34) dunking over defenders near the basket">
+              <p>90년대 농구를 보셨던 분들은 기억하실 겁니다.</p>
 
-            <p>그때 농구는 굉장히 단순했습니다.</p>
+              <p>그때 농구는 굉장히 단순했습니다.</p>
 
-            <p>센터는 골밑에 있었습니다.</p>
+              <p>센터는 골밑에 있었습니다.</p>
 
-            <p>파워포워드도 골밑에 있었습니다.</p>
+              <p>파워포워드도 골밑에 있었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>역할도 명확했습니다.</p>
+              <p>역할도 명확했습니다.</p>
 
-            <p>리바운드.</p>
+              <p>리바운드.</p>
 
-            <p>블락.</p>
+              <p>블락.</p>
 
-            <p>골밑 득점.</p>
+              <p>골밑 득점.</p>
 
-            <hr />
+              <hr />
 
-            <p>자기 역할을 하면 됐습니다.</p>
+              <p>자기 역할을 하면 됐습니다.</p>
 
-            <p>자기 자리에서.</p>
+              <p>자기 자리에서.</p>
 
-            <p>자기 방식으로.</p>
-
-            <hr />
-
-            <p>그런데 어느 순간 무언가가 바뀌었습니다.</p>
+              <p>자기 방식으로.</p>
+            </SlideRow>
 
             <hr />
 
-            <p>새로운 규칙이 생긴 것도 아니었습니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch6-three-point.png" alt="Slim guard (#30) launching a three-pointer while a large center stands watching near the basket">
+              <p>그런데 어느 순간 무언가가 바뀌었습니다.</p>
 
-            <p>새로운 기술이 등장한 것도 아니었습니다.</p>
+              <hr />
 
-            <hr />
+              <p>새로운 규칙이 생긴 것도 아니었습니다.</p>
 
-            <p>새로운 이해가 등장했습니다.</p>
+              <p>새로운 기술이 등장한 것도 아니었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>데이터 분석.</p>
+              <p>새로운 이해가 등장했습니다.</p>
 
-            <p>Analytics.</p>
+              <hr />
 
-            <hr />
+              <p>데이터 분석.</p>
 
-            <p>팀들이 농구를 보는 방식이 달라지기 시작했습니다.</p>
+              <p>Analytics.</p>
 
-            <p>그리고 한 가지 사실을 발견했습니다.</p>
+              <hr />
 
-            <hr />
+              <p>팀들이 농구를 보는 방식이 달라지기 시작했습니다.</p>
 
-            <p>3점슛이 생각보다 훨씬 가치 있다는 것이었습니다.</p>
+              <p>그리고 한 가지 사실을 발견했습니다.</p>
+
+              <hr />
+
+              <p>3점슛이 생각보다 훨씬 가치 있다는 것이었습니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -269,29 +278,31 @@ export default function Chapter6Ko() {
 
             <hr />
 
-            <p>그리고 오늘날 NBA를 보면</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch6-modern-bigs.png" alt="Three modern NBA big men shooting jump shots from the perimeter — Jokic, Wembanyama, Towns">
+              <p>그리고 오늘날 NBA를 보면</p>
 
-            <p>정확히 그런 방향으로 흘러왔습니다.</p>
+              <p>정확히 그런 방향으로 흘러왔습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>니콜라 요키치.</p>
+              <p>니콜라 요키치.</p>
 
-            <p>빅터 웸반야마.</p>
+              <p>빅터 웸반야마.</p>
 
-            <p>칼 앤서니 타운스.</p>
+              <p>칼 앤서니 타운스.</p>
 
-            <hr />
+              <hr />
 
-            <p>최고의 선수들은 더 이상 포지션으로 정의되지 않습니다.</p>
+              <p>최고의 선수들은 더 이상 포지션으로 정의되지 않습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>능력으로 정의됩니다.</p>
+              <p>능력으로 정의됩니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>&ldquo;이 선수가 팀의 승리에 무엇을 기여할 수 있는가?&rdquo;</p>
+              <p>&ldquo;이 선수가 팀의 승리에 무엇을 기여할 수 있는가?&rdquo;</p>
+            </SlideRow>
 
             <hr />
 
@@ -321,47 +332,49 @@ export default function Chapter6Ko() {
 
             <hr />
 
-            <p>골든스테이트 워리어스를 생각해 보세요.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch6-playbook.png" alt="Coach's clipboard showing a basketball play with five players and movement arrows">
+              <p>골든스테이트 워리어스를 생각해 보세요.</p>
 
-            <hr />
+              <hr />
 
-            <p>사람들은 커리를 이야기합니다.</p>
+              <p>사람들은 커리를 이야기합니다.</p>
 
-            <p>클레이를 이야기합니다.</p>
+              <p>클레이를 이야기합니다.</p>
 
-            <p>듀란트를 이야기합니다.</p>
+              <p>듀란트를 이야기합니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>하지만 그 팀을 특별하게 만든 것은</p>
+              <p>하지만 그 팀을 특별하게 만든 것은</p>
 
-            <p>개인의 재능이 아니었습니다.</p>
+              <p>개인의 재능이 아니었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>NBA에는 원래 재능 있는 선수들이 많았습니다.</p>
+              <p>NBA에는 원래 재능 있는 선수들이 많았습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>워리어스를 특별하게 만든 것은</p>
+              <p>워리어스를 특별하게 만든 것은</p>
 
-            <p>조율이었습니다.</p>
+              <p>조율이었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>그들은 같은 코트를 읽는 언어를 가지고 있었습니다.</p>
+              <p>그들은 같은 코트를 읽는 언어를 가지고 있었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>누가 어디에 있을지 알고 있었습니다.</p>
+              <p>누가 어디에 있을지 알고 있었습니다.</p>
 
-            <p>누가 무엇을 하려고 하는지 알고 있었습니다.</p>
+              <p>누가 무엇을 하려고 하는지 알고 있었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>그래서 더 빠르게 움직일 수 있었습니다.</p>
+              <p>그래서 더 빠르게 움직일 수 있었습니다.</p>
 
-            <p>서로를 더 잘 이해했기 때문입니다.</p>
+              <p>서로를 더 잘 이해했기 때문입니다.</p>
+            </SlideRow>
 
             <hr />
 

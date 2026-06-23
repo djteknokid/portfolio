@@ -18,7 +18,7 @@ const chapters = [
   { number: 13, slug: "industry-feeling",  title: "The Industry Is Already Feeling It",         time: "" },
   { number: 14, slug: "coordination-era",  title: "The Coordination Era",                       time: "" },
   { number: 15, slug: "raise-ceiling",     title: "Raise the Ceiling",                          time: "8–10 min" },
-  { number: 16, slug: "how-to-raise",      title: "How Do We Raise It?",                        time: "" },
+  { number: 16, slug: "how-to-raise",      title: "The Four Elements of Coordination",                        time: "" },
   { number: 17, slug: "conclusion",        title: "Conclusion",                                 time: "7 min" },
 ];
 
@@ -41,7 +41,7 @@ const sections = [
   {
     label: "The Thesis",
     subtitle: "The Coordination Era · Raising the ceiling",
-    chapters: [15, 16, 17, 18],
+    chapters: [15, 16, 17],
   },
 ];
 

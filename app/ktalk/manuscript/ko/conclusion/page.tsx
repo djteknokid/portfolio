@@ -20,6 +20,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -58,339 +62,246 @@ export default function Chapter17Ko() {
 
           <div className="chapter-body">
 
-            <p>처음 이야기로 돌아가 보겠습니다.</p>
+            <p>저는 이 발표를 고백으로 시작했습니다.</p>
 
-            <hr />
-
-            <p>한 PM이 디자인 리뷰에 들어옵니다.</p>
-
-            <hr />
-
-            <p>PRD를 들고 온 것이 아닙니다.</p>
-
-            <hr />
-
-            <p>와이어프레임을 들고 온 것도 아닙니다.</p>
-
-            <hr />
-
-            <p>프로토타입을 들고 왔습니다.</p>
-
-            <hr />
-
-            <p>실제로 동작합니다.</p>
-
-            <hr />
-
-            <p>인터랙션도 있습니다.</p>
-
-            <hr />
-
-            <p>바로 토론할 수 있을 정도로 완성되어 있습니다.</p>
-
-            <hr />
-
-            <p>그리고 맞은편에 앉아 있던 디자이너는 생각합니다.</p>
-
-            <hr />
-
-            <p>&ldquo;그래서… 나는 여기 왜 있는 거지?&rdquo;</p>
-
-            <hr />
-
-            <p>저는 그 질문에 대해 오랫동안 생각했습니다.</p>
-
-            <hr />
-
-            <p>그리고 지금은 이렇게 생각합니다.</p>
-
-            <hr />
-
-            <p>그 질문이 불편한 이유는</p>
-
-            <p>누군가가 디자이너의 일을 빼앗아서가 아닙니다.</p>
-
-            <hr />
-
-            <p>예전에는 답이 너무 명확했기 때문입니다.</p>
-
-            <hr />
-
-            <p>PM은 요구사항을 가져왔습니다.</p>
-
-            <hr />
-
-            <p>디자이너는 결과물을 만들었습니다.</p>
-
-            <hr />
-
-            <p>엔지니어는 제품을 만들었습니다.</p>
-
-            <hr />
-
-            <p>모두가 자신의 역할을 알았습니다.</p>
-
-            <hr />
-
-            <p>모두가 자신의 영역을 알았습니다.</p>
-
-            <hr />
-
-            <p>모두가 가치가 어디에서 만들어지는지 알고 있었습니다.</p>
-
-            <hr />
-
-            <p>그런데 지금은 다릅니다.</p>
-
-            <hr />
-
-            <p>경계는 흐려졌습니다.</p>
-
-            <hr />
-
-            <p>결과물은 넘쳐납니다.</p>
-
-            <hr />
-
-            <p>프로토타입은 어디에나 있습니다.</p>
-
-            <hr />
-
-            <p>그리고 답은 더 이상 명확하지 않습니다.</p>
-
-            <hr />
-
-            <p>하지만 저는 그것이 위기라고 생각하지 않습니다.</p>
-
-            <hr />
-
-            <p>저는 그것이 신호라고 생각합니다.</p>
-
-            <hr />
-
-            <p>왜냐하면 오늘 우리가 본 모든 이야기들은</p>
-
-            <p>결국 같은 패턴을 보여주고 있기 때문입니다.</p>
-
-            <hr />
-
-            <p>기술은 바닥을 올립니다.</p>
-
-            <hr />
-
-            <p>시장은 KPI를 바꿉니다.</p>
-
-            <hr />
-
-            <p>전문가는 천장을 올립니다.</p>
-
-            <hr />
-
-            <p>우리는 그것을 사진에서 봤습니다.</p>
-
-            <hr />
+            <p>10년을 직책을 쫓으며 살았습니다.</p>
 
-            <p>농구에서 봤습니다.</p>
+            <p>디자이너. 엔지니어. PM.</p>
 
-            <hr />
-
-            <p>음악에서 봤습니다.</p>
+            <p>그리고 최근에서야 그것들을 연결하는 패턴을 이해하게 되었습니다.</p>
 
             <hr />
 
-            <p>그리고 지금은 제품 개발에서도 보고 있습니다.</p>
-
-            <hr />
+            <p>그 패턴은 결코 기술(Craft)이 아니었습니다.</p>
 
-            <p>바닥이 다시 올라가고 있습니다.</p>
+            <p>항상 조율(Coordination)이었습니다.</p>
 
             <hr />
 
-            <p>그리고 바닥이 올라갈 때마다</p>
+            <p className="chapter-part-label" style={{ color: ACCENT, marginTop: "var(--sp-8)" }}>우리가 다룬 것들</p>
 
-            <p>사람들은 선택을 합니다.</p>
-
             <hr />
-
-            <p>어떤 사람들은</p>
 
-            <p>예전 가치의 정의를 지키기 위해 싸웁니다.</p>
-
-            <hr />
+            <p>AI는 창작의 비용을 낮췄습니다.</p>
 
-            <p>어떤 사람들은</p>
+            <p>바닥이 올라갔습니다.</p>
 
-            <p>새로운 병목으로 이동합니다.</p>
+            <p>우리는 이것을 전에도 본 적이 있습니다.</p>
 
             <hr />
 
-            <p>저는 커리어 내내</p>
+            <p>디지털 카메라는 사진의 바닥을 올렸습니다.</p>
 
-            <p>후자를 선택해 왔습니다.</p>
+            <p>시장은 기술적인 이미지에 보상을 주는 것을 멈췄습니다.</p>
 
-            <hr />
-
-            <p>거창한 계획이 있었던 것은 아닙니다.</p>
+            <p>그 순간의 감정에 보상을 주기 시작했습니다.</p>
 
             <hr />
 
-            <p>그저 마찰이 있는 곳을 따라갔습니다.</p>
+            <p>데이터 분석은 농구의 바닥을 올렸습니다.</p>
 
-            <hr />
+            <p>시장은 개인의 탁월함에 보상을 주는 것을 멈췄습니다.</p>
 
-            <p>병목이 있는 곳을 따라갔습니다.</p>
+            <p>팀 효율성에 보상을 주기 시작했습니다.</p>
 
             <hr />
 
-            <p>그리고 지난 1년 동안,</p>
+            <p>스트리밍은 음악의 바닥을 올렸습니다.</p>
 
-            <p>그 어느 때보다 뛰어난 도구와 능력을 가진 팀들을 보면서</p>
+            <p>시장은 노래 자체에 보상을 주는 것을 멈췄습니다.</p>
 
-            <p>한 가지를 발견했습니다.</p>
+            <p>노래를 둘러싼 문화에 보상을 주기 시작했습니다.</p>
 
             <hr />
-
-            <p>병목이 다시 이동했다는 것입니다.</p>
 
-            <hr />
+            <p>AI는 제품 개발의 바닥을 올리고 있습니다.</p>
 
-            <p>문제는 만드는 것이 아니었습니다.</p>
+            <p>시장은 이미 변하고 있습니다.</p>
 
-            <hr />
+            <p>결과물에 보상을 주는 것을 멈추고 있습니다.</p>
 
-            <p>문제는 결정하는 것이었습니다.</p>
+            <p>그 뒤에 있는 결정에 보상을 주기 시작하고 있습니다.</p>
 
             <hr />
 
-            <p>문제는 실행이 아니었습니다.</p>
+            <p className="chapter-part-label" style={{ color: ACCENT, marginTop: "var(--sp-8)" }}>신호들은 이미 거기에 있었습니다</p>
 
             <hr />
 
-            <p>문제는 정렬이었습니다.</p>
-
-            <hr />
+            <p>결과물은 만들기 쉬워지고 있습니다 — 그리고 차별화하기 어려워지고 있습니다.</p>
 
-            <p>문제는 창작이 아니었습니다.</p>
+            <p>역할의 경계가 흐려지고 있습니다 — 디자이너는 코딩하고, 엔지니어는 프로토타이핑하고, PM은 출시합니다.</p>
 
-            <hr />
+            <p>불만의 내용이 바뀌었습니다 — 팀이 아이디어가 부족해서 막히는 것이 아닙니다.</p>
 
-            <p>문제는 조율이었습니다.</p>
+            <p>어떤 아이디어를 추구할지 결정하지 못해서 막히고 있습니다.</p>
 
             <hr />
-
-            <p>그래서 저는 우리가</p>
 
-            <p>조율의 시대에 들어가고 있다고 믿습니다.</p>
+            <p>그것이 신호입니다.</p>
 
-            <hr />
+            <p>창작은 풍부합니다.</p>
 
-            <p>AI가 팀을 덜 중요하게 만들기 때문이 아닙니다.</p>
+            <p>조율은 희소합니다.</p>
 
             <hr />
 
-            <p>오히려 더 중요하게 만들기 때문입니다.</p>
+            <p className="chapter-part-label" style={{ color: ACCENT, marginTop: "var(--sp-8)" }}>네 가지 요소</p>
 
             <hr />
 
-            <p>창작이 중요하지 않게 되었기 때문이 아닙니다.</p>
+            <p>
+              조율은 소프트 스킬이 아닙니다. 성격 유형도 아닙니다.
+              배울 수 있는 역량의 집합입니다.
+            </p>
 
             <hr />
 
-            <p>창작이 풍부해졌기 때문입니다.</p>
+            <p>네 가지 요소가 있습니다.</p>
 
             <hr />
-
-            <p>그리고 창작이 풍부해질수록</p>
 
-            <p>다른 것이 희소해집니다.</p>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "120px 1fr",
+              gap: "0",
+              margin: "var(--sp-6) 0",
+              maxWidth: "560px",
+            }}>
+              {[
+                ["명확성",     "우리가 해결하려는 문제는 무엇인가?"],
+                ["트레이드오프", "우리는 무엇을 희생할 의향이 있는가?"],
+                ["우선순위",    "지금 가장 중요한 것은 무엇인가?"],
+                ["결정",       "우리는 무엇을 할 것인가?"],
+              ].map(([label, desc]) => (
+                <>
+                  <div key={`l-${label}`} style={{
+                    padding: "14px 0",
+                    borderTop: "1px solid rgba(0,0,0,0.08)",
+                    fontFamily: "var(--font-inter), system-ui, sans-serif",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: ACCENT,
+                  }}>
+                    {label}
+                  </div>
+                  <div key={`d-${label}`} style={{
+                    padding: "14px 0",
+                    borderTop: "1px solid rgba(0,0,0,0.08)",
+                    fontFamily: "var(--font-inter), system-ui, sans-serif",
+                    fontSize: "15px",
+                    color: "var(--ink)",
+                    lineHeight: 1.5,
+                  }}>
+                    {desc}
+                  </div>
+                </>
+              ))}
+            </div>
 
             <hr />
 
-            <p>명확성.</p>
+            <p>
+              네 가지가 모두 갖춰지면 팀은 움직입니다.
+            </p>
 
-            <hr />
-
-            <p>정렬.</p>
+            <p>
+              하나가 빠지면 팀은 멈춥니다 — 그리고 3개월 후 같은 대화를 반복합니다.
+            </p>
 
             <hr />
 
-            <p>공유된 이해.</p>
+            <p className="chapter-part-label" style={{ color: ACCENT, marginTop: "var(--sp-8)" }}>여러분에게 의미하는 것</p>
 
             <hr />
 
-            <p>그리고 사람들을 같은 방향으로 움직이게 하는 능력.</p>
-
-            <hr />
+            <p>AI는 조율할 수 있는 사람들을 대체하지 않을 것입니다.</p>
 
-            <p>그래서 오늘 여러분이 한 가지만 기억하고 가셨으면 좋겠습니다.</p>
+            <p>그들을 더 가치 있게 만들 것입니다.</p>
 
             <hr />
 
-            <p>두려움이 아닙니다.</p>
+            <p>왜냐하면 모두가 선택지를 만들어낼 수 있을 때,</p>
 
-            <hr />
-
-            <p>바닥이 올라가는 것을 두려워하지 마십시오.</p>
+            <p>그룹이 선택하도록 돕는 사람이 필수 불가결해지기 때문입니다.</p>
 
             <hr />
 
-            <p>역사는 그것이 처음이 아니라는 것을 보여줍니다.</p>
-
-            <hr />
+            <p>모두가 결과물을 만들 수 있을 때,</p>
 
-            <p>그리고 마지막도 아닐 것입니다.</p>
+            <p>팀이 올바른 문제에 정렬하도록 돕는 사람이 희소해지기 때문입니다.</p>
 
             <hr />
 
-            <p>결국 중요한 것은</p>
+            <p>모두가 빠르게 움직일 수 있을 때,</p>
 
-            <p>어떤 도구를 쓰느냐가 아닙니다.</p>
+            <p>팀이 함께 움직이도록 돕는 사람이 대체 불가능해지기 때문입니다.</p>
 
             <hr />
 
-            <p>어떤 프롬프트를 쓰느냐도 아닙니다.</p>
-
-            <hr />
-
-            <p>어떤 워크플로우를 쓰느냐도 아닙니다.</p>
-
-            <hr />
+            <p>바닥이 계속 올라갈 것인지의 문제가 아닙니다.</p>
 
-            <p>제가 앞으로 10년 동안 붙잡고 있으려고 하는 질문은 이것입니다.</p>
+            <p>올라갈 것입니다.</p>
 
             <hr />
 
-            <p><strong>어떻게 하면 우리 팀이 더 좋은 결정을 내리도록 도울 수 있을까?</strong></p>
+            <p>문제는 그 위에 여러분이 무엇을 쌓고 있느냐입니다.</p>
 
             <hr />
 
             <p>사진에서 결혼식으로.</p>
 
-            <hr />
-
             <p>선수에서 팀으로.</p>
 
-            <hr />
-
             <p>노래에서 문화로.</p>
-
-            <hr />
 
             <p>결과물에서 의사결정으로.</p>
 
             <hr />
 
-            <p>AI는 계속해서 바닥을 올릴 것입니다.</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/mindbook/ktalk/slides/ch17-conclusion.png"
+              alt="A group of people standing together facing mountains, with one person at the center holding a flag — the coordinator leading the team forward"
+              style={{
+                width: "100%",
+                display: "block",
+                borderRadius: "4px",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+                background: "#ffffff",
+                margin: "var(--sp-6) 0",
+              }}
+            />
 
             <hr />
 
-            <p>그리고 우리의 일은</p>
+            <p>AI는 바닥을 올릴 것입니다.</p>
 
-            <p>천장을 올리는 것입니다.</p>
+            <p>여러분의 일은 천장을 올리는 것입니다.</p>
 
-            <hr />
+            <p>그리고 천장을 올리는 방법은 조율하는 사람이 되는 것입니다.</p>
 
-            <p>감사합니다.</p>
+            <p style={{
+              fontFamily: "var(--font-playfair), Georgia, serif",
+              fontSize: "clamp(20px, 2.2vw, 28px)",
+              fontWeight: 700,
+              marginTop: "var(--sp-8)",
+            }}>감사합니다.</p>
+
+            <hr style={{ border: "none", borderTop: "1px solid rgba(0,0,0,0.10)", margin: "var(--sp-10) 0 var(--sp-8)" }} />
+
+            <p style={{
+              fontFamily: "var(--font-inter), system-ui, sans-serif",
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "var(--ink-light)",
+            }}>
+              원고 끝 · 조율의 시대 / The Coordination Era
+            </p>
 
           </div>
 

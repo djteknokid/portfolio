@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -58,17 +63,17 @@ export default function Chapter10Ko() {
 
           <div className="chapter-body">
 
-            <p>이 신호는 저에게 가장 개인적으로 와닿는 신호입니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch10-specialization.png" alt="Three people sitting in separate dashed circles on the floor, each in their own lane, smiling">
+              <p>이 신호는 저에게 가장 개인적으로 와닿는 신호입니다.</p>
 
-            <p>왜냐하면 제가 직접 경험했기 때문입니다.</p>
+              <p>왜냐하면 제가 직접 경험했기 때문입니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>제 커리어 대부분 동안</p>
+              <p>제 커리어 대부분 동안</p>
 
-            <p>제품 팀은 전문성(Specialization)을 중심으로 구성되어 있었습니다.</p>
-
-            <hr />
+              <p>제품 팀은 전문성(Specialization)을 중심으로 구성되어 있었습니다.</p>
+            </SlideRow>
 
             <p>PM은 요구사항을 정의했습니다.</p>
 
@@ -178,31 +183,33 @@ export default function Chapter10Ko() {
 
             <hr />
 
-            <p>회의 하나를 상상해 보겠습니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch10-talking-different.png" alt="Three people each moving different puzzle pieces in different directions, no one coordinating">
+              <p>회의 하나를 상상해 보겠습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>PM은 사용자 플로우를 보고 있습니다.</p>
+              <p>PM은 사용자 플로우를 보고 있습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>디자이너는 인터랙션 품질을 보고 있습니다.</p>
+              <p>디자이너는 인터랙션 품질을 보고 있습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>엔지니어는 기술적 구현 가능성을 보고 있습니다.</p>
+              <p>엔지니어는 기술적 구현 가능성을 보고 있습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>리서처는 사용자 행동을 생각하고 있습니다.</p>
+              <p>리서처는 사용자 행동을 생각하고 있습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>모두가 같은 화면을 보고 있습니다.</p>
+              <p>모두가 같은 화면을 보고 있습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>그런데 모두가 다른 이야기를 하고 있습니다.</p>
+              <p>그런데 모두가 다른 이야기를 하고 있습니다.</p>
+            </SlideRow>
 
             <hr />
 

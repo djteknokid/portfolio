@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -190,6 +195,10 @@ export default function Chapter4Ko() {
 
             <hr />
 
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch4-pm-explains.png"
+              alt="Person in an LA cap looking uncertain at a wireframe printout while a colleague leans in pointing at it"
+            >
             <p>이제 PM의 입장에서 이야기해 보겠습니다.</p>
 
             <p>왜냐하면 저는 지금 PM 역할을 하고 있으니까요.</p>
@@ -213,6 +222,7 @@ export default function Chapter4Ko() {
             <p>대화의 시작점.</p>
 
             <p>내가 무엇을 생각하고 있는지 설명하기 위한 도구.</p>
+            </SlideRow>
 
             <hr />
 
@@ -246,6 +256,10 @@ export default function Chapter4Ko() {
 
             <hr />
 
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch4-value-question.png"
+              alt="Person standing in front of a massive complex flowchart, scratching their head with a pencil"
+            >
             <p>그리고 여기서 저는 한 가지를 깨달았습니다.</p>
 
             <hr />
@@ -253,6 +267,7 @@ export default function Chapter4Ko() {
             <p>이건 사실 역할(Role)의 문제가 아니었습니다.</p>
 
             <p>가치(Value)의 문제였습니다.</p>
+            </SlideRow>
 
             <hr />
 

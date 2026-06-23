@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -58,31 +63,36 @@ export default function Chapter15Ko() {
 
           <div className="chapter-body">
 
-            <p>이 발표를 준비하기 시작했을 때,</p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch15-ai-progression.png"
+              alt="Progression: vibe coding → prototyping → agent workflows → agentic engineering"
+            >
+              <p>이 발표를 준비하기 시작했을 때,</p>
 
-            <p>저는 이 챕터가 AI 이야기가 될 줄 알았습니다.</p>
+              <p>저는 이 챕터가 AI 이야기가 될 줄 알았습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>20분 정도를 할애해서</p>
+              <p>20분 정도를 할애해서</p>
 
-            <p>도구들을 소개할 생각이었습니다.</p>
+              <p>도구들을 소개할 생각이었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>바이브 코딩.</p>
+              <p>바이브 코딩.</p>
 
-            <p>프로토타이핑.</p>
+              <p>프로토타이핑.</p>
 
-            <p>에이전트 워크플로우.</p>
+              <p>에이전트 워크플로우.</p>
 
-            <p>MCP.</p>
+              <p>MCP.</p>
 
-            <p>에이전틱 엔지니어링.</p>
+              <p>에이전틱 엔지니어링.</p>
 
-            <hr />
+              <hr />
 
-            <p>요즘 우리가 모두 실험하고 있는 것들 말입니다.</p>
+              <p>요즘 우리가 모두 실험하고 있는 것들 말입니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -524,15 +534,20 @@ export default function Chapter15Ko() {
 
             <hr />
 
-            <p>그렇다면 이제 질문은 이것입니다.</p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch15-raise-ceiling.png"
+              alt="Person standing on a cliff edge looking toward a mountain peak rising above the clouds"
+            >
+              <p>그렇다면 이제 질문은 이것입니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>바닥이 계속 올라간다면,</p>
+              <p>바닥이 계속 올라간다면,</p>
 
-            <hr />
+              <hr />
 
-            <p>천장은 무엇일까요?</p>
+              <p>천장은 무엇일까요?</p>
+            </SlideRow>
 
             <hr />
 
@@ -578,27 +593,18 @@ export default function Chapter15Ko() {
 
             <hr />
 
-            <p>사진</p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch15-kpi-expansion.png"
+              alt="Four panels: Photo → Wedding, Player → Team, Song → Culture, Design → Alignment"
+            >
+              <p>사진 → 결혼식</p>
 
-            <p>사진 → 결혼식</p>
+              <p>선수 → 팀</p>
 
-            <hr />
+              <p>노래 → 문화</p>
 
-            <p>농구</p>
-
-            <p>선수 → 팀</p>
-
-            <hr />
-
-            <p>음악</p>
-
-            <p>노래 → 문화</p>
-
-            <hr />
-
-            <p>디자인</p>
-
-            <p>결과물 → 의사결정</p>
+              <p>결과물 → <strong>의사결정</strong></p>
+            </SlideRow>
 
             <hr />
 

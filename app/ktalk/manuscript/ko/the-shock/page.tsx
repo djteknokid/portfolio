@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -58,124 +63,132 @@ export default function Chapter3Ko() {
 
           <div className="chapter-body">
 
-            <p>한 장면을 상상해 보겠습니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch3-design-review.png" alt="Person holding a laptop prototype in a meeting room — half the room cheering, the other half looking uneasy">
+              <p>한 장면을 상상해 보겠습니다.</p>
 
-            <p>PM이 디자인 리뷰에 들어옵니다.</p>
+              <p>PM이 디자인 리뷰에 들어옵니다.</p>
 
-            <p>손에 PRD를 들고 온 것도 아닙니다.</p>
+              <p>손에 PRD를 들고 온 것도 아닙니다.</p>
 
-            <p>와이어프레임을 들고 온 것도 아닙니다.</p>
+              <p>와이어프레임을 들고 온 것도 아닙니다.</p>
 
-            <p>프로토타입을 들고 왔습니다.</p>
+              <p>프로토타입을 들고 왔습니다.</p>
 
-            <p>고해상도.</p>
+              <p>고해상도.</p>
 
-            <p>실제 컴포넌트.</p>
+              <p>실제 컴포넌트.</p>
 
-            <p>인터랙션까지 구현되어 있습니다.</p>
+              <p>인터랙션까지 구현되어 있습니다.</p>
 
-            <p>심지어 코드로 만들어졌습니다.</p>
+              <p>심지어 코드로 만들어졌습니다.</p>
 
-            <p>하룻밤 만에.</p>
+              <p>하룻밤 만에.</p>
 
-            <hr />
+              <hr />
 
-            <p>그리고 그걸 본 디자이너는 한 가지 생각을 합니다.</p>
+              <p>그리고 그걸 본 디자이너는 한 가지 생각을 합니다.</p>
 
-            <blockquote><strong>&ldquo;그러면... 나는 여기 왜 있는 거지?&rdquo;</strong></blockquote>
+              <blockquote><strong>&ldquo;그러면... 나는 여기 왜 있는 거지?&rdquo;</strong></blockquote>
 
-            <hr />
+              <hr />
 
-            <p>저는 이 순간을 잠시 붙잡고 싶습니다.</p>
+              <p>저는 이 순간을 잠시 붙잡고 싶습니다.</p>
 
-            <p>빨리 넘어가지도 않고,</p>
+              <p>빨리 넘어가지도 않고,</p>
 
-            <p>긍정적으로 해석하지도 않고,</p>
+              <p>긍정적으로 해석하지도 않고,</p>
 
-            <p>괜찮다고 위로하지도 않고,</p>
+              <p>괜찮다고 위로하지도 않고,</p>
 
-            <p>그냥 잠시 이 감정을 그대로 바라보고 싶습니다.</p>
-
-            <hr />
-
-            <p>도대체 무엇이 바뀐 걸까요?</p>
+              <p>그냥 잠시 이 감정을 그대로 바라보고 싶습니다.</p>
+            </SlideRow>
 
             <hr />
 
-            <p>매주 새로운 AI 툴이 나옵니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch3-pm-sketch.png" alt="Person standing, showing a rough wireframe sketch to a colleague seated at a desk">
+              <p>도대체 무엇이 바뀐 걸까요?</p>
 
-            <p>새로운 모델이 나옵니다.</p>
+              <hr />
 
-            <p>새로운 기능이 나옵니다.</p>
+              <p>매주 새로운 AI 툴이 나옵니다.</p>
 
-            <p>
-              그리고 예전에는 디자이너가 해야 했던 일이
-              이제는 그렇지 않아도 되는 경우가 점점 많아지고 있습니다.
-            </p>
+              <p>새로운 모델이 나옵니다.</p>
 
-            <hr />
+              <p>새로운 기능이 나옵니다.</p>
 
-            <p>실제로 데이터도 있습니다.</p>
-
-            <p>
-              Tufts University에서 직업별 AI 노출도를 분석한 연구가 있었습니다.
-            </p>
-
-            <p>디자이너는 1위를 했습니다.</p>
-
-            <p>점수는 100점.</p>
-
-            <p>
-              조사된 직군 중 AI의 영향을 가장 크게 받을 것으로 예측된 직업이었습니다.
-            </p>
+              <p>
+                그리고 예전에는 디자이너가 해야 했던 일이
+                이제는 그렇지 않아도 되는 경우가 점점 많아지고 있습니다.
+              </p>
+            </SlideRow>
 
             <hr />
 
-            <p>채용 시장도 비슷한 신호를 보내고 있습니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch3-speed-vs-fidelity.png" alt="Left: people riding a rocket fast. Right: two people carefully laying stone bricks by hand.">
+              <p>실제로 데이터도 있습니다.</p>
 
-            <p>
-              지난 2년 동안 PM 채용과 디자이너 채용 추이를 보면
-              두 그래프가 조금씩 갈라지고 있습니다.
-            </p>
+              <p>
+                Tufts University에서 직업별 AI 노출도를 분석한 연구가 있었습니다.
+              </p>
 
-            <p>PM 채용은 늘어나고 있고,</p>
+              <p>디자이너는 1위를 했습니다.</p>
 
-            <p>디자이너 채용은 줄어들고 있습니다.</p>
+              <p>점수는 100점.</p>
+
+              <p>
+                조사된 직군 중 AI의 영향을 가장 크게 받을 것으로 예측된 직업이었습니다.
+              </p>
+
+              <hr />
+
+              <p>채용 시장도 비슷한 신호를 보내고 있습니다.</p>
+
+              <p>
+                지난 2년 동안 PM 채용과 디자이너 채용 추이를 보면
+                두 그래프가 조금씩 갈라지고 있습니다.
+              </p>
+
+              <p>PM 채용은 늘어나고 있고,</p>
+
+              <p>디자이너 채용은 줄어들고 있습니다.</p>
+
+              <hr />
+
+              <p>극적인 수준은 아닙니다.</p>
+
+              <p>재앙 수준도 아닙니다.</p>
+
+              <p>하지만 꾸준합니다.</p>
+
+              <p>한 방향으로.</p>
+            </SlideRow>
 
             <hr />
 
-            <p>극적인 수준은 아닙니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch3-designer-overwhelmed.png" alt="Person at a desk with hands on head, surrounded by scattered sketches, overwhelmed">
+              <p>
+                그래서 아까 그 디자인 리뷰에 앉아 있던 디자이너는
+                괜한 걱정을 하는 것이 아닙니다.
+              </p>
 
-            <p>재앙 수준도 아닙니다.</p>
+              <p>과민반응을 하는 것도 아닙니다.</p>
 
-            <p>하지만 꾸준합니다.</p>
+              <hr />
 
-            <p>한 방향으로.</p>
+              <p>방 안의 분위기를 정확하게 읽고 있는 겁니다.</p>
 
-            <hr />
+              <p>무언가가 바뀌고 있습니다.</p>
 
-            <p>
-              그래서 아까 그 디자인 리뷰에 앉아 있던 디자이너는
-              괜한 걱정을 하는 것이 아닙니다.
-            </p>
+              <hr />
 
-            <p>과민반응을 하는 것도 아닙니다.</p>
+              <p>&ldquo;그러면 나는 여기 왜 있는 거지?&rdquo;</p>
 
-            <hr />
+              <hr />
 
-            <p>방 안의 분위기를 정확하게 읽고 있는 겁니다.</p>
+              <p>이건 진짜 질문입니다.</p>
 
-            <p>무언가가 바뀌고 있습니다.</p>
-
-            <hr />
-
-            <p>&ldquo;그러면 나는 여기 왜 있는 거지?&rdquo;</p>
-
-            <hr />
-
-            <p>이건 진짜 질문입니다.</p>
-
-            <p>그리고 저는 이 질문이 진짜 답을 받을 자격이 있다고 생각합니다.</p>
+              <p>그리고 저는 이 질문이 진짜 답을 받을 자격이 있다고 생각합니다.</p>
+            </SlideRow>
 
             <hr />
 

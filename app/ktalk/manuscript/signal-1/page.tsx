@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebar from "../ManuscriptSidebar";
+import SlideRow from "../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -19,7 +20,11 @@ const chapters = [
   { number: 13, slug: "industry-feeling",  title: "The Industry Is Already Feeling It" },
   { number: 14, slug: "coordination-era",  title: "The Coordination Era" },
   { number: 15, slug: "raise-ceiling",     title: "Raise the Ceiling" },
-  { number: 16, slug: "how-to-raise",      title: "How Do We Raise It?" },
+  { number: 16, slug: "how-to-raise",      title: "The Four Elements of Coordination" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. Clarity" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. Trade-offs" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. Priority" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. Decision" },
   { number: 17, slug: "conclusion",        title: "Conclusion" },
 ];
 
@@ -54,16 +59,21 @@ export default function Chapter9() {
 
             <hr />
 
-            <p>
-              For most of the history of product development, creating artifacts was
-              expensive.
-            </p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch9-artifact-expensive.png"
+              alt="Designer working under pressure at laptop while stakeholders wait impatiently"
+            >
+              <p>
+                For most of the history of product development, creating artifacts was
+                expensive.
+              </p>
 
-            <p>Wireframes took time.</p>
+              <p>Wireframes took time.</p>
 
-            <p>Mockups took skill.</p>
+              <p>Mockups took skill.</p>
 
-            <p>Prototypes took even more skill.</p>
+              <p>Prototypes took even more skill.</p>
+            </SlideRow>
 
             <p>
               If you wanted something interactive and realistic, there were only a handful
@@ -116,17 +126,22 @@ export default function Chapter9() {
 
             <hr />
 
-            <p>Walk into a meeting today and you&rsquo;ll see it.</p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch9-everyone-has-prototype.png"
+              alt="Team meeting with walls covered in wireframes and prototypes, everyone pointing at different things"
+            >
+              <p>Walk into a meeting today and you&rsquo;ll see it.</p>
 
-            <p>A PM has a prototype.</p>
+              <p>A PM has a prototype.</p>
 
-            <p>The designer has a prototype.</p>
+              <p>The designer has a prototype.</p>
 
-            <p>The engineer has a prototype.</p>
+              <p>The engineer has a prototype.</p>
 
-            <p>Everyone has an opinion.</p>
+              <p>Everyone has an opinion.</p>
 
-            <p>And now everyone has a visual representation of that opinion.</p>
+              <p>And now everyone has a visual representation of that opinion.</p>
+            </SlideRow>
 
             <hr />
 

@@ -20,7 +20,11 @@ const chapters = [
   { number: 13, slug: "industry-feeling",  title: "The Industry Is Already Feeling It" },
   { number: 14, slug: "coordination-era",  title: "The Coordination Era" },
   { number: 15, slug: "raise-ceiling",     title: "Raise the Ceiling" },
-  { number: 16, slug: "how-to-raise",      title: "How Do We Raise It?" },
+  { number: 16, slug: "how-to-raise",      title: "The Four Elements of Coordination" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. Clarity" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. Trade-offs" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. Priority" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. Decision" },
   { number: 17, slug: "conclusion",        title: "Conclusion" },
 ];
 
@@ -41,7 +45,7 @@ export default function Chapter13() {
             <p className="chapter-part-subtitle">The Coordination Era · 조율의 시대</p>
             <div style={{ position: "relative", marginTop: "var(--sp-8)" }}>
               <div className="chapter-ghost-number" aria-hidden="true" style={{ position: "absolute", top: "-0.15em", left: "-0.05em", zIndex: 0 }}>12</div>
-              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>What All Four Signals Share</h1>
+              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>What All Three Signals Share</h1>
             </div>
           </div>
 
@@ -50,11 +54,11 @@ export default function Chapter13() {
             <p>Let me put the three signals next to each other.</p>
 
             <p>
-              Artifact creation is no longer scarce. The number of options has exploded. Role
-              boundaries are blurring. The complaint has shifted from capacity to clarity.
+              Artifact creation is no longer scarce. Role boundaries are blurring.
+              The complaint has shifted from capacity to clarity.
             </p>
 
-            <p>Four different observations. Four different angles. Same underlying shape.</p>
+            <p>Three different observations. Three different angles. Same underlying shape.</p>
 
             <p>
               What they all have in common is this: creation is becoming abundant. And the

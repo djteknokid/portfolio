@@ -19,7 +19,11 @@ const chapters = [
   { number: 13, slug: "industry-feeling",  title: "The Industry Is Already Feeling It" },
   { number: 14, slug: "coordination-era",  title: "The Coordination Era" },
   { number: 15, slug: "raise-ceiling",     title: "Raise the Ceiling" },
-  { number: 16, slug: "how-to-raise",      title: "How Do We Raise It?" },
+  { number: 16, slug: "how-to-raise",      title: "The Four Elements of Coordination" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. Clarity" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. Trade-offs" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. Priority" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. Decision" },
   { number: 17, slug: "conclusion",        title: "Conclusion" },
 ];
 

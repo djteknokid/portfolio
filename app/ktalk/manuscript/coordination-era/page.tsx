@@ -20,7 +20,11 @@ const chapters = [
   { number: 13, slug: "industry-feeling",  title: "The Industry Is Already Feeling It" },
   { number: 14, slug: "coordination-era",  title: "The Coordination Era" },
   { number: 15, slug: "raise-ceiling",     title: "Raise the Ceiling" },
-  { number: 16, slug: "how-to-raise",      title: "How Do We Raise It?" },
+  { number: 16, slug: "how-to-raise",      title: "The Four Elements of Coordination" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. Clarity" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. Trade-offs" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. Priority" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. Decision" },
   { number: 17, slug: "conclusion",        title: "Conclusion" },
 ];
 
@@ -112,11 +116,16 @@ export default function Chapter14() {
 
             <hr />
 
-            <p>The question is not whether these things existed.</p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch14-market-rewarding.png"
+              alt="Person receiving a trophy on stage in front of an applauding audience"
+            >
+              <p>The question is not whether these things existed.</p>
 
-            <p>The question is:</p>
+              <p>The question is:</p>
 
-            <p><strong>What is the market rewarding now?</strong></p>
+              <p><strong>What is the market rewarding now?</strong></p>
+            </SlideRow>
 
             <hr />
 
@@ -164,21 +173,26 @@ export default function Chapter14() {
 
             <hr />
 
-            <p>
-              I&rsquo;m talking about the ability to help a group of smart people&mdash;
-            </p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch14-group-alignment.png"
+              alt="Person leading a group of professionals walking in the same direction"
+            >
+              <p>
+                I&rsquo;m talking about the ability to help a group of smart people&mdash;
+              </p>
 
-            <p>People with different information.</p>
+              <p>People with different information.</p>
 
-            <p>Different incentives.</p>
+              <p>Different incentives.</p>
 
-            <p>Different priorities.</p>
+              <p>Different priorities.</p>
 
-            <p>Different opinions.</p>
+              <p>Different opinions.</p>
 
-            <p>&mdash;arrive at a shared understanding of what matters.</p>
+              <p>&mdash;arrive at a shared understanding of what matters.</p>
 
-            <p>And then move together.</p>
+              <p>And then move together.</p>
+            </SlideRow>
 
             <hr />
 
@@ -300,29 +314,39 @@ export default function Chapter14() {
 
             <hr />
 
-            <p><strong>Wave 1</strong></p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch14-wave2-collective.png"
+              alt="Person with multiple arms at a wall of monitors — each screen showing a networked brain"
+            >
+              <p><strong>Wave 1</strong></p>
 
-            <p>Individual leverage.</p>
+              <p>Individual leverage.</p>
 
-            <p>One person doing the work of ten.</p>
+              <p>One person doing the work of ten.</p>
 
-            <p>That&rsquo;s what everyone is talking about today.</p>
+              <p>That&rsquo;s what everyone is talking about today.</p>
 
-            <p>And they&rsquo;re right.</p>
+              <p>And they&rsquo;re right.</p>
 
-            <p>It&rsquo;s real.</p>
+              <p>It&rsquo;s real.</p>
+            </SlideRow>
 
             <hr />
 
-            <p><strong>Wave 2</strong></p>
+            <SlideRow
+              image="/mindbook/ktalk/slides/ch14-wave2-team.png"
+              alt="Team gathered around a shared screen, aligned on the same design"
+            >
+              <p><strong>Wave 2</strong></p>
 
-            <p>Collective leverage.</p>
+              <p>Collective leverage.</p>
 
-            <p>
-              Ten people operating with the speed and clarity of a single system.
-            </p>
+              <p>
+                Ten people operating with the speed and clarity of a single system.
+              </p>
 
-            <p>That&rsquo;s what I think comes next.</p>
+              <p>That&rsquo;s what I think comes next.</p>
+            </SlideRow>
 
             <hr />
 

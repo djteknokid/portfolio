@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -104,29 +109,29 @@ export default function Chapter8Ko() {
 
             <hr />
 
-            <p>지난 1년 동안 저는 대기업 안에서 AI 제품을 만들고 있었습니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch8-artifact-overflow.png" alt="Person overwhelmed at a laptop with wireframes and design artifacts flying everywhere">
+              <p>지난 1년 동안 저는 대기업 안에서 AI 제품을 만들고 있었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>그리고 솔직히 말하면,</p>
+              <p>그리고 솔직히 말하면,</p>
 
-            <p>저는 앞으로 무슨 일이 일어날지 어느 정도 알고 있다고 생각했습니다.</p>
+              <p>저는 앞으로 무슨 일이 일어날지 어느 정도 알고 있다고 생각했습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>AI가 팀을 더 빠르게 만들 것이라고 생각했습니다.</p>
+              <p>AI가 팀을 더 빠르게 만들 것이라고 생각했습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>더 많은 것을 만들고,</p>
+              <p>더 많은 것을 만들고,</p>
 
-            <p>더 많은 프로토타입을 만들고,</p>
+              <p>더 많은 프로토타입을 만들고,</p>
 
-            <p>더 많은 실험을 하고,</p>
+              <p>더 많은 실험을 하고,</p>
 
-            <p>더 많은 것을 출시하게 될 것이라고 생각했습니다.</p>
-
-            <hr />
+              <p>더 많은 것을 출시하게 될 것이라고 생각했습니다.</p>
+            </SlideRow>
 
             <p>그리고 실제로 그렇게 되었습니다.</p>
 
@@ -270,37 +275,41 @@ export default function Chapter8Ko() {
 
             <hr />
 
-            <p>회의가 달라졌습니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch8-meetings-different.png" alt="Person juggling multiple flying design artifacts — wireframes, images, video frames — from behind a laptop">
+              <p>회의가 달라졌습니다.</p>
+
+              <hr />
+
+              <p>더 나빠진 것은 아닙니다.</p>
+
+              <hr />
+
+              <p>그냥 달라졌습니다.</p>
+            </SlideRow>
 
             <hr />
 
-            <p>더 나빠진 것은 아닙니다.</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch8-everyone-has-prototype.png" alt="Three people at a meeting table — each holding a thick stack of printed prototypes, arguing past each other">
+              <p>아이디어가 더 많아졌습니다.</p>
 
-            <hr />
+              <p>프로토타입이 더 많아졌습니다.</p>
 
-            <p>그냥 달라졌습니다.</p>
+              <p>산출물이 더 많아졌습니다.</p>
 
-            <hr />
+              <p>옵션이 더 많아졌습니다.</p>
 
-            <p>아이디어가 더 많아졌습니다.</p>
+              <p>방향성이 더 많아졌습니다.</p>
 
-            <p>프로토타입이 더 많아졌습니다.</p>
+              <p>의견도 더 많아졌습니다.</p>
 
-            <p>산출물이 더 많아졌습니다.</p>
+              <hr />
 
-            <p>옵션이 더 많아졌습니다.</p>
+              <p>모든 것이 더 많아졌습니다.</p>
 
-            <p>방향성이 더 많아졌습니다.</p>
+              <hr />
 
-            <p>의견도 더 많아졌습니다.</p>
-
-            <hr />
-
-            <p>모든 것이 더 많아졌습니다.</p>
-
-            <hr />
-
-            <p>그런데 이상하게도&hellip;</p>
+              <p>그런데 이상하게도&hellip;</p>
+            </SlideRow>
 
             <hr />
 

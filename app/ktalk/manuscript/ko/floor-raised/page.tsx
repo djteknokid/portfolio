@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ManuscriptSidebarKo from "../ManuscriptSidebarKo";
+import SlideRow from "../../SlideRow";
 
 const ACCENT = "#bc7155";
 
@@ -20,6 +21,10 @@ const chapters = [
   { number: 14, slug: "coordination-era",  title: "조율의 시대" },
   { number: 15, slug: "raise-ceiling",     title: "천장을 높여라" },
   { number: 16, slug: "how-to-raise",      title: "어떻게 높일 것인가" },
+  { number: "16a" as unknown as number, slug: "how-to-raise/clarity",    title: "16a. 명확성" },
+  { number: "16b" as unknown as number, slug: "how-to-raise/trade-offs", title: "16b. 트레이드오프" },
+  { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. 우선순위" },
+  { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. 결정" },
   { number: 17, slug: "conclusion",        title: "마치며" },
 ];
 
@@ -58,15 +63,17 @@ export default function Chapter5Ko() {
 
           <div className="chapter-body">
 
-            <p>
-              이제부터 이 발표 전체를 관통하는 중요한 개념 하나를 소개하고 싶습니다.
-            </p>
+            <SlideRow image="/mindbook/ktalk/slides/ch5-floor-raised.png" alt="Person standing on a rising platform being pushed upward, pressing against a low ceiling">
+              <p>
+                이제부터 이 발표 전체를 관통하는 중요한 개념 하나를 소개하고 싶습니다.
+              </p>
 
-            <p>기술은 바닥(Floor)을 올립니다.</p>
+              <p>기술은 바닥(Floor)을 올립니다.</p>
 
-            <p>항상 그래왔습니다.</p>
+              <p>항상 그래왔습니다.</p>
 
-            <p>그리고 저는 지금도 같은 일이 벌어지고 있다고 생각합니다.</p>
+              <p>그리고 저는 지금도 같은 일이 벌어지고 있다고 생각합니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -165,41 +172,43 @@ export default function Chapter5Ko() {
 
             <hr />
 
-            <p>디지털 카메라가 등장하기 전,</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch5-film-photographer.png" alt="Person in a darkroom holding up a strip of film negatives, prints hanging on a line behind them">
+              <p>디지털 카메라가 등장하기 전,</p>
 
-            <p>사진작가는 굉장히 특별한 직업이었습니다.</p>
+              <p>사진작가는 굉장히 특별한 직업이었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>비싼 장비가 있었고,</p>
+              <p>비싼 장비가 있었고,</p>
 
-            <p>필름을 이해했고,</p>
+              <p>필름을 이해했고,</p>
 
-            <p>조명을 이해했고,</p>
+              <p>조명을 이해했고,</p>
 
-            <p>다른 사람들이 놓치는 순간을 포착할 수 있었습니다.</p>
+              <p>다른 사람들이 놓치는 순간을 포착할 수 있었습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>특히 결혼식이라면 더 그랬습니다.</p>
+              <p>특히 결혼식이라면 더 그랬습니다.</p>
 
-            <p>아마 그 공간에서</p>
+              <p>아마 그 공간에서</p>
 
-            <p>그 하루를 제대로 기록할 수 있는 유일한 사람이었을 겁니다.</p>
+              <p>그 하루를 제대로 기록할 수 있는 유일한 사람이었을 겁니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>당시 KPI는 아주 단순했습니다.</p>
+              <p>당시 KPI는 아주 단순했습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>좋은 사진을 찍을 수 있는가?</p>
+              <p>좋은 사진을 찍을 수 있는가?</p>
 
-            <hr />
+              <hr />
 
-            <p>그것이 직업이었고,</p>
+              <p>그것이 직업이었고,</p>
 
-            <p>그것이 가치였습니다.</p>
+              <p>그것이 가치였습니다.</p>
+            </SlideRow>
 
             <hr />
 
@@ -253,27 +262,29 @@ export default function Chapter5Ko() {
 
             <hr />
 
-            <p>성공한 사진작가들은</p>
+            <SlideRow image="/mindbook/ktalk/slides/ch5-wedding-photographer.png" alt="Photographer from behind, shooting a wedding party on a scenic terrace">
+              <p>성공한 사진작가들은</p>
 
-            <p>이런 질문을 하지 않았습니다.</p>
+              <p>이런 질문을 하지 않았습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>&ldquo;어떻게 하면 사진을 조금 더 선명하게 찍을 수 있을까?&rdquo;</p>
+              <p>&ldquo;어떻게 하면 사진을 조금 더 선명하게 찍을 수 있을까?&rdquo;</p>
 
-            <hr />
+              <hr />
 
-            <p>대신 이런 질문을 했습니다.</p>
+              <p>대신 이런 질문을 했습니다.</p>
 
-            <hr />
+              <hr />
 
-            <p>
-              &ldquo;어떻게 하면 이 결혼식을 잊지 못할 경험으로 만들 수 있을까?&rdquo;
-            </p>
+              <p>
+                &ldquo;어떻게 하면 이 결혼식을 잊지 못할 경험으로 만들 수 있을까?&rdquo;
+              </p>
 
-            <hr />
+              <hr />
 
-            <p>완전히 다른 질문입니다.</p>
+              <p>완전히 다른 질문입니다.</p>
+            </SlideRow>
 
             <hr />
 
