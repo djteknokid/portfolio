@@ -124,14 +124,7 @@ export default function Chapter16b() {
             <img
               src="/mindbook/ktalk/slides/ch16b-benefit-risk-acceptance.png"
               alt="Three-panel sequence: Benefit (window seat with a view) → Risk (passenger in front reclines) → Acceptance (relaxing anyway)"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "4px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                background: "#ffffff",
-                margin: "var(--sp-6) 0",
-              }}
+              className="chapter-image"
             />
 
             <hr />
@@ -212,14 +205,7 @@ export default function Chapter16b() {
             <img
               src="/mindbook/ktalk/slides/ch16b-tradeoffs-mindset.png"
               alt="Trade-offs summary: BENEFIT (User Value, Business Value, Strategic Value) · RISK (User Risk, Operational Risk, Strategic Risk) · ACCEPTANCE (Personal Acceptance, Team Acceptance, Organizational Acceptance)"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "4px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                background: "#ffffff",
-                margin: "var(--sp-6) 0",
-              }}
+              className="chapter-image"
             />
 
             <p className="chapter-part-label" style={{ color: ACCENT, marginTop: "var(--sp-8)" }}>Mindsets</p>

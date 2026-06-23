@@ -265,14 +265,7 @@ export default function Chapter17Ko() {
             <img
               src="/mindbook/ktalk/slides/ch17-conclusion.png"
               alt="A group of people standing together facing mountains, with one person at the center holding a flag — the coordinator leading the team forward"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "4px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                background: "#ffffff",
-                margin: "var(--sp-6) 0",
-              }}
+              className="chapter-image"
             />
 
             <hr />

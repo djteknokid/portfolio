@@ -139,14 +139,7 @@ export default function Chapter16dKo() {
             <img
               src="/mindbook/ktalk/slides/ch16d-stakeholders-accountability-nextstep.png"
               alt="Three-panel sequence: Stakeholders (three people thinking different thoughts) → Accountability (나만 믿어, 내가 쏜다) → Next Step (group boarding a bus toward Seoul Tower)"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "4px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                background: "#ffffff",
-                margin: "var(--sp-6) 0",
-              }}
+              className="chapter-image"
             />
 
             <hr />
@@ -189,14 +182,7 @@ export default function Chapter16dKo() {
             <img
               src="/mindbook/ktalk/slides/ch16d-decision-mindset.png"
               alt="Decision summary: STAKEHOLDERS (Decision Makers, Execution Partners, Impacted People) · ACCOUNTABILITY (Individual Accountability, Team Accountability, Organizational Accountability) · NEXT STEP (Immediate Next Step, Milestone Next Step, Outcome Next Step)"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "4px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                background: "#ffffff",
-                margin: "var(--sp-6) 0",
-              }}
+              className="chapter-image"
             />
 
             <p className="chapter-part-label" style={{ color: ACCENT, marginTop: "var(--sp-8)" }}>마인드셋</p>

@@ -123,14 +123,7 @@ export default function Chapter16aKo() {
             <img
               src="/mindbook/ktalk/slides/ch16a-user-problem-success.png"
               alt="Three-panel sequence: User (traveller at airport) → Problem (struggling with heavy luggage) → Success (walking confidently with rolling bag)"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "4px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                background: "#ffffff",
-                margin: "var(--sp-6) 0",
-              }}
+              className="chapter-image"
             />
 
             <hr />
@@ -206,14 +199,7 @@ export default function Chapter16aKo() {
             <img
               src="/mindbook/ktalk/slides/ch16a-clarity-mindset.png"
               alt="Clarity summary: USER (Bring the user into the room, User Segmentation, User Needs & Goals) · PROBLEM (Don't stop at the symptom, Root Cause Analysis, Problem Framing) · SUCCESS (Start with the finish line, Success Metrics, Experimentation & Iteration)"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "4px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                background: "#ffffff",
-                margin: "var(--sp-6) 0",
-              }}
+              className="chapter-image"
             />
 
             <p className="chapter-part-label" style={{ color: ACCENT, marginTop: "var(--sp-8)" }}>마인드셋</p>

@@ -43,7 +43,10 @@
 
 .chapter-content {
   width: 100%;
-  padding: var(--sp-12) var(--sp-10) var(--sp-18);
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: var(--sp-12) var(--sp-6) var(--sp-18);
 }
 
 .chapter-body > p,
@@ -52,10 +55,16 @@
 .chapter-body > blockquote,
 .chapter-body > ul,
 .chapter-body > ol,
-.chapter-body > hr {
+.chapter-body > hr,
+.chapter-body > div {
   max-width: 680px;
   margin-left: auto;
   margin-right: auto;
+}
+
+@media (max-width: 900px) {
+  .chapter-page { margin-left: 0; }
+  .chapter-content { padding: var(--sp-6) var(--sp-4) var(--sp-12); }
 }
 
 .chapter-prose {
@@ -304,6 +313,19 @@
   color: var(--ink-muted);
   line-height: 1.6;
   max-width: 560px;
+}
+
+/* ════════════════════════════════════════
+   MANUSCRIPT IMAGES
+   ════════════════════════════════════════ */
+
+.chapter-image {
+  width: 100%;
+  display: block;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  background: #ffffff;
+  margin: var(--sp-6) 0;
 }
 
 /* ════════════════════════════════════════

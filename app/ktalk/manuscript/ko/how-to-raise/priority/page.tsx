@@ -143,14 +143,7 @@ export default function Chapter16cKo() {
             <img
               src="/mindbook/ktalk/slides/ch16c-urgency-impact-cost.png"
               alt="Priority table: Task / Urgency / Impact / Cost — Roof leak (High/High/High starred), Paint wall (Low/Low/Medium), Fix door (Medium/Low/Low)"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "4px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                background: "#ffffff",
-                margin: "var(--sp-6) 0",
-              }}
+              className="chapter-image"
             />
 
             <hr />
@@ -224,14 +217,7 @@ export default function Chapter16cKo() {
             <img
               src="/mindbook/ktalk/slides/ch16c-priority-mindset.png"
               alt="Priority summary: URGENCY (Immediate, Near-Term, Strategic) · IMPACT (User Impact, Business Impact, Strategic Impact) · EFFORT (Design Effort, Delivery Effort, Organizational Effort)"
-              style={{
-                width: "100%",
-                display: "block",
-                borderRadius: "4px",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                background: "#ffffff",
-                margin: "var(--sp-6) 0",
-              }}
+              className="chapter-image"
             />
 
             <p className="chapter-part-label" style={{ color: ACCENT, marginTop: "var(--sp-8)" }}>마인드셋</p>
