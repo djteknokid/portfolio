@@ -26,6 +26,12 @@ const chapters = [
   { number: "16c" as unknown as number, slug: "how-to-raise/priority",   title: "16c. Priority" },
   { number: "16d" as unknown as number, slug: "how-to-raise/decision",   title: "16d. Decision" },
   { number: 17, slug: "conclusion",        title: "Conclusion" },
+  { number: "B1" as unknown as number, slug: "bonus/yeawon-kim",  title: "Bonus — Yeawon Kim" },
+  { number: "B2" as unknown as number, slug: "bonus/wenyang-mu",   title: "Bonus — Wenyang Mu" },
+  { number: "B3" as unknown as number, slug: "bonus/yuha-kim",     title: "Bonus — Yuha Kim" },
+  { number: "B4" as unknown as number, slug: "bonus/vivian-chu",   title: "Bonus — Vivian Chu" },
+  { number: "B5" as unknown as number, slug: "bonus/insun-ahn",     title: "Bonus — Insun Ahn" },
+  { number: "B6" as unknown as number, slug: "bonus/bryan-oh",      title: "Bonus — Bryan Oh" },
 ];
 
 const currentSlug = "signals-summary";
