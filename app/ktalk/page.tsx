@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 
 const T = {
@@ -613,30 +613,69 @@ const slides: SlideData[] = [
 export default function KoreaTalk() {
   const [current, setCurrent] = useState(0);
   const [showHint, setShowHint] = useState(true);
-  const [scriptOpen, setScriptOpen] = useState(false);
+  const [presenterOpen, setPresenterOpen] = useState(false);
   const total = slides.length;
   const containerRef = useRef<HTMLDivElement>(null);
+  const presenterRef = useRef<Window | null>(null);
+  const bcRef = useRef<BroadcastChannel | null>(null);
 
   const prev = useCallback(() => setCurrent(i => Math.max(0, i - 1)), []);
   const next = useCallback(() => setCurrent(i => Math.min(total - 1, i + 1)), [total]);
 
   const slide = slides[current];
-  const hasScript = !!slide.script;
+  // Slides metadata for presenter window
+  const slidesForPresenter = useMemo(() =>
+    slides.map(s => ({ id: s.id, tag: s.tag, title: s.title, script: s.script })),
+  []);
 
+  const currentRef = useRef(current);
+  useEffect(() => { currentRef.current = current; }, [current]);
+
+  // BroadcastChannel: set up once, respond to PING with PONG+SLIDES, accept SLIDE from presenter
   useEffect(() => {
-    if (!slide.script) setScriptOpen(false);
-  }, [current, slide.script]);
+    bcRef.current = new BroadcastChannel("ktalk-presenter");
+    bcRef.current.onmessage = (e) => {
+      const data = e.data;
+      if (data?.type === "PING") {
+        bcRef.current?.postMessage({ type: "SLIDES", slides: slidesForPresenter, index: currentRef.current });
+      }
+      if (data?.type === "SLIDE") {
+        setCurrent(data.index);
+      }
+    };
+    return () => bcRef.current?.close();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slidesForPresenter]);
+
+  // Broadcast current slide index whenever it changes
+  useEffect(() => {
+    bcRef.current?.postMessage({ type: "SLIDE", index: current });
+  }, [current]);
+
+  function openPresenter() {
+    if (presenterRef.current && !presenterRef.current.closed) {
+      presenterRef.current.focus();
+      return;
+    }
+    const win = window.open(
+      "/ktalk/presenter",
+      "ktalk-presenter",
+      "width=920,height=660,menubar=no,toolbar=no,status=no,resizable=yes"
+    );
+    presenterRef.current = win;
+    setPresenterOpen(true);
+    win?.addEventListener("beforeunload", () => setPresenterOpen(false));
+  }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && scriptOpen) { e.preventDefault(); setScriptOpen(false); return; }
       if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") { e.preventDefault(); next(); }
       if (e.key === "ArrowLeft"  || e.key === "ArrowUp")                    { e.preventDefault(); prev(); }
       if (e.key === "f" || e.key === "F") toggleFullscreen();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [next, prev, scriptOpen]);
+  }, [next, prev]);
 
   useEffect(() => {
     const t = setTimeout(() => setShowHint(false), 3000);
@@ -702,33 +741,31 @@ export default function KoreaTalk() {
         }
       </div>
 
-      {/* Script button — only shown when slide has a script */}
-      {hasScript && (
-        <button
-          onClick={() => setScriptOpen(o => !o)}
-          title="Toggle script (S)"
-          style={{
-            position: "absolute",
-            top: "20px",
-            right: "64px",
-            zIndex: 20,
-            background: scriptOpen ? T.sienna : "rgba(255,255,255,0.07)",
-            border: `1px solid ${scriptOpen ? T.sienna : "rgba(255,255,255,0.12)"}`,
-            color: scriptOpen ? T.white : T.stone,
-            width: "36px",
-            height: "36px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "15px",
-            borderRadius: "4px",
-            transition: "background 0.2s, border-color 0.2s, color 0.2s",
-          }}
-        >
-          ☰
-        </button>
-      )}
+      {/* Script / Presenter button — always visible */}
+      <button
+        onClick={openPresenter}
+        title="Open presenter window"
+        style={{
+          position: "absolute",
+          top: "20px",
+          right: "64px",
+          zIndex: 20,
+          background: presenterOpen ? T.sienna : "rgba(255,255,255,0.07)",
+          border: `1px solid ${presenterOpen ? T.sienna : "rgba(255,255,255,0.12)"}`,
+          color: presenterOpen ? T.white : T.stone,
+          width: "36px",
+          height: "36px",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "15px",
+          borderRadius: "4px",
+          transition: "background 0.2s, border-color 0.2s, color 0.2s",
+        }}
+      >
+        ☰
+      </button>
 
       {/* Fullscreen button */}
       <button
@@ -756,9 +793,6 @@ export default function KoreaTalk() {
         ⤢
       </button>
 
-      {/* Script panel */}
-      <ScriptPanel open={scriptOpen} slide={slide} onClose={() => setScriptOpen(false)} />
-
       {/* Keyboard hint */}
       <div style={{
         position: "absolute",
@@ -777,75 +811,6 @@ export default function KoreaTalk() {
         whiteSpace: "nowrap",
       }}>
         ← → arrow keys · F fullscreen
-      </div>
-    </div>
-  );
-}
-
-/* ── SCRIPT PANEL ── */
-function ScriptPanel({ open, slide, onClose }: { open: boolean; slide: SlideData; onClose: () => void }) {
-  return (
-    <div style={{
-      position: "fixed",
-      top: 0, right: 0,
-      width: "min(480px, 40vw)",
-      height: "100vh",
-      background: "rgba(0,13,16,0.97)",
-      backdropFilter: "blur(10px)",
-      borderLeft: "1px solid rgba(255,255,255,0.08)",
-      zIndex: 30,
-      overflowY: "auto",
-      padding: "56px 36px 48px",
-      transform: open ? "translateX(0)" : "translateX(100%)",
-      transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
-      boxSizing: "border-box",
-    }}>
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        style={{
-          position: "absolute",
-          top: "18px", right: "18px",
-          background: "none",
-          border: "none",
-          color: "rgba(255,255,255,0.4)",
-          fontSize: "20px",
-          cursor: "pointer",
-          lineHeight: 1,
-          padding: "4px 8px",
-        }}
-      >
-        ×
-      </button>
-
-      {/* Tag */}
-      {slide.tag && (
-        <p style={{
-          fontFamily: "system-ui, sans-serif",
-          fontSize: "10px",
-          fontWeight: 700,
-          letterSpacing: "0.14em",
-          textTransform: "uppercase",
-          color: T.sienna,
-          margin: "0 0 12px",
-        }}>
-          {slide.tag}
-        </p>
-      )}
-
-      {/* Divider */}
-      <div style={{ height: "1px", background: "rgba(255,255,255,0.08)", marginBottom: "24px" }} />
-
-      {/* Script paragraphs */}
-      <div style={{
-        fontFamily: "var(--font-playfair), Georgia, serif",
-        fontSize: "17px",
-        lineHeight: 1.85,
-        color: "rgba(255,255,255,0.88)",
-      }}>
-        {(slide.script ?? "").split("\n\n").map((para, i) => (
-          <p key={i} style={{ margin: "0 0 1.4em" }}>{para}</p>
-        ))}
       </div>
     </div>
   );
