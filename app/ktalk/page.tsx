@@ -501,6 +501,18 @@ const slides: SlideData[] = [
 
   /* ── Bonus Interviews ── */
   {
+    id: 49,
+    image: `${BASE}/ch14-coordination-era.png`,
+    overlay: "rgba(0,13,16,0.85)",
+    textColor: T.white,
+    muteColor: "rgba(255,255,255,0.55)",
+    tag: "보너스 — 실리콘밸리 디자이너 인터뷰",
+    title: "8명에게 같은 질문을 했습니다.",
+    body: "AI 이후 루틴의 변화 · PM/엔지니어가 이미 만든 것을 들고 왔을 때 · 주니어에게 키우라고 할 역량 · 팀 관계의 변화",
+    layout: "split-top",
+    script: `실리콘밸리에서 일하는 8명의 디자이너와 엔지니어를 인터뷰했습니다.\n\n모두에게 같은 네 가지 질문을 했습니다.\n\n첫째, AI 툴을 사용하기 시작한 이후 일상적인 루틴에서 가장 크게 바뀐 것은 무엇인가요?\n\n둘째, PM이나 엔지니어가 이미 만들어진 무언가를 들고 왔을 때, 디자이너로서 어떻게 반응하시나요?\n\n셋째, 지금 이 시점에 주니어 디자이너들에게 어떤 역량을 키우라고 조언하시겠어요?\n\n넷째, AI가 디자인 프로세스에 들어온 이후, PM 및 엔지니어링과의 관계는 어떻게 변했나요?\n\n각자의 답은 달랐습니다.\n\n하지만 방향은 같았습니다.`,
+  },
+  {
     id: 50,
     image: `${BASE}/ch14-coordination-era.png`,
     overlay: "rgba(0,13,16,0.82)",
