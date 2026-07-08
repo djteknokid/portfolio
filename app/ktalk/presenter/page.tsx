@@ -44,13 +44,15 @@ export default function PresenterPage() {
 
   const slide = slides[index];
   const total = slides.length;
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const go = useCallback((i: number) => {
-    setIndex(prev => {
+    setIndex(() => {
       const next = Math.max(0, Math.min(slides.length - 1, i));
       bcRef.current?.postMessage({ type: "SLIDE", index: next });
       return next;
     });
+    scrollRef.current?.scrollTo({ top: 0 });
   }, [slides.length]);
 
   useEffect(() => {
@@ -127,7 +129,7 @@ export default function PresenterPage() {
       <hr style={{ margin: "20px 28px 0", border: "none", borderTop: "1px solid rgba(255,255,255,0.08)" }} />
 
       {/* Script */}
-      <div style={{
+      <div ref={scrollRef} style={{
         flex: 1,
         overflowY: "auto",
         padding: "20px 28px 32px",
