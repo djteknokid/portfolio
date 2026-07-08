@@ -45,11 +45,28 @@ export default function PresenterPage() {
   const slide = slides[index];
   const total = slides.length;
 
-  function go(i: number) {
-    const next = Math.max(0, Math.min(total - 1, i));
-    setIndex(next);
-    bcRef.current?.postMessage({ type: "SLIDE", index: next });
-  }
+  const go = useCallback((i: number) => {
+    setIndex(prev => {
+      const next = Math.max(0, Math.min(slides.length - 1, i));
+      bcRef.current?.postMessage({ type: "SLIDE", index: next });
+      return next;
+    });
+  }, [slides.length]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
+        e.preventDefault();
+        go(index + 1);
+      }
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        go(index - 1);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [go, index]);
 
   const paras = slide?.script ? slide.script.split("\n\n") : [];
 
