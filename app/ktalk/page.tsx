@@ -122,18 +122,6 @@ const slides: SlideData[] = [
 
   /* ── CH 4 ── */
   {
-    id: 11,
-    image: `${BASE}/ch4-pm-explains.png`,
-    overlay: "rgba(0,13,16,0.68)",
-    textColor: T.white,
-    muteColor: "rgba(255,255,255,0.55)",
-    tag: "Why This Is Happening",
-    title: "왜 이런 일이 생기는가",
-    body: "PM은 항상 시각 산출물을 들고 왔습니다. 달라진 건 속도와 완성도뿐입니다.",
-    layout: "split-top",
-    script: `이제 테이블 반대편 — PM 쪽 이야기를 해보겠습니다.\n\n저는 지금 그 자리에 앉아 있으니까요.\n\n제가 프로토타입을 들고 올 때, 디자이너의 역할을 빼앗으려는 게 아닙니다.\n\n솔직히 말하면, 프로토타입은 제가 더 빠르게 소통하려는 시도입니다.\n\n그게 전부입니다.\n\n시각적 산출물. 대화의 시작점. 제가 생각하는 것을 설명하는 방법.`,
-  },
-  {
     id: 12,
     image: `${BASE}/ch4-value-question.png`,
     overlay: "rgba(0,13,16,0.65)",
