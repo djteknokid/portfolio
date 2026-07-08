@@ -77,7 +77,8 @@ export default function PresenterPage() {
   return (
     <div style={{
       background: T.obsidian,
-      minHeight: "100vh",
+      height: "100vh",
+      overflow: "hidden",
       display: "flex",
       flexDirection: "column",
       fontFamily: "system-ui, -apple-system, Arial, sans-serif",
