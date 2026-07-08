@@ -46,13 +46,15 @@ export default function PresenterPage() {
   const total = slides.length;
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const go = useCallback((i: number) => {
-    setIndex(() => {
-      const next = Math.max(0, Math.min(slides.length - 1, i));
-      bcRef.current?.postMessage({ type: "SLIDE", index: next });
-      return next;
-    });
+  // Scroll to top whenever slide changes, regardless of how it changed
+  useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
+  }, [index]);
+
+  const go = useCallback((i: number) => {
+    const next = Math.max(0, Math.min(slides.length - 1, i));
+    setIndex(next);
+    bcRef.current?.postMessage({ type: "SLIDE", index: next });
   }, [slides.length]);
 
   useEffect(() => {
