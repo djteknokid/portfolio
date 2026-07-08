@@ -25,7 +25,7 @@ type SlideData = {
   quote?: string;
   isHero?: boolean;
   isStatement?: boolean;
-  layout?: "split-top";
+  layout?: "split-top" | "typo";
   mindsets?: { label: string; rule: string }[];
   script?: string;
 };
@@ -514,14 +514,15 @@ const slides: SlideData[] = [
   },
   {
     id: 50,
-    image: `${BASE}/ch14-coordination-era.png`,
-    overlay: "rgba(0,13,16,0.82)",
+    image: null,
+    overlay: "rgba(0,0,0,0)",
     textColor: T.white,
     muteColor: "rgba(255,255,255,0.55)",
     tag: "보너스 인터뷰 — B1",
     title: "김예원",
     body: "Design Lead @ TikTok · ex-Uber · Design Systems Principal · AI Platform",
-    layout: "split-top",
+    quote: "만드는 사람에서 필터링하는 사람으로.",
+    layout: "typo",
     script: `김예원\n\nDesign Lead @ TikTok · ex-Uber`,
   },
   {
@@ -538,14 +539,15 @@ const slides: SlideData[] = [
   },
   {
     id: 52,
-    image: `${BASE}/ch14-coordination-era.png`,
-    overlay: "rgba(0,13,16,0.82)",
+    image: null,
+    overlay: "rgba(0,0,0,0)",
     textColor: T.white,
     muteColor: "rgba(255,255,255,0.55)",
     tag: "보너스 인터뷰 — B2",
-    title: "Wenyang Mu · 무웬양",
+    title: "Wenyang Mu",
     body: "Lead Product Designer · 0→1 SaaS · AI for Procurement & Fintech · SAP Ariba",
-    layout: "split-top",
+    quote: "역할 경계가 흐려질 미래를 향해 나아가고 있습니다.",
+    layout: "typo",
     script: `Wenyang Mu · 무웬양\n\nLead Product Designer @ SAP Ariba`,
   },
   {
@@ -562,14 +564,15 @@ const slides: SlideData[] = [
   },
   {
     id: 54,
-    image: `${BASE}/ch14-coordination-era.png`,
-    overlay: "rgba(0,13,16,0.82)",
+    image: null,
+    overlay: "rgba(0,0,0,0)",
     textColor: T.white,
     muteColor: "rgba(255,255,255,0.55)",
     tag: "보너스 인터뷰 — B3",
-    title: "Yuha Kim · 김유하",
+    title: "Yuha Kim",
     body: "Product Designer · AI Systems, Agentic Experience, Enterprise Workflows · Salesforce",
-    layout: "split-top",
+    quote: "AI와 산출물 속도 경쟁을 멈추세요. 판단 레이어를 쌓으세요.",
+    layout: "typo",
     script: `Yuha Kim · 김유하\n\nProduct Designer @ Salesforce · AI Systems & Agentic Experience`,
   },
   {
@@ -586,14 +589,15 @@ const slides: SlideData[] = [
   },
   {
     id: 56,
-    image: `${BASE}/ch14-coordination-era.png`,
-    overlay: "rgba(0,13,16,0.82)",
+    image: null,
+    overlay: "rgba(0,0,0,0)",
     textColor: T.white,
     muteColor: "rgba(255,255,255,0.55)",
     tag: "보너스 인터뷰 — B4",
-    title: "Vivian Chu · 추비비안",
+    title: "Vivian Chu",
     body: "UX Designer · SAP",
-    layout: "split-top",
+    quote: "루프 안에 여전히 사람이 필요한 이유가 있습니다.",
+    layout: "typo",
     script: `Vivian Chu · 추비비안\n\nUX Designer @ SAP`,
   },
   {
@@ -610,14 +614,15 @@ const slides: SlideData[] = [
   },
   {
     id: 58,
-    image: `${BASE}/ch14-coordination-era.png`,
-    overlay: "rgba(0,13,16,0.82)",
+    image: null,
+    overlay: "rgba(0,0,0,0)",
     textColor: T.white,
     muteColor: "rgba(255,255,255,0.55)",
     tag: "보너스 인터뷰 — B5",
     title: "안인선",
     body: "Product Design Manager · Meta",
-    layout: "split-top",
+    quote: "전통적인 역할 정의에 스스로를 제한해서는 안 됩니다.",
+    layout: "typo",
     script: `안인선\n\nProduct Design Manager @ Meta`,
   },
   {
@@ -634,14 +639,15 @@ const slides: SlideData[] = [
   },
   {
     id: 60,
-    image: `${BASE}/ch14-coordination-era.png`,
-    overlay: "rgba(0,13,16,0.82)",
+    image: null,
+    overlay: "rgba(0,0,0,0)",
     textColor: T.white,
     muteColor: "rgba(255,255,255,0.55)",
     tag: "보너스 인터뷰 — B6",
-    title: "오상영 (Bryan Oh)",
-    body: "AI Product Designer · Vibe Coder · Expert in data analytics for manufacturing · Google",
-    layout: "split-top",
+    title: "Bryan Oh",
+    body: "AI Product Designer · Vibe Coder · Google",
+    quote: "프로토타입으로 가장 빠르게 학습하는 사람.",
+    layout: "typo",
     script: `오상영 · Bryan Oh\n\nAI Product Designer @ Google · Vibe Coder`,
   },
   {
@@ -658,14 +664,15 @@ const slides: SlideData[] = [
   },
   {
     id: 62,
-    image: `${BASE}/ch14-coordination-era.png`,
-    overlay: "rgba(0,13,16,0.82)",
+    image: null,
+    overlay: "rgba(0,0,0,0)",
     textColor: T.white,
     muteColor: "rgba(255,255,255,0.55)",
     tag: "보너스 인터뷰 — B7",
-    title: "김찬 (Chan Kim)",
+    title: "김찬",
     body: "Product Design Lead · Rippling · 전 Senior Design Manager · Atlassian",
-    layout: "split-top",
+    quote: "어떤 문제를 나보다 잘 아는 사람이 없나?",
+    layout: "typo",
     script: `김찬 · Chan Kim\n\nProduct Design Lead @ Rippling · 전 Senior Design Manager @ Atlassian`,
   },
   {
@@ -682,14 +689,15 @@ const slides: SlideData[] = [
   },
   {
     id: 64,
-    image: `${BASE}/ch14-coordination-era.png`,
-    overlay: "rgba(0,13,16,0.82)",
+    image: null,
+    overlay: "rgba(0,0,0,0)",
     textColor: T.white,
     muteColor: "rgba(255,255,255,0.55)",
     tag: "보너스 인터뷰 — B8",
-    title: "태호 김 (TK Kim)",
+    title: "태호 김",
     body: "Founding Principal Software Engineer (Frontend) · Full-stack · Design systems",
-    layout: "split-top",
+    quote: "사고는 여전히 어딘가에서 나와야 합니다.",
+    layout: "typo",
     script: `태호 김 · Taeho (TK) Kim\n\nFounding Principal Software Engineer (Frontend)`,
   },
   {
@@ -827,6 +835,8 @@ export default function KoreaTalk() {
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
         {slide.mindsets
           ? <MindsetSlide slide={slide} total={total} index={current} />
+          : slide.layout === "typo"
+          ? <TypoSlide slide={slide} total={total} index={current} />
           : slide.layout === "split-top"
           ? <SplitTopSlide slide={slide} total={total} index={current} />
           : slide.isHero
@@ -907,6 +917,102 @@ export default function KoreaTalk() {
         whiteSpace: "nowrap",
       }}>
         ← → arrow keys · F fullscreen
+      </div>
+    </div>
+  );
+}
+
+/* ── TYPO SLIDE — pure typography, no image ── */
+function TypoSlide({ slide, total, index }: { slide: SlideData; total: number; index: number }) {
+  return (
+    <div style={{
+      position: "absolute",
+      inset: 0,
+      background: T.obsidian,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "center",
+      padding: "0 10vw",
+    }}>
+      {/* Tag / label */}
+      {slide.tag && (
+        <div style={{
+          fontSize: "clamp(9px, 0.85vw, 11px)",
+          fontWeight: 700,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: T.sienna,
+          marginBottom: "clamp(10px, 1.6vh, 20px)",
+        }}>
+          {slide.tag}
+        </div>
+      )}
+
+      {/* Name — very large display type */}
+      <h2 style={{
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: "clamp(42px, 7vw, 96px)",
+        fontWeight: 700,
+        lineHeight: 1.0,
+        color: T.white,
+        margin: "0 0 clamp(10px, 1.8vh, 24px)",
+        letterSpacing: "-0.01em",
+      }}>
+        {slide.title}
+      </h2>
+
+      {/* Rule / divider */}
+      <div style={{
+        width: "clamp(40px, 5vw, 64px)",
+        height: "2px",
+        background: T.sienna,
+        marginBottom: "clamp(12px, 2vh, 28px)",
+      }} />
+
+      {/* Role / company */}
+      {slide.body && (
+        <p style={{
+          fontFamily: "system-ui, -apple-system, Arial, sans-serif",
+          fontSize: "clamp(13px, 1.4vw, 18px)",
+          fontWeight: 400,
+          lineHeight: 1.6,
+          color: "rgba(255,255,255,0.55)",
+          margin: 0,
+          maxWidth: "38em",
+        }}>
+          {slide.body}
+        </p>
+      )}
+
+      {/* Quote / key insight */}
+      {slide.quote && (
+        <p style={{
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: "clamp(15px, 1.6vw, 22px)",
+          fontStyle: "italic",
+          lineHeight: 1.5,
+          color: "rgba(255,255,255,0.72)",
+          margin: "clamp(14px, 2.4vh, 32px) 0 0",
+          maxWidth: "34em",
+          borderLeft: `3px solid ${T.sienna}`,
+          paddingLeft: "1.2em",
+        }}>
+          {slide.quote}
+        </p>
+      )}
+
+      {/* Slide counter */}
+      <div style={{
+        position: "absolute",
+        bottom: "28px",
+        right: "48px",
+        fontSize: "11px",
+        fontWeight: 700,
+        letterSpacing: "0.1em",
+        color: "rgba(255,255,255,0.2)",
+      }}>
+        {index + 1} / {total}
       </div>
     </div>
   );
