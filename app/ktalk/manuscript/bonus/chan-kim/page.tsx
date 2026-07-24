@@ -35,35 +35,61 @@ const chapters = [
   { number: "B8" as unknown as number, slug: "bonus/taeho-kim",   title: "Bonus — Taeho Kim" },
 ];
 
-const currentSlug = "bonus/wenyang-mu";
+const currentSlug = "bonus/chan-kim";
 const currentIndex = chapters.findIndex(c => c.slug === currentSlug);
 const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
 const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
 
 const QA = [
   {
-    q: "Since you started using AI tools, what changed most in your daily routine?",
-    a: `My daily workflow now starts with AI as my primary partner. Instead of doing anything myself, I first will feed raw data into AI to generate distinct, evidence-backed action items. This shifts my energy from baseline data processing to high-level decision-making and problem-solving.`,
-  },
-  {
-    q: "When a PM or engineer shows up with something already built — how do you respond as a designer?",
-    a: `I welcome it. Having a tangible prototype, even a rough one is valuable for clarifying requirements and alignment. However, I often notice a gap in execution, particularly when AI-generated designs introduce unnecessary complexity.`,
-  },
-  {
-    q: "What skill sets would you tell junior designers to develop right now to stay relevant?",
-    a: `I advise juniors to focus on cross-functional convergence:
+    q: "Since you started using AI tools, what changed most in your daily design process?",
+    a: `The biggest shift is that I can now read the codebase directly.
 
-Technical: Learn GitHub and 'vibe coding' tools (like Claude Code) so you can understand engineering workflows and confidently contribute to frontend code.
+Before, if I needed to understand what was technically possible or what had already been built, I had to ask an engineer — and engineers are busy. They'd reply hours later, sometimes not at all, sometimes not even sure themselves. Now I ask Claude. It reads the code and tells me exactly what I need to know.
 
-Product Thinking: Train and practice like a Product Manager to understand business needs, not just user empathy.`,
+That changed how fast I can make decisions. I'm not waiting on anyone.
+
+I also started using MCP to pull in customer feedback automatically. We're B2B, so customers send feedback constantly. Instead of waiting for a PM to synthesize it into requirements, I can pull it myself and build requirements and even PRDs directly. Designers touching PRDs would have been unusual two years ago. Now it's just faster.`,
   },
   {
-    q: "How has your relationship with PM and Engineering changed since AI entered the design process?",
-    a: `Day-to-day collaboration hasn't shifted drastically just yet, but the horizon is changing. We are moving toward a future where role boundaries will blur.`,
+    q: "You mentioned you tried doing code checks yourself — what happened?",
+    a: `I got excited and went deep. At one point I was doing full code reviews, running tests, fixing CSS myself.
+
+The engineers' reaction was: "Thanks, but... why?" A mix of appreciation and light territorial pushback. They didn't ask me to stop, but the message was clear.
+
+And honestly, design leadership had the same feedback — they wanted more ideation, less implementation. So I pulled back.
+
+But I learned something from that phase. The reason I did it was quality. The engineers I worked with were all backend-heavy. Frontend was not their strength. It was faster for me to just fix the CSS than to explain what needed to change and wait. The control felt good.
+
+The tradeoff is real though. Every hour I spent in the code was an hour not spent on the problem. You can go deep on execution, or you can stay upstream on the question. I think the right answer depends on the team — but I now know where my leverage is higher.`,
+  },
+  {
+    q: "How is AI changing the design team around you?",
+    a: `The team is literally being rebuilt around it.
+
+In two years, more than half the designers I started with have left. New leadership came in and pushed out people who couldn't adapt. The new hires are different — they communicate well, they think strategically, they use Claude Code as a baseline assumption.
+
+The most interesting observation was the researchers. They adapted the fastest. Synthesizing large amounts of unstructured data is exactly what they'd always wanted to do — AI just removed every obstacle. For them it was a new world.
+
+The content designers had a harder time. One of them trained GPT on everything she'd ever written — her entire voice, all her patterns — and then left the company. She saw what was coming and decided to build her own leverage before the role disappeared.
+
+Designers with only traditional UX skills — pixel pushing, component assembly — are struggling. The ones who can articulate problems clearly, who can talk to AI effectively, who have some technical range — they're fine.`,
+  },
+  {
+    q: "What would you tell a junior designer trying to navigate this right now?",
+    a: `I genuinely don't have a clean answer. The environment changed faster than advice can keep up with.
+
+What I believe is: stop chasing a company, and start building something that's yours.
+
+The designers who are okay are the ones who found something specific they're good at — not a tool, not a title — and went deep on it. People who want that thing will find them.
+
+The process itself isn't going away. Forming a hypothesis, iterating, validating — that loop doesn't disappear. It just runs faster. What's disappearing is the role of the person who only executes the step, without understanding the loop.
+
+So the question to ask isn't "what tools should I learn?" It's "what problem do I understand better than anyone else?" Start there.`,
   },
 ];
 
-export default function BonusWenyangMu() {
+export default function BonusChanKim() {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <ManuscriptSidebar chapters={chapters} currentSlug={currentSlug} />
@@ -77,8 +103,8 @@ export default function BonusWenyangMu() {
             <p className="chapter-part-subtitle">Interviews · 조율의 시대</p>
             <div style={{ position: "relative", marginTop: "var(--sp-8)" }}>
               <div className="chapter-ghost-number" aria-hidden="true"
-                style={{ position: "absolute", top: "-0.15em", left: "-0.05em", zIndex: 0 }}>B2</div>
-              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>Wenyang Mu</h1>
+                style={{ position: "absolute", top: "-0.15em", left: "-0.05em", zIndex: 0 }}>B7</div>
+              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>Chan Kim</h1>
             </div>
             <p style={{
               fontFamily: "var(--font-inter), system-ui, sans-serif",
@@ -87,7 +113,7 @@ export default function BonusWenyangMu() {
               marginTop: "var(--sp-4)",
               letterSpacing: "0.04em",
             }}>
-              <Link href="/ktalk/manuscript/ko/bonus/wenyang-mu" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
+              <Link href="/ktalk/manuscript/ko/bonus/chan-kim" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
                 한국어로 읽기 →
               </Link>
             </p>
@@ -113,7 +139,7 @@ export default function BonusWenyangMu() {
                 textTransform: "uppercase",
                 color: ACCENT,
                 margin: "0 0 8px",
-              }}>Lead Product Designer</p>
+              }}>Product Design Lead</p>
               <p style={{
                 fontFamily: "var(--font-playfair), Georgia, serif",
                 fontSize: "20px",
@@ -121,7 +147,7 @@ export default function BonusWenyangMu() {
                 color: "var(--ink)",
                 margin: "0 0 8px",
                 lineHeight: 1.2,
-              }}>Wenyang Mu</p>
+              }}>Chan Kim</p>
               <p style={{
                 fontFamily: "var(--font-inter), system-ui, sans-serif",
                 fontSize: "13px",
@@ -129,7 +155,7 @@ export default function BonusWenyangMu() {
                 margin: 0,
                 lineHeight: 1.6,
               }}>
-                Lead Product Designer · 0→1 SaaS · AI for Procurement &amp; Fintech · SAP Ariba
+                Product Design Lead · Rippling &nbsp;·&nbsp; Previously Senior Design Manager · Atlassian
               </p>
             </div>
 

@@ -35,35 +35,61 @@ const chapters = [
   { number: "B8" as unknown as number, slug: "bonus/taeho-kim",  title: "보너스 — 태호 김" },
 ];
 
-const currentSlug = "bonus/wenyang-mu";
+const currentSlug = "bonus/chan-kim";
 const currentIndex = chapters.findIndex(c => c.slug === currentSlug);
 const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
 const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
 
 const QA = [
   {
-    q: "AI 툴을 사용하기 시작한 이후, 일상적인 루틴에서 가장 크게 바뀐 것은 무엇인가요?",
-    a: `저의 일상적인 워크플로우는 이제 AI를 주요 파트너로 삼아 시작합니다. 직접 무언가를 하기 전에, 먼저 원시 데이터를 AI에 입력해 명확하고 근거 있는 액션 아이템을 생성합니다. 이를 통해 기초 데이터 처리에서 벗어나 고차원적인 의사결정과 문제 해결에 에너지를 집중할 수 있게 되었습니다.`,
-  },
-  {
-    q: "PM이나 엔지니어가 이미 만들어진 무언가를 들고 왔을 때, 디자이너로서 어떻게 반응하시나요?",
-    a: `환영합니다. 조잡하더라도 실제 프로토타입이 있으면 요구사항을 명확히 하고 정렬을 이끌어내는 데 매우 유용합니다. 다만 AI가 생성한 디자인에서 불필요한 복잡성이 도입될 때 실행 측면의 격차를 자주 발견하게 됩니다.`,
-  },
-  {
-    q: "지금 이 시점에 주니어 디자이너들에게 어떤 역량을 키우라고 조언하시겠어요?",
-    a: `저는 주니어들에게 직군 간 융합 역량에 집중하라고 조언합니다.
+    q: "AI 툴을 사용하기 시작한 이후, 일상적인 디자인 프로세스에서 가장 크게 바뀐 것은 무엇인가요?",
+    a: `가장 큰 변화는 코드베이스를 직접 읽을 수 있게 됐다는 겁니다.
 
-기술적 역량: GitHub와 Claude Code 같은 바이브 코딩 툴을 배워 엔지니어링 워크플로우를 이해하고 프론트엔드 코드에 자신 있게 기여할 수 있도록 하세요.
+예전에는 기술적으로 무엇이 가능한지, 이미 어떻게 구현되어 있는지 알려면 엔지니어에게 물어봐야 했습니다. 엔지니어들은 바쁘니까 몇 시간 뒤에 답이 오거나, 아예 안 오거나, 자기들도 잘 모르는 경우도 있었죠. 지금은 Claude한테 물어봅니다. 코드를 읽고 필요한 걸 바로 알려줍니다.
 
-프로덕트 씽킹: PM처럼 사고하고 훈련하여 사용자 공감을 넘어 비즈니스 니즈를 이해하세요.`,
+그게 의사결정 속도를 완전히 바꿔놨습니다. 아무도 기다릴 필요가 없어졌습니다.
+
+MCP로 고객 피드백을 자동으로 끌어오는 것도 시작했습니다. 저희는 B2B라 고객 피드백이 쏟아지는데, PM이 요구사항으로 정리해줄 때까지 기다리지 않고 직접 끌어다가 리콰이어먼트와 PRD를 만듭니다. 2년 전에는 디자이너가 PRD를 만진다는 게 이상한 일이었는데, 지금은 그냥 더 빠른 방법이 됐습니다.`,
   },
   {
-    q: "AI가 디자인 프로세스에 들어온 이후, PM 및 엔지니어링과의 관계는 어떻게 변했나요?",
-    a: `일상적인 협업은 아직 크게 바뀌지 않았지만, 지평선이 변하고 있습니다. 우리는 역할 경계가 흐려질 미래를 향해 나아가고 있습니다.`,
+    q: "코드 체킹을 직접 시도해봤다고 하셨는데 — 어떻게 됐나요?",
+    a: `신나서 엄청 깊이 들어갔습니다. 코드 리뷰도 하고, 테스트도 돌리고, CSS도 직접 고치고.
+
+엔지니어들의 반응은 이랬습니다. "고맙긴 한데... 왜?" 고마움 반, 살짝 영역 침범에 대한 경계 반이었습니다. 그만하라고는 안 했지만 메시지는 분명했습니다.
+
+디자인 리더십도 같은 피드백을 줬습니다. 구현보다 아이디에이션을 더 원한다고. 그래서 물러났습니다.
+
+근데 그 시기에 뭔가를 배웠습니다. 제가 그렇게 한 이유는 퀄리티 때문이었거든요. 같이 일하는 엔지니어들이 다 백엔드 중심이라 프론트엔드가 약했어요. CSS 무엇이 문제인지 설명하고 기다리는 것보다 제가 직접 고치는 게 더 빨랐습니다. 그 컨트롤이 좋았습니다.
+
+근데 트레이드오프는 분명합니다. 코드에 쏟은 시간만큼 문제에 집중하는 시간이 줄어듭니다. 실행에 깊이 들어갈 수도 있고, 질문의 상류에 머무를 수도 있습니다. 팀에 따라 답이 다르겠지만, 지금은 어디서 레버리지가 더 높은지 알게 됐습니다.`,
+  },
+  {
+    q: "주변 디자인 팀은 AI로 인해 어떻게 변화하고 있나요?",
+    a: `팀이 말 그대로 그것에 맞춰 재편되고 있습니다.
+
+2년 동안 함께 시작한 디자이너의 절반 이상이 바뀌었습니다. 새 리더십이 적응하지 못한 사람들을 내보내고, 들어오는 사람들은 다릅니다. 커뮤니케이션 잘하고, 전략적으로 생각하고, Claude Code는 당연히 씁니다.
+
+가장 인상적인 관찰은 리서처들이었습니다. 가장 빠르게 적응했어요. 구조화되지 않은 대량의 데이터를 합성하는 게 그들이 항상 하고 싶었던 일이었는데 AI가 모든 장애물을 없애줬습니다. 신세계였죠.
+
+콘텐츠 디자이너들은 어려웠습니다. 그중 한 명은 자신이 쓴 모든 것, 자신의 목소리, 자신의 패턴 전부를 GPT에 학습시키고 회사를 떠났습니다. 무슨 일이 벌어지고 있는지 보고, 사라지기 전에 스스로 레버리지를 만들기로 한 거죠.
+
+전통적인 UX 스킬만 있는 디자이너들, 픽셀 작업, 컴포넌트 조립만 하는 사람들은 힘들어하고 있습니다. 문제를 명확하게 설명할 수 있고, AI와 효과적으로 대화할 수 있고, 기술적인 범위가 어느 정도 있는 사람들은 괜찮습니다.`,
+  },
+  {
+    q: "지금 이걸 헤쳐나가야 하는 주니어 디자이너에게 뭐라고 해주고 싶으세요?",
+    a: `솔직히 깔끔한 답이 없습니다. 환경이 조언보다 빠르게 변하고 있거든요.
+
+그래도 믿는 게 있다면: 회사를 쫓지 말고, 자기 것을 만들라는 겁니다.
+
+잘 버티고 있는 디자이너들은 자기가 잘하는 구체적인 무언가를 찾은 사람들입니다. 툴도 아니고 타이틀도 아닌, 진짜 자기 것. 그걸 깊이 판 사람들에게는 그걸 원하는 사람들이 찾아옵니다.
+
+프로세스 자체는 사라지지 않습니다. 가설 세우고, 반복하고, 검증하는 루프는 없어지지 않아요. 그냥 더 빨라질 뿐입니다. 사라지는 건 그 루프를 이해하지 못하면서 단계만 수행하는 역할입니다.
+
+그래서 스스로에게 물어야 할 질문은 '어떤 툴을 배워야 하나?'가 아닙니다. '어떤 문제를 나보다 잘 아는 사람이 없나?' 거기서 시작하세요.`,
   },
 ];
 
-export default function BonusWenyangMuKo() {
+export default function BonusChanKimKo() {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <ManuscriptSidebarKo chapters={chapters} currentSlug={currentSlug} />
@@ -77,8 +103,8 @@ export default function BonusWenyangMuKo() {
             <p className="chapter-part-subtitle">인터뷰 · 조율의 시대</p>
             <div style={{ position: "relative", marginTop: "var(--sp-8)" }}>
               <div className="chapter-ghost-number" aria-hidden="true"
-                style={{ position: "absolute", top: "-0.15em", left: "-0.05em", zIndex: 0 }}>B2</div>
-              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>Wenyang Mu · 무웬양</h1>
+                style={{ position: "absolute", top: "-0.15em", left: "-0.05em", zIndex: 0 }}>B7</div>
+              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>Chan Kim · 김찬</h1>
             </div>
             <p style={{
               fontFamily: "var(--font-inter), system-ui, sans-serif",
@@ -87,7 +113,7 @@ export default function BonusWenyangMuKo() {
               marginTop: "var(--sp-4)",
               letterSpacing: "0.04em",
             }}>
-              <Link href="/ktalk/manuscript/bonus/wenyang-mu" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
+              <Link href="/ktalk/manuscript/bonus/chan-kim" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
                 Read in English →
               </Link>
             </p>
@@ -113,7 +139,7 @@ export default function BonusWenyangMuKo() {
                 textTransform: "uppercase",
                 color: ACCENT,
                 margin: "0 0 8px",
-              }}>Lead Product Designer</p>
+              }}>Product Design Lead</p>
               <p style={{
                 fontFamily: "var(--font-playfair), Georgia, serif",
                 fontSize: "20px",
@@ -121,7 +147,7 @@ export default function BonusWenyangMuKo() {
                 color: "var(--ink)",
                 margin: "0 0 8px",
                 lineHeight: 1.2,
-              }}>Wenyang Mu · 무웬양</p>
+              }}>Chan Kim · 김찬</p>
               <p style={{
                 fontFamily: "var(--font-inter), system-ui, sans-serif",
                 fontSize: "13px",
@@ -129,7 +155,7 @@ export default function BonusWenyangMuKo() {
                 margin: 0,
                 lineHeight: 1.6,
               }}>
-                Lead Product Designer · 0→1 SaaS · AI for Procurement &amp; Fintech · SAP Ariba
+                Product Design Lead · Rippling &nbsp;·&nbsp; 전 Senior Design Manager · Atlassian
               </p>
             </div>
 

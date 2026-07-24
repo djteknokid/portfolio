@@ -35,35 +35,61 @@ const chapters = [
   { number: "B8" as unknown as number, slug: "bonus/taeho-kim",   title: "Bonus — Taeho Kim" },
 ];
 
-const currentSlug = "bonus/wenyang-mu";
+const currentSlug = "bonus/taeho-kim";
 const currentIndex = chapters.findIndex(c => c.slug === currentSlug);
 const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
 const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
 
 const QA = [
   {
-    q: "Since you started using AI tools, what changed most in your daily routine?",
-    a: `My daily workflow now starts with AI as my primary partner. Instead of doing anything myself, I first will feed raw data into AI to generate distinct, evidence-backed action items. This shifts my energy from baseline data processing to high-level decision-making and problem-solving.`,
-  },
-  {
-    q: "When a PM or engineer shows up with something already built — how do you respond as a designer?",
-    a: `I welcome it. Having a tangible prototype, even a rough one is valuable for clarifying requirements and alignment. However, I often notice a gap in execution, particularly when AI-generated designs introduce unnecessary complexity.`,
-  },
-  {
-    q: "What skill sets would you tell junior designers to develop right now to stay relevant?",
-    a: `I advise juniors to focus on cross-functional convergence:
+    q: "How has AI changed the way you work as a frontend engineer?",
+    a: `Almost completely. I used to use Cursor and Penpot separately. Now I do almost everything through Claude Code in the terminal.
 
-Technical: Learn GitHub and 'vibe coding' tools (like Claude Code) so you can understand engineering workflows and confidently contribute to frontend code.
+The biggest shift was in how I interact with the codebase. Before, when I needed to understand what was built or what was technically feasible, I had to dig through the code myself or ask someone. Now the turnaround is instant. That changes how fast you can make decisions — you stop waiting.
 
-Product Thinking: Train and practice like a Product Manager to understand business needs, not just user empathy.`,
+The other big change was design systems. At my startup, we had no dedicated designer. I used Penpot to build out our design system, then connected it via MCP so that when engineers used Claude Code to build UI, it would automatically pull from our system. Without that, every engineer just builds whatever looks "good enough" to them — and it never matches.
+
+The gap between what Claude generates and what actually ships is still about 80–90%. Someone still has to look at the output and make the call. But that's a much better starting point than zero.`,
   },
   {
-    q: "How has your relationship with PM and Engineering changed since AI entered the design process?",
-    a: `Day-to-day collaboration hasn't shifted drastically just yet, but the horizon is changing. We are moving toward a future where role boundaries will blur.`,
+    q: "You went through a serious job search — 55 companies, 8 final rounds. What did you learn?",
+    a: `The market wasn't as bad as it felt in January. The problem was my resume wasn't passing the recruiter filter.
+
+I learned that a resume isn't written for you, or for your future team. It's written for the recruiter — and increasingly, for the ATS system before that. The ATS just scans for keywords. Once it passes, the recruiter compares your resume to the job description. How well it aligns determines whether you get a call.
+
+My resume was too technical. It was accurate, but it wasn't speaking to what each specific company was looking for. Once I understood that, I made four versions — frontend-focused, full-stack, UX-engineer hybrid, and a generalist version. I matched each application to the right version.
+
+After I started tailoring, my response rate jumped significantly. I went from near zero in January to 3 offers by March. The market didn't change. My approach did.
+
+One more thing: the questions themselves changed month by month. January interviews asked different things than March ones. AI is moving fast enough that what companies want from engineers is evolving in real time. You have to stay current on what they're actually testing for.`,
+  },
+  {
+    q: "As a frontend engineer who has worked closely with designers — what do you actually need from a designer?",
+    a: `Someone who can explain *why*.
+
+Not "move this one pixel to the right." That I can figure out. What I need is: why does this need to move? What problem does it solve? What user behavior does it address?
+
+When a designer can explain the reasoning — the user research behind it, the edge case they're protecting against, the experience they're trying to create — that changes everything. Now I'm not just implementing a spec. I understand the intent. I can make judgment calls when the implementation gets complicated.
+
+I share my own frontend work the same way. When I change something, I explain why. This is what I changed, this is why it matters, this is what I was trying to protect. That's what makes collaboration actually work.
+
+With vibe-coded designs becoming more common, this is going to matter even more. If someone builds a UI with AI and they can't explain why they made the choices they made — that's not a design, it's noise. The question "why did you put that button there?" should always have an answer.`,
+  },
+  {
+    q: "Will designers still be necessary in 5 years?",
+    a: `Yes — but fewer of them, and the role will be different.
+
+AI is getting better at generating UI. But design isn't just visual production. It's understanding trends, reading what feels current, having taste that's been developed through real exposure to real products used by real people. That's hard to automate because it requires knowing what's happening *now*, not what was true when a model was trained.
+
+The designers who will thrive are the ones who bring perspective that AI can't replicate. The ones who can look at a generated output and immediately know what's wrong — and more importantly, why it's wrong and what it should be instead.
+
+There still needs to be one person on every team who is the design point of view. One person who has developed that instinct. You don't need ten. But you need one.
+
+The dangerous scenario is teams that think vibe coding replaces that person. It doesn't. It replaces the production work. The thinking still has to come from somewhere.`,
   },
 ];
 
-export default function BonusWenyangMu() {
+export default function BonusTaehoKim() {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <ManuscriptSidebar chapters={chapters} currentSlug={currentSlug} />
@@ -73,12 +99,12 @@ export default function BonusWenyangMu() {
 
           {/* Header */}
           <div className="chapter-prose" style={{ paddingBottom: "var(--sp-10)" }}>
-            <p className="chapter-part-label" style={{ color: ACCENT }}>Bonus — Silicon Valley Designers</p>
+            <p className="chapter-part-label" style={{ color: ACCENT }}>Bonus — Silicon Valley Engineers</p>
             <p className="chapter-part-subtitle">Interviews · 조율의 시대</p>
             <div style={{ position: "relative", marginTop: "var(--sp-8)" }}>
               <div className="chapter-ghost-number" aria-hidden="true"
-                style={{ position: "absolute", top: "-0.15em", left: "-0.05em", zIndex: 0 }}>B2</div>
-              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>Wenyang Mu</h1>
+                style={{ position: "absolute", top: "-0.15em", left: "-0.05em", zIndex: 0 }}>B8</div>
+              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>Taeho Kim</h1>
             </div>
             <p style={{
               fontFamily: "var(--font-inter), system-ui, sans-serif",
@@ -87,7 +113,7 @@ export default function BonusWenyangMu() {
               marginTop: "var(--sp-4)",
               letterSpacing: "0.04em",
             }}>
-              <Link href="/ktalk/manuscript/ko/bonus/wenyang-mu" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
+              <Link href="/ktalk/manuscript/ko/bonus/taeho-kim" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
                 한국어로 읽기 →
               </Link>
             </p>
@@ -113,7 +139,7 @@ export default function BonusWenyangMu() {
                 textTransform: "uppercase",
                 color: ACCENT,
                 margin: "0 0 8px",
-              }}>Lead Product Designer</p>
+              }}>Founding Principal Software Engineer</p>
               <p style={{
                 fontFamily: "var(--font-playfair), Georgia, serif",
                 fontSize: "20px",
@@ -121,7 +147,7 @@ export default function BonusWenyangMu() {
                 color: "var(--ink)",
                 margin: "0 0 8px",
                 lineHeight: 1.2,
-              }}>Wenyang Mu</p>
+              }}>Taeho (TK) Kim</p>
               <p style={{
                 fontFamily: "var(--font-inter), system-ui, sans-serif",
                 fontSize: "13px",
@@ -129,7 +155,7 @@ export default function BonusWenyangMu() {
                 margin: 0,
                 lineHeight: 1.6,
               }}>
-                Lead Product Designer · 0→1 SaaS · AI for Procurement &amp; Fintech · SAP Ariba
+                Founding Principal Software Engineer (Frontend) · Full-stack · Design systems
               </p>
             </div>
 

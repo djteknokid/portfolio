@@ -35,35 +35,61 @@ const chapters = [
   { number: "B8" as unknown as number, slug: "bonus/taeho-kim",  title: "보너스 — 태호 김" },
 ];
 
-const currentSlug = "bonus/wenyang-mu";
+const currentSlug = "bonus/taeho-kim";
 const currentIndex = chapters.findIndex(c => c.slug === currentSlug);
 const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
 const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
 
 const QA = [
   {
-    q: "AI 툴을 사용하기 시작한 이후, 일상적인 루틴에서 가장 크게 바뀐 것은 무엇인가요?",
-    a: `저의 일상적인 워크플로우는 이제 AI를 주요 파트너로 삼아 시작합니다. 직접 무언가를 하기 전에, 먼저 원시 데이터를 AI에 입력해 명확하고 근거 있는 액션 아이템을 생성합니다. 이를 통해 기초 데이터 처리에서 벗어나 고차원적인 의사결정과 문제 해결에 에너지를 집중할 수 있게 되었습니다.`,
-  },
-  {
-    q: "PM이나 엔지니어가 이미 만들어진 무언가를 들고 왔을 때, 디자이너로서 어떻게 반응하시나요?",
-    a: `환영합니다. 조잡하더라도 실제 프로토타입이 있으면 요구사항을 명확히 하고 정렬을 이끌어내는 데 매우 유용합니다. 다만 AI가 생성한 디자인에서 불필요한 복잡성이 도입될 때 실행 측면의 격차를 자주 발견하게 됩니다.`,
-  },
-  {
-    q: "지금 이 시점에 주니어 디자이너들에게 어떤 역량을 키우라고 조언하시겠어요?",
-    a: `저는 주니어들에게 직군 간 융합 역량에 집중하라고 조언합니다.
+    q: "AI가 프론트엔드 엔지니어로서 일하는 방식을 어떻게 바꿨나요?",
+    a: `거의 완전히 바뀌었습니다. 전에는 Cursor와 Penpot을 따로 썼는데, 이제는 거의 모든 걸 터미널의 Claude Code로 합니다.
 
-기술적 역량: GitHub와 Claude Code 같은 바이브 코딩 툴을 배워 엔지니어링 워크플로우를 이해하고 프론트엔드 코드에 자신 있게 기여할 수 있도록 하세요.
+가장 큰 변화는 코드베이스와 상호작용하는 방식이었습니다. 전에는 무엇이 만들어졌는지, 기술적으로 무엇이 가능한지 파악하려면 코드를 직접 파헤치거나 누군가에게 물어봐야 했습니다. 지금은 회신이 즉각적입니다. 의사결정 속도가 완전히 달라졌고, 기다리는 일이 없어졌습니다.
 
-프로덕트 씽킹: PM처럼 사고하고 훈련하여 사용자 공감을 넘어 비즈니스 니즈를 이해하세요.`,
+또 다른 큰 변화는 디자인 시스템이었습니다. 저희 스타트업에는 전담 디자이너가 없었습니다. Penpot으로 디자인 시스템을 구축한 다음 MCP로 연결했습니다. 엔지니어들이 Claude Code로 UI를 만들 때 자동으로 우리 시스템에서 가져오도록요. 그게 없으면 엔지니어마다 자기 기준으로 "그럴듯해 보이는" 걸 만들게 되는데, 절대로 통일이 되지 않습니다.
+
+Claude가 생성한 결과물과 실제로 출시되는 것 사이의 간격은 아직도 80~90% 정도입니다. 누군가가 결과물을 보고 판단을 내려야 합니다. 하지만 그게 아무것도 없는 것보다는 훨씬 나은 출발점입니다.`,
   },
   {
-    q: "AI가 디자인 프로세스에 들어온 이후, PM 및 엔지니어링과의 관계는 어떻게 변했나요?",
-    a: `일상적인 협업은 아직 크게 바뀌지 않았지만, 지평선이 변하고 있습니다. 우리는 역할 경계가 흐려질 미래를 향해 나아가고 있습니다.`,
+    q: "55개 회사, 8번의 파이널 라운드를 거친 진지한 구직 활동을 했는데 — 무엇을 배웠나요?",
+    a: `시장이 1월에 느껴졌던 것만큼 나쁘지는 않았습니다. 문제는 제 이력서가 리쿠르터 필터를 통과하지 못하고 있었던 겁니다.
+
+이력서는 나를 위해 쓰는 것도 아니고, 미래의 팀을 위해 쓰는 것도 아닙니다. 리쿠르터를 위해 쓰는 것이고, 요즘은 그 전에 ATS 시스템을 위해 씁니다. ATS는 그냥 키워드를 스캔합니다. 통과되면 리쿠르터가 이력서를 직무기술서와 비교합니다. 얼마나 잘 맞는지에 따라 연락이 오느냐 마느냐가 결정됩니다.
+
+제 이력서는 너무 기술적이었습니다. 정확하긴 했지만 각 회사가 찾는 것을 반영하지 않고 있었습니다. 그걸 깨닫고 나서 네 가지 버전을 만들었습니다 — 프론트엔드 중심, 풀스택, UX 엔지니어 하이브리드, 그리고 제너럴리스트. 각 지원에 맞는 버전을 매칭했습니다.
+
+맞춤 지원을 시작하고 나서 응답률이 크게 올랐습니다. 1월에 거의 제로였다가 3월에는 오퍼 3개를 받았습니다. 시장이 바뀐 게 아니었습니다. 제 접근 방식이 바뀐 겁니다.
+
+한 가지 더: 질문 자체가 달마다 달라졌습니다. 1월 인터뷰에서 물어보는 것과 3월 인터뷰에서 물어보는 것이 달랐습니다. AI가 빠르게 움직이기 때문에 회사들이 엔지니어에게 원하는 것도 실시간으로 변하고 있습니다. 실제로 어떤 것을 테스트하는지 계속 파악하고 있어야 합니다.`,
+  },
+  {
+    q: "디자이너와 긴밀히 협업한 프론트엔드 엔지니어로서 — 디자이너에게 실제로 무엇이 필요한가요?",
+    a: `'왜'를 설명해줄 수 있는 사람이요.
+
+"이걸 1픽셀 오른쪽으로 옮겨주세요"가 아닙니다. 그건 제가 알아낼 수 있습니다. 제게 필요한 건 이겁니다: 왜 옮겨야 하는지? 어떤 문제를 해결하는지? 어떤 사용자 행동을 반영하는지?
+
+디자이너가 그 이유를 설명해줄 수 있을 때 — 그 뒤에 있는 사용자 리서치, 보호하려는 엣지 케이스, 만들려는 경험 — 모든 게 달라집니다. 그때부터 저는 단순히 스펙을 구현하는 게 아니라 의도를 이해하게 됩니다. 구현이 복잡해질 때 판단을 내릴 수 있게 됩니다.
+
+저도 제 프론트엔드 작업을 같은 방식으로 공유합니다. 무언가를 변경할 때 왜 그랬는지 설명합니다. 이게 내가 바꾼 것이고, 왜 중요한지, 내가 뭘 지키려 했는지. 그게 협업을 실제로 작동하게 만드는 것입니다.
+
+바이브 코딩된 디자인이 더 흔해지면서 이게 훨씬 더 중요해질 겁니다. 누군가가 AI로 UI를 만들고 왜 그런 선택을 했는지 설명하지 못한다면 — 그건 디자인이 아니라 노이즈입니다. "왜 거기에 버튼을 놨나요?"라는 질문에는 항상 답이 있어야 합니다.`,
+  },
+  {
+    q: "5년 후에도 디자이너가 필요할까요?",
+    a: `네 — 하지만 더 적은 수가, 그리고 역할이 달라질 겁니다.
+
+AI가 UI를 생성하는 능력은 계속 좋아지고 있습니다. 하지만 디자인은 단순한 시각적 생산물이 아닙니다. 트렌드를 이해하고, 현재 어떤 것이 트렌디한지 파악하고, 실제 사람들이 실제로 사용하는 실제 제품에 노출되면서 쌓인 안목을 가지는 것입니다. 이건 자동화하기 어렵습니다. 모델이 학습했을 때 사실이었던 것이 아니라 '지금' 일어나고 있는 것을 알아야 하니까요.
+
+번창할 디자이너는 AI가 복제할 수 없는 관점을 가진 사람들입니다. 생성된 결과물을 보고 무엇이 잘못됐는지 즉각적으로 알 수 있는 사람들 — 그리고 더 중요하게는, 왜 잘못됐는지, 무엇이어야 하는지를 아는 사람들.
+
+모든 팀에는 디자인 관점을 가진 한 사람이 있어야 합니다. 그 본능을 개발한 한 사람. 열 명이 필요한 게 아닙니다. 하지만 한 명은 필요합니다.
+
+위험한 시나리오는 바이브 코딩이 그 사람을 대체한다고 생각하는 팀입니다. 그렇지 않습니다. 생산 작업을 대체하는 겁니다. 사고는 여전히 어딘가에서 나와야 합니다.`,
   },
 ];
 
-export default function BonusWenyangMuKo() {
+export default function BonusTaehoKimKo() {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <ManuscriptSidebarKo chapters={chapters} currentSlug={currentSlug} />
@@ -73,12 +99,12 @@ export default function BonusWenyangMuKo() {
 
           {/* Header */}
           <div className="chapter-prose" style={{ paddingBottom: "var(--sp-10)" }}>
-            <p className="chapter-part-label" style={{ color: ACCENT }}>보너스 — 실리콘밸리 디자이너 인터뷰</p>
+            <p className="chapter-part-label" style={{ color: ACCENT }}>보너스 — 실리콘밸리 엔지니어 인터뷰</p>
             <p className="chapter-part-subtitle">인터뷰 · 조율의 시대</p>
             <div style={{ position: "relative", marginTop: "var(--sp-8)" }}>
               <div className="chapter-ghost-number" aria-hidden="true"
-                style={{ position: "absolute", top: "-0.15em", left: "-0.05em", zIndex: 0 }}>B2</div>
-              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>Wenyang Mu · 무웬양</h1>
+                style={{ position: "absolute", top: "-0.15em", left: "-0.05em", zIndex: 0 }}>B8</div>
+              <h1 className="chapter-title" style={{ position: "relative", zIndex: 1 }}>Taeho Kim · 태호 김</h1>
             </div>
             <p style={{
               fontFamily: "var(--font-inter), system-ui, sans-serif",
@@ -87,7 +113,7 @@ export default function BonusWenyangMuKo() {
               marginTop: "var(--sp-4)",
               letterSpacing: "0.04em",
             }}>
-              <Link href="/ktalk/manuscript/bonus/wenyang-mu" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
+              <Link href="/ktalk/manuscript/bonus/taeho-kim" style={{ color: "var(--ink-muted)", textDecoration: "none" }}>
                 Read in English →
               </Link>
             </p>
@@ -113,7 +139,7 @@ export default function BonusWenyangMuKo() {
                 textTransform: "uppercase",
                 color: ACCENT,
                 margin: "0 0 8px",
-              }}>Lead Product Designer</p>
+              }}>Founding Principal Software Engineer</p>
               <p style={{
                 fontFamily: "var(--font-playfair), Georgia, serif",
                 fontSize: "20px",
@@ -121,7 +147,7 @@ export default function BonusWenyangMuKo() {
                 color: "var(--ink)",
                 margin: "0 0 8px",
                 lineHeight: 1.2,
-              }}>Wenyang Mu · 무웬양</p>
+              }}>Taeho (TK) Kim · 태호 김</p>
               <p style={{
                 fontFamily: "var(--font-inter), system-ui, sans-serif",
                 fontSize: "13px",
@@ -129,7 +155,7 @@ export default function BonusWenyangMuKo() {
                 margin: 0,
                 lineHeight: 1.6,
               }}>
-                Lead Product Designer · 0→1 SaaS · AI for Procurement &amp; Fintech · SAP Ariba
+                Founding Principal Software Engineer (Frontend) · Full-stack · Design systems
               </p>
             </div>
 
