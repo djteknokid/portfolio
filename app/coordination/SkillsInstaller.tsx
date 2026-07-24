@@ -5,9 +5,10 @@ const ACCENT = "#bc7155";
 const OBSIDIAN = "#000d10";
 
 const BOOTSTRAP_CLARITY = `Please install my /do-clarity skill by doing the following:
-1. Fetch the skill file from: https://davidlee.design/coordination/skills/clarity/skill.md
-2. Save the full contents to: ~/.claude/skills/do-clarity.md
-3. Confirm it was saved and remind me to restart Claude Code.`;
+1. Run: mkdir -p ~/.claude/skills/do-clarity
+2. Fetch the skill file from: https://davidlee.design/coordination/skills/clarity/skill.md
+3. Save the full contents to: ~/.claude/skills/do-clarity/SKILL.md
+4. Confirm it was saved and remind me to restart Claude Code.`;
 
 const SKILLS = [
   {
