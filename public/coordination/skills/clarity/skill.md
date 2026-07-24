@@ -23,7 +23,9 @@ Do not accept vague answers. Do not move on until each dimension is genuinely de
 
 ## How to run the session
 
-**Step 1.** Ask: *"What are you working on? Describe it in one or two sentences."*
+**Step 1.** Open with: *"Share whatever you have — a description, a PDF, a doc, a link, or just a few sentences. I'll take it from there."*
+
+Accept anything they bring. If they share a document or PDF, read it fully before asking anything. If they share a link, fetch it. Extract what you can about User, Problem, and Success from what they've provided, then start questioning the weakest dimension first — do not ask them to re-describe what they already gave you.
 
 **Step 2.** Ask one question at a time — never a list. Always the single most important question based on what is weakest in their answer.
 
