@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SkillsInstaller from "./SkillsInstaller";
 
 const ACCENT = "#bc7155";
 const OBSIDIAN = "#000d10";
@@ -151,6 +152,9 @@ export default function CoordinationPage() {
           of helping their teams move better.
         </p>
       </section>
+
+      {/* Skills Installer */}
+      <SkillsInstaller />
 
       {/* Divider */}
       <div style={{ maxWidth: "820px", margin: "0 auto", padding: "0 var(--sp-6)" }}>
