@@ -187,29 +187,45 @@ export default function ClarityInstructionsPage() {
             title: "Open with an invitation",
             body: `Say exactly: "What are you working on? Share anything you have — a doc, a PDF, a link, or just describe it."`,
             sub: [
-              "They share a doc, PDF, or link → read it fully first. Extract what you can. Start questioning the weakest dimension. Do not ask them to re-describe what they already gave you.",
-              "They write a description → treat it as the starting point. Find the weakest dimension and start there.",
+              "They share a doc, PDF, or link → read it fully first. Extract what you can. Diagnose which of the three dimensions is weakest. Start there. Do not ask them to re-describe what they already gave you.",
+              "They write a description → find the weakest dimension and start there.",
               "They have nothing yet → say: \"That's fine. Tell me who you think you're building this for.\" One question. Start from User.",
             ],
           },
           {
             step: "02",
-            title: "One question at a time",
-            body: "Never ask a list of questions. Always ask the single most important question based on what is weakest in their answer.",
+            title: "Stake a position — don't ask an open question",
+            body: "Read what they gave you. Form your own interpretation of the weakest dimension. State it directly, then ask them to confirm, correct, or sharpen it.",
             sub: [
-              "If the user deflects or asks you to figure it out — do it. Read what they gave you, stake a position on the weakest dimension, and ask them to confirm or push back. Example: \"Based on the product, I'd say the primary user is the recruiting coordinator, not the talent leader — they're the ones doing the daily scheduling work. Does that match what you're seeing?\"",
-              "Never leave the user with nothing to react to. A staked position they can disagree with is more useful than a question they don't want to answer.",
+              "Never ask an open question when you can take a position instead. \"Who is the user?\" is weak. \"My read is the primary user is X — is that right?\" is strong.",
+              "If the user deflects or says 'figure it out' — do it. Never leave them with nothing to push back against.",
+              "When proposing a user, distinguish between: who operates the tool (primary user), who sponsors or buys it, and who ultimately judges whether it succeeded. These may be different people. Name the one the problem is built around.",
             ],
           },
           {
             step: "03",
-            title: "Score every answer",
-            body: "After each answer, score it 1–10 with one sentence explaining why. Do not move to the next dimension until the current one scores 7 or higher.",
+            title: "Force prioritization, not agreement",
+            body: "A 'yes' only confirms the statement sounds reasonable. It does not prove it is specific or correct. After staking a position, ask a question that forces the user to choose or reveal observable behavior.",
+            sub: [
+              "For problem: \"Which of these failures matters most right now — it takes too long, the output violates the rules, or the user is blocked on someone else?\"",
+              "For user: \"Complete this: the person who feels this most is ___, not ___.\"",
+              "For success: \"Complete this: without this product, the user currently has to ___, which causes ___.\"",
+              "A forced distinction produces evidence. Agreement produces comfort.",
+            ],
           },
           {
             step: "04",
-            title: "Output the final statement",
-            body: "When all three dimensions score 7+, output the clean block (see below).",
+            title: "Score and lock",
+            body: "After each dimension is confirmed, score it 1–10 with one sentence explaining why. Do not move to the next dimension until the current one scores 7 or higher.",
+            sub: [
+              "When locking a dimension, produce one clean sentence and name any remaining assumption explicitly. Example: \"Locked — assuming the designer is the primary user, not the developer. We'll validate that.\"",
+              "A locked dimension is not a final answer. It is the working position the rest of the session builds on.",
+            ],
+          },
+          {
+            step: "05",
+            title: "Output the clarity artifact",
+            body: "When all three dimensions score 7+, produce the full clarity artifact (see below) — not just three sentences. The output should be usable immediately for a meeting, a brief, or a decision.",
           },
         ].map(({ step, title, body, sub }) => (
           <div key={step} style={{
@@ -362,13 +378,13 @@ export default function ClarityInstructionsPage() {
             textTransform: "uppercase",
             color: ACCENT,
             margin: "0 0 var(--sp-5)",
-          }}>Final Output</p>
+          }}>Final Output — Clarity Artifact</p>
           <p style={{
             fontFamily: "var(--font-inter), system-ui, sans-serif",
             fontSize: "14px",
             color: "rgba(255,255,255,0.5)",
             margin: "0 0 var(--sp-5)",
-          }}>When all three dimensions score 7+, output this block exactly:</p>
+          }}>When all three dimensions score 7+, produce this full artifact. Not just three sentences — a usable alignment document.</p>
           <div style={{
             padding: "var(--sp-5) var(--sp-6)",
             background: "rgba(255,255,255,0.05)",
@@ -376,11 +392,42 @@ export default function ClarityInstructionsPage() {
             marginBottom: "var(--sp-5)",
           }}>
             {[
-              { label: "USER", placeholder: "One sentence." },
-              { label: "PROBLEM", placeholder: "One sentence." },
-              { label: "SUCCESS", placeholder: "One sentence." },
-            ].map(({ label, placeholder }) => (
-              <div key={label} style={{ marginBottom: "var(--sp-4)" }}>
+              {
+                label: "USER",
+                lines: [
+                  "One sentence: who operates this, in what context.",
+                  "One sentence: the dependency or constraint they are working around.",
+                ],
+              },
+              {
+                label: "PROBLEM",
+                lines: [
+                  "One sentence: what the user can do, what they cannot do, and what that causes.",
+                  "One sentence: why the existing approach fails — the specific constraint or gap.",
+                ],
+              },
+              {
+                label: "SUCCESS",
+                lines: [
+                  "One sentence: the outcome, including a time or quality target.",
+                  "One sentence: what dependency is removed or what behavior changes.",
+                ],
+              },
+              {
+                label: "CLARITY STATEMENT",
+                lines: [
+                  "One sentence: For [user] who [context], [product] does [thing], so that [outcome].",
+                ],
+              },
+              {
+                label: "REMAINING ASSUMPTIONS",
+                lines: [
+                  "List each dimension that was confirmed by agreement rather than evidence.",
+                  "These are the working assumptions to validate next.",
+                ],
+              },
+            ].map(({ label, lines }) => (
+              <div key={label} style={{ marginBottom: "var(--sp-5)" }}>
                 <p style={{
                   fontFamily: "var(--font-inter), system-ui, sans-serif",
                   fontSize: "10px",
@@ -388,15 +435,18 @@ export default function ClarityInstructionsPage() {
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
                   color: ACCENT,
-                  margin: "0 0 4px",
+                  margin: "0 0 6px",
                 }}>{label}</p>
-                <p style={{
-                  fontFamily: "var(--font-playfair), Georgia, serif",
-                  fontSize: "17px",
-                  color: "rgba(255,255,255,0.5)",
-                  margin: 0,
-                  fontStyle: "italic",
-                }}>{placeholder}</p>
+                {lines.map((line, i) => (
+                  <p key={i} style={{
+                    fontFamily: "var(--font-playfair), Georgia, serif",
+                    fontSize: "15px",
+                    color: "rgba(255,255,255,0.4)",
+                    margin: "0 0 4px",
+                    fontStyle: "italic",
+                    lineHeight: 1.5,
+                  }}>{line}</p>
+                ))}
               </div>
             ))}
           </div>
@@ -407,7 +457,7 @@ export default function ClarityInstructionsPage() {
             margin: 0,
             lineHeight: 1.6,
           }}>
-            Then add one line: <em>&ldquo;This is ready to bring into a meeting.&rdquo;</em> or{" "}
+            End with: <em>&ldquo;This is ready to bring into a meeting.&rdquo;</em> or{" "}
             <em>&ldquo;One more round on [dimension] before this is meeting-ready.&rdquo;</em>
           </p>
         </div>
