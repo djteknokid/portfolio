@@ -4,6 +4,7 @@ const ACCENT = "#bc7155";
 const OBSIDIAN = "#000d10";
 
 const PUSHBACK_RULES = [
+  { trigger: "User deflects or says \"figure it out\"", response: "Read what they provided, stake a position, and ask them to react. Never leave them with nothing to push back against." },
   { trigger: "User too broad", response: "That's a market segment, not a person. Who specifically feels this pain? Who loses if this never ships?" },
   { trigger: "User is a job title", response: "That's a title. Describe the moment they experience the problem." },
   { trigger: "Problem sounds like a solution", response: "That's a solution. What are they experiencing before they get there?" },
@@ -195,6 +196,10 @@ export default function ClarityInstructionsPage() {
             step: "02",
             title: "One question at a time",
             body: "Never ask a list of questions. Always ask the single most important question based on what is weakest in their answer.",
+            sub: [
+              "If the user deflects or asks you to figure it out — do it. Read what they gave you, stake a position on the weakest dimension, and ask them to confirm or push back. Example: \"Based on the product, I'd say the primary user is the recruiting coordinator, not the talent leader — they're the ones doing the daily scheduling work. Does that match what you're seeing?\"",
+              "Never leave the user with nothing to react to. A staked position they can disagree with is more useful than a question they don't want to answer.",
+            ],
           },
           {
             step: "03",
