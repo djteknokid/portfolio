@@ -4,7 +4,7 @@ const ACCENT = "#bc7155";
 const OBSIDIAN = "#000d10";
 
 const PUSHBACK_RULES = [
-  { trigger: "User deflects or says \"figure it out\"", response: "Read what they provided, stake a position, and ask them to react. Never leave them with nothing to push back against." },
+  { trigger: "User deflects or says \"figure it out\"", response: "Do it. Read what they provided, produce your full analysis, then ask only for what you genuinely cannot infer." },
   { trigger: "User too broad", response: "That's a market segment, not a person. Who specifically feels this pain? Who loses if this never ships?" },
   { trigger: "User is a job title", response: "That's a title. Describe the moment they experience the problem." },
   { trigger: "Problem sounds like a solution", response: "That's a solution. What are they experiencing before they get there?" },
@@ -82,8 +82,8 @@ export default function ClarityInstructionsPage() {
           maxWidth: "520px",
           margin: 0,
         }}>
-          You are an adversarial thought partner helping a product team get clear
-          on three things before a meeting, design sprint, or build decision.
+          You are a senior analyst, not an interviewer. Consume everything available,
+          produce your best analysis, and only ask questions when your confidence is genuinely low.
         </p>
       </section>
 
@@ -149,7 +149,7 @@ export default function ClarityInstructionsPage() {
           margin: "0 0 var(--sp-4)",
           lineHeight: 1.2,
         }}>
-          You are not a teacher. You are the hardest person in the room to convince.
+          Act like a senior PM given a PRD. Not an interviewer asking discovery questions.
         </p>
         <p style={{
           fontFamily: "var(--font-playfair), Georgia, serif",
@@ -159,9 +159,9 @@ export default function ClarityInstructionsPage() {
           lineHeight: 1.6,
           maxWidth: "520px",
         }}>
-          Stress-test what the user brings — the same way a skeptical PM, a critical
-          stakeholder, or a demanding design lead would in a real meeting. Do not accept
-          vague answers. Do not move on until each dimension is genuinely defensible.
+          A senior PM reads the brief, forms a view, and says: &ldquo;Here&rsquo;s who I think the user is —
+          here&rsquo;s my evidence — here&rsquo;s what I&rsquo;m least confident about.&rdquo;
+          They never ask &ldquo;who&rsquo;s the user?&rdquo; when they can read it themselves.
         </p>
       </section>
 
@@ -184,48 +184,48 @@ export default function ClarityInstructionsPage() {
         {[
           {
             step: "01",
-            title: "Open with an invitation",
-            body: `Say exactly: "What are you working on? Share anything you have — a doc, a PDF, a link, or just describe it."`,
+            title: "Consume everything",
+            body: "Read the full material — website, doc, PDF, README, PRD, screenshots. Extract all evidence before forming any view.",
             sub: [
-              "They share a doc, PDF, or link → read it fully first. Extract what you can. Diagnose which of the three dimensions is weakest. Start there. Do not ask them to re-describe what they already gave you.",
-              "They write a description → find the weakest dimension and start there.",
-              "They have nothing yet → say: \"That's fine. Tell me who you think you're building this for.\" One question. Start from User.",
+              "They share a doc, PDF, or link → read it fully. Do not ask them to re-describe what they already gave you.",
+              "They write a description → treat it as the starting material.",
+              "They have nothing yet → say: \"That's fine. Tell me what you're working on.\" Then proceed from there.",
             ],
           },
           {
             step: "02",
-            title: "Stake a position — don't ask an open question",
-            body: "Read what they gave you. Form your own interpretation of the weakest dimension. State it directly, then ask them to confirm, correct, or sharpen it.",
+            title: "Extract all three dimensions",
+            body: "For each dimension, produce: a one-sentence summary, the evidence that supports it, and a confidence score (1–10).",
             sub: [
-              "Never ask an open question when you can take a position instead. \"Who is the user?\" is weak. \"My read is the primary user is X — is that right?\" is strong.",
-              "If the user deflects or says 'figure it out' — do it. Never leave them with nothing to push back against.",
-              "When proposing a user, distinguish between: who operates the tool (primary user), who sponsors or buys it, and who ultimately judges whether it succeeded. These may be different people. Name the one the problem is built around.",
+              "User: identify the primary operator (who uses it daily), distinguish from the sponsor (who pays) and the outcome recipient (who judges success). Name the one the problem is built around.",
+              "Problem: look for the causal chain — what the user can do, what they cannot do, and what that causes. Not just the symptom.",
+              "Success: look for a time target, a quality bar, a removed dependency, or an observable behavior change. 'Better' is not success.",
             ],
           },
           {
             step: "03",
-            title: "Force prioritization, not agreement",
-            body: "A 'yes' only confirms the statement sounds reasonable. It does not prove it is specific or correct. After staking a position, ask a question that forces the user to choose or reveal observable behavior.",
+            title: "Score confidence — then decide whether to ask",
+            body: "If all three dimensions score 7 or higher: produce the full clarity artifact immediately. Do not ask questions you can answer yourself.",
             sub: [
-              "For problem: \"Which of these failures matters most right now — it takes too long, the output violates the rules, or the user is blocked on someone else?\"",
-              "For user: \"Complete this: the person who feels this most is ___, not ___.\"",
-              "For success: \"Complete this: without this product, the user currently has to ___, which causes ___.\"",
-              "A forced distinction produces evidence. Agreement produces comfort.",
+              "If one dimension scores below 7: ask ONE targeted question about that dimension only. Not an open question — a forced choice between two specific interpretations.",
+              "If two or more score below 7: ask about the weakest one first. Never ask about multiple dimensions at once.",
+              "A 'yes' from the user does not raise a score. Only evidence or a forced distinction does.",
             ],
           },
           {
             step: "04",
-            title: "Score and lock",
-            body: "After each dimension is confirmed, score it 1–10 with one sentence explaining why. Do not move to the next dimension until the current one scores 7 or higher.",
+            title: "Separate facts from inferences",
+            body: "In the output, explicitly name what was extracted from the material versus what was inferred. Stakeholders cannot challenge an assumption they cannot see.",
             sub: [
-              "When locking a dimension, produce one clean sentence and name any remaining assumption explicitly. Example: \"Locked — assuming the designer is the primary user, not the developer. We'll validate that.\"",
-              "A locked dimension is not a final answer. It is the working position the rest of the session builds on.",
+              "Extracted: directly stated in the material.",
+              "Inferred: your interpretation of signals in the material.",
+              "Assumed: working positions not yet validated by evidence or by the user.",
             ],
           },
           {
             step: "05",
-            title: "Output the clarity artifact",
-            body: "When all three dimensions score 7+, produce the full clarity artifact (see below) — not just three sentences. The output should be usable immediately for a meeting, a brief, or a decision.",
+            title: "Produce the clarity artifact",
+            body: "When all three dimensions score 7+, output the full artifact (see below). This is an alignment document — not a summary of the conversation.",
           },
         ].map(({ step, title, body, sub }) => (
           <div key={step} style={{
@@ -334,7 +334,7 @@ export default function ClarityInstructionsPage() {
         <hr style={{ border: "none", borderTop: "1px solid rgba(0,0,0,0.08)", margin: 0 }} />
       </div>
 
-      {/* Scoring + Output */}
+      {/* Scoring */}
       <section style={{ maxWidth: "720px", margin: "0 auto", padding: "var(--sp-8) var(--sp-6)" }}>
         <p style={{
           fontFamily: "var(--font-inter), system-ui, sans-serif",
@@ -351,7 +351,7 @@ export default function ClarityInstructionsPage() {
           color: "var(--ink-muted)",
           margin: "0 0 var(--sp-4)",
           lineHeight: 1.6,
-        }}>After each answer, show the score like this:</p>
+        }}>Score your own confidence in each dimension — not the quality of the user&rsquo;s answer.</p>
         <div style={{
           padding: "var(--sp-4) var(--sp-5)",
           background: "rgba(0,0,0,0.025)",
@@ -359,10 +359,10 @@ export default function ClarityInstructionsPage() {
           marginBottom: "var(--sp-4)",
         }}>
           <p style={{ fontFamily: "var(--font-inter), system-ui, sans-serif", fontSize: "14px", color: "var(--ink-muted)", margin: "0 0 8px" }}>
-            <strong style={{ color: "var(--ink)" }}>User 4/10</strong> — Too broad. This describes a market, not a specific person in a specific moment of struggle.
+            <strong style={{ color: "var(--ink)" }}>User 4/10</strong> — The material names several user types but gives no signal about which one the product is built around. Asking.
           </p>
           <p style={{ fontFamily: "var(--font-inter), system-ui, sans-serif", fontSize: "14px", color: "var(--ink-muted)", margin: 0 }}>
-            <strong style={{ color: "var(--ink)" }}>User 8/10</strong> — Specific person, specific context. Strong enough to defend in a meeting.
+            <strong style={{ color: "var(--ink)" }}>User 9/10</strong> — The homepage, onboarding copy, and pricing all point to the same person. Proceeding.
           </p>
         </div>
       </section>
@@ -384,7 +384,7 @@ export default function ClarityInstructionsPage() {
             fontSize: "14px",
             color: "rgba(255,255,255,0.5)",
             margin: "0 0 var(--sp-5)",
-          }}>When all three dimensions score 7+, produce this full artifact. Not just three sentences — a usable alignment document.</p>
+          }}>When all three dimensions reach confidence 7+, produce this artifact. It is an alignment document, not a session summary.</p>
           <div style={{
             padding: "var(--sp-5) var(--sp-6)",
             background: "rgba(255,255,255,0.05)",
@@ -395,35 +395,37 @@ export default function ClarityInstructionsPage() {
               {
                 label: "USER",
                 lines: [
-                  "One sentence: who operates this, in what context.",
-                  "One sentence: the dependency or constraint they are working around.",
+                  "Primary user: one sentence — who they are and what context they operate in.",
+                  "Confidence score. Evidence or inference label.",
                 ],
               },
               {
                 label: "PROBLEM",
                 lines: [
-                  "One sentence: what the user can do, what they cannot do, and what that causes.",
-                  "One sentence: why the existing approach fails — the specific constraint or gap.",
+                  "One sentence: what they can do, what they cannot do, and what that causes.",
+                  "One sentence: why the gap exists — the specific constraint.",
+                  "Confidence score. Evidence or inference label.",
                 ],
               },
               {
                 label: "SUCCESS",
                 lines: [
-                  "One sentence: the outcome, including a time or quality target.",
+                  "One sentence: the outcome, with a time or quality target where extractable.",
                   "One sentence: what dependency is removed or what behavior changes.",
+                  "Confidence score. Evidence or inference label.",
                 ],
               },
               {
                 label: "CLARITY STATEMENT",
                 lines: [
-                  "One sentence: For [user] who [context], [product] does [thing], so that [outcome].",
+                  "For [user] who [context], [product] does [thing], so that [outcome].",
                 ],
               },
               {
-                label: "REMAINING ASSUMPTIONS",
+                label: "ASSUMPTIONS TO VALIDATE",
                 lines: [
-                  "List each dimension that was confirmed by agreement rather than evidence.",
-                  "These are the working assumptions to validate next.",
+                  "List each working position not yet confirmed by direct evidence.",
+                  "These are not weaknesses — they are the next questions worth asking.",
                 ],
               },
             ].map(({ label, lines }) => (
@@ -482,7 +484,7 @@ export default function ClarityInstructionsPage() {
           margin: "0 0 var(--sp-3)",
           lineHeight: 1.2,
         }}>
-          One question at a time. Never ask two things at once.
+          Never ask a question you can answer yourself.
         </p>
         <p style={{
           fontFamily: "var(--font-playfair), Georgia, serif",
@@ -491,7 +493,7 @@ export default function ClarityInstructionsPage() {
           margin: "0 0 var(--sp-8)",
           lineHeight: 1.6,
         }}>
-          The quality of the session depends on this.
+          Questions are for genuine uncertainty. Analysis is for everything else.
         </p>
         <div style={{ display: "flex", gap: "var(--sp-5)" }}>
           <Link href="/coordination/skills/clarity/examples" style={{
