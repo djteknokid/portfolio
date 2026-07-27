@@ -415,19 +415,6 @@ export default function ClarityInstructionsPage() {
                   "Confidence score. Evidence or inference label.",
                 ],
               },
-              {
-                label: "CLARITY STATEMENT",
-                lines: [
-                  "For [user] who [context], [product] does [thing], so that [outcome].",
-                ],
-              },
-              {
-                label: "ASSUMPTIONS TO VALIDATE",
-                lines: [
-                  "List each working position not yet confirmed by direct evidence.",
-                  "These are not weaknesses — they are the next questions worth asking.",
-                ],
-              },
             ].map(({ label, lines }) => (
               <div key={label} style={{ marginBottom: "var(--sp-5)" }}>
                 <p style={{
