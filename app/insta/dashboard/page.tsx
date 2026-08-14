@@ -195,6 +195,10 @@ function Dashboard() {
                   `&access_token=${token}`
               );
               const insightData = await insightRes.json();
+              if (!insightRes.ok) {
+                console.error(`[insights error] ${post.id}:`, JSON.stringify(insightData));
+                return post;
+              }
               console.log(`[insights] ${post.id} (${post.media_type}):`, JSON.stringify(insightData));
               const map: Record<string, number> = {};
               for (const item of (insightData.data || [])) {
