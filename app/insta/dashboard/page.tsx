@@ -192,11 +192,11 @@ function Dashboard() {
             if (isReel) {
               metrics = "reach,views,shares,saved,ig_reels_avg_watch_time";
             } else if (isVideo) {
-              metrics = "impressions,reach,views,shares,saved";
+              metrics = "reach,views,shares,saved";
             } else if (isCarousel) {
               metrics = "reach,shares,saved,total_interactions";
             } else if (isImage) {
-              metrics = "impressions,reach,shares,saved";
+              metrics = "reach,shares,saved";
             } else {
               metrics = "reach,shares,saved";
             }
