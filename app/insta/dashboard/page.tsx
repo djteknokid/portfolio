@@ -25,6 +25,8 @@ interface MediaItem {
   timestamp: string;
   like_count: number;
   comments_count: number;
+  video_views?: number;
+  shares_count?: number;
   permalink: string;
 }
 
@@ -34,6 +36,9 @@ interface StoredAccount {
   profile_picture_url: string;
   name: string;
 }
+
+type SortKey = "timestamp" | "like_count" | "comments_count" | "video_views" | "shares_count";
+type SortDir = "asc" | "desc";
 
 const ACCOUNTS_KEY = "ig_accounts";
 const ACTIVE_KEY = "ig_active_username";
@@ -59,6 +64,24 @@ function removeAccount(username: string) {
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 }
 
+function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
+  return (
+    <svg
+      className={`inline w-3 h-3 ml-1 transition-opacity ${active ? "opacity-100" : "opacity-30"}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d={active && dir === "asc" ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"}
+      />
+    </svg>
+  );
+}
+
 function Dashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -70,9 +93,10 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("timestamp");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -83,12 +107,10 @@ function Dashboard() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // On mount: handle incoming token or load stored active account
   useEffect(() => {
     const urlToken = searchParams.get("token");
     if (urlToken) {
       window.history.replaceState({}, "", "/insta/dashboard");
-      // Fetch profile first to get username, then store
       fetch(
         `https://graph.instagram.com/v21.0/me` +
           `?fields=id,username,name,profile_picture_url` +
@@ -118,15 +140,13 @@ function Dashboard() {
       return;
     }
 
-    const active =
-      localStorage.getItem(ACTIVE_KEY) || storedAccounts[0].username;
+    const active = localStorage.getItem(ACTIVE_KEY) || storedAccounts[0].username;
     const account = storedAccounts.find((a) => a.username === active) || storedAccounts[0];
     setAccounts(storedAccounts);
     setActiveUsername(account.username);
     setToken(account.token);
   }, [searchParams, router]);
 
-  // Fetch full profile + media when token changes
   useEffect(() => {
     if (!token) return;
     setLoading(true);
@@ -140,13 +160,12 @@ function Dashboard() {
             `&access_token=${token}`
         );
         if (!profileRes.ok) throw new Error("Failed to fetch profile");
-        const profileData: Profile = await profileRes.json();
-        setProfile(profileData);
+        setProfile(await profileRes.json());
 
         const mediaRes = await fetch(
           `https://graph.instagram.com/v21.0/me/media` +
-            `?fields=id,caption,media_type,thumbnail_url,media_url,timestamp,like_count,comments_count,permalink` +
-            `&limit=12` +
+            `?fields=id,caption,media_type,thumbnail_url,media_url,timestamp,like_count,comments_count,video_views,shares_count,permalink` +
+            `&limit=50` +
             `&access_token=${token}`
         );
         if (!mediaRes.ok) throw new Error("Failed to fetch media");
@@ -161,6 +180,15 @@ function Dashboard() {
 
     fetchData();
   }, [token]);
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  }
 
   function switchAccount(username: string) {
     const account = accounts.find((a) => a.username === username);
@@ -191,6 +219,19 @@ function Dashboard() {
     }
     setMenuOpen(false);
   }
+
+  const sortedMedia = [...media].sort((a, b) => {
+    let aVal: number;
+    let bVal: number;
+    if (sortKey === "timestamp") {
+      aVal = new Date(a.timestamp).getTime();
+      bVal = new Date(b.timestamp).getTime();
+    } else {
+      aVal = a[sortKey] ?? -1;
+      bVal = b[sortKey] ?? -1;
+    }
+    return sortDir === "desc" ? bVal - aVal : aVal - bVal;
+  });
 
   if (loading) {
     return (
@@ -231,7 +272,8 @@ function Dashboard() {
 
   return (
     <main className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto px-6 py-12 space-y-12">
+      <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
+
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="relative" ref={menuRef}>
@@ -252,10 +294,7 @@ function Dashboard() {
                   <h1 className="text-xl font-semibold">@{profile?.username}</h1>
                   <svg
                     className={`w-4 h-4 text-zinc-500 transition-transform ${menuOpen ? "rotate-180" : ""}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
@@ -266,7 +305,6 @@ function Dashboard() {
 
             {menuOpen && (
               <div className="absolute top-full left-0 mt-2 w-56 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl z-10">
-                {/* Other accounts */}
                 {accounts
                   .filter((a) => a.username !== activeUsername)
                   .map((a) => (
@@ -276,11 +314,7 @@ function Dashboard() {
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800 transition-colors text-left"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={a.profile_picture_url}
-                        alt={a.username}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
+                      <img src={a.profile_picture_url} alt={a.username} className="w-8 h-8 rounded-full object-cover" />
                       <div>
                         <p className="text-sm text-white">@{a.username}</p>
                         <p className="text-xs text-zinc-500">{a.name}</p>
@@ -288,7 +322,6 @@ function Dashboard() {
                     </button>
                   ))}
 
-                {/* Divider if there are other accounts */}
                 {accounts.filter((a) => a.username !== activeUsername).length > 0 && (
                   <div className="border-t border-zinc-800" />
                 )}
@@ -333,42 +366,6 @@ function Dashboard() {
           ))}
         </div>
 
-        {/* Bio */}
-        {profile?.biography && (
-          <p className="text-zinc-400 text-sm leading-relaxed max-w-lg">
-            {profile.biography}
-          </p>
-        )}
-
-        {/* Recent posts */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-zinc-400">Recent posts</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {media.map((post) => (
-              <a
-                key={post.id}
-                href={post.permalink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative aspect-square bg-zinc-900 rounded-xl overflow-hidden"
-              >
-                {(post.media_url || post.thumbnail_url) && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={post.thumbnail_url || post.media_url}
-                    alt={post.caption?.slice(0, 40) || "post"}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-sm">
-                  <span>♥ {post.like_count}</span>
-                  <span>💬 {post.comments_count}</span>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-
         {/* Post performance table */}
         <div className="space-y-4">
           <h2 className="text-sm font-medium text-zinc-400">Post performance</h2>
@@ -376,21 +373,81 @@ function Dashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-800">
-                  <th className="text-left text-zinc-500 font-normal px-5 py-3">Caption</th>
-                  <th className="text-right text-zinc-500 font-normal px-5 py-3">Likes</th>
-                  <th className="text-right text-zinc-500 font-normal px-5 py-3">Comments</th>
-                  <th className="text-right text-zinc-500 font-normal px-5 py-3">Date</th>
+                  <th className="text-left text-zinc-500 font-normal px-4 py-3 w-10"></th>
+                  <th className="text-left text-zinc-500 font-normal px-4 py-3">Caption</th>
+                  <th
+                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
+                    onClick={() => handleSort("like_count")}
+                  >
+                    Likes <SortIcon active={sortKey === "like_count"} dir={sortDir} />
+                  </th>
+                  <th
+                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
+                    onClick={() => handleSort("comments_count")}
+                  >
+                    Comments <SortIcon active={sortKey === "comments_count"} dir={sortDir} />
+                  </th>
+                  <th
+                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
+                    onClick={() => handleSort("video_views")}
+                  >
+                    Views <SortIcon active={sortKey === "video_views"} dir={sortDir} />
+                  </th>
+                  <th
+                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
+                    onClick={() => handleSort("shares_count")}
+                  >
+                    Shares <SortIcon active={sortKey === "shares_count"} dir={sortDir} />
+                  </th>
+                  <th
+                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
+                    onClick={() => handleSort("timestamp")}
+                  >
+                    Date <SortIcon active={sortKey === "timestamp"} dir={sortDir} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {media.map((post, i) => (
-                  <tr key={post.id} className={i < media.length - 1 ? "border-b border-zinc-800" : ""}>
-                    <td className="px-5 py-3 text-zinc-300 max-w-xs truncate">
-                      {post.caption?.slice(0, 60) || <span className="text-zinc-600">No caption</span>}
+                {sortedMedia.map((post, i) => (
+                  <tr
+                    key={post.id}
+                    className={`hover:bg-zinc-800/50 transition-colors ${i < sortedMedia.length - 1 ? "border-b border-zinc-800" : ""}`}
+                  >
+                    <td className="px-4 py-2.5">
+                      <a href={post.permalink} target="_blank" rel="noopener noreferrer">
+                        {(post.thumbnail_url || post.media_url) ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={post.thumbnail_url || post.media_url}
+                            alt=""
+                            className="w-9 h-9 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-600 text-xs">
+                            {post.media_type === "VIDEO" ? "▶" : "□"}
+                          </div>
+                        )}
+                      </a>
                     </td>
-                    <td className="px-5 py-3 text-right text-zinc-300">{post.like_count.toLocaleString()}</td>
-                    <td className="px-5 py-3 text-right text-zinc-300">{post.comments_count.toLocaleString()}</td>
-                    <td className="px-5 py-3 text-right text-zinc-500">
+                    <td className="px-4 py-2.5 text-zinc-300 max-w-xs">
+                      <a
+                        href={post.permalink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-white transition-colors line-clamp-2 leading-snug"
+                      >
+                        {post.caption || <span className="text-zinc-600">No caption</span>}
+                      </a>
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-300">{post.like_count.toLocaleString()}</td>
+                    <td className="px-4 py-2.5 text-right text-zinc-300">{post.comments_count.toLocaleString()}</td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.video_views != null ? post.video_views.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.shares_count != null ? post.shares_count.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-500 whitespace-nowrap">
                       {new Date(post.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </td>
                   </tr>
