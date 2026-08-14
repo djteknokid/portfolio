@@ -174,35 +174,42 @@ function Dashboard() {
         );
         if (!mediaRes.ok) throw new Error("Failed to fetch media");
         const mediaData = await mediaRes.json();
-        const posts: MediaItem[] = mediaData.data || [];
+        const posts: MediaItem[] = (mediaData.data || []).map((p: MediaItem) => ({
+          ...p,
+          // For IMAGE posts media_url is the image; for VIDEO thumbnail_url is the still
+          // Normalise to a single thumb field for the table
+          thumbnail_url: p.thumbnail_url || p.media_url,
+        }));
 
-        // Fetch insights for each post in parallel (batches of 10 to avoid rate limits)
+        // Fetch insights for each post in parallel
         const enriched = await Promise.all(
           posts.map(async (post) => {
-            // IMAGE posts use different metrics than VIDEO/REEL
             const isVideo = post.media_type === "VIDEO" || post.media_type === "REELS";
             const metrics = isVideo
-              ? "impressions,reach,plays,shares,saved,likes,comments"
-              : "impressions,reach,shares,saved,likes,comments";
+              ? "impressions,reach,plays,shares,saved"
+              : "impressions,reach,shares,saved";
             try {
               const insightRes = await fetch(
                 `https://graph.instagram.com/v21.0/${post.id}/insights` +
                   `?metric=${metrics}` +
                   `&access_token=${token}`
               );
-              if (!insightRes.ok) return post;
               const insightData = await insightRes.json();
+              console.log(`[insights] ${post.id} (${post.media_type}):`, JSON.stringify(insightData));
               const map: Record<string, number> = {};
-              for (const item of insightData.data || []) {
-                map[item.name] = item.values?.[0]?.value ?? item.value ?? 0;
+              for (const item of (insightData.data || [])) {
+                // API returns either item.value (number) or item.values array
+                map[item.name] = typeof item.value === "number"
+                  ? item.value
+                  : (item.values?.[0]?.value ?? 0);
               }
               return {
                 ...post,
-                impressions: map.impressions,
-                reach: map.reach,
-                plays: map.plays,
-                shares: map.shares,
-                saved: map.saved,
+                impressions: map.impressions ?? undefined,
+                reach: map.reach ?? undefined,
+                plays: map.plays ?? undefined,
+                shares: map.shares ?? undefined,
+                saved: map.saved ?? undefined,
               };
             } catch {
               return post;
