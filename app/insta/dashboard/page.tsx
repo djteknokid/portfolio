@@ -184,10 +184,22 @@ function Dashboard() {
         // Fetch insights for each post in parallel
         const enriched = await Promise.all(
           posts.map(async (post) => {
-            const isVideo = post.media_type === "VIDEO" || post.media_type === "REELS";
-            const metrics = isVideo
-              ? "impressions,reach,plays,shares,saved"
-              : "impressions,reach,shares,saved";
+            const isReel = post.media_type === "REELS";
+            const isVideo = post.media_type === "VIDEO";
+            const isImage = post.media_type === "IMAGE";
+            const isCarousel = post.media_type === "CAROUSEL_ALBUM";
+            let metrics: string;
+            if (isReel) {
+              metrics = "reach,views,shares,saved,ig_reels_avg_watch_time";
+            } else if (isVideo) {
+              metrics = "impressions,reach,views,shares,saved";
+            } else if (isCarousel) {
+              metrics = "reach,shares,saved,total_interactions";
+            } else if (isImage) {
+              metrics = "impressions,reach,shares,saved";
+            } else {
+              metrics = "reach,shares,saved";
+            }
             try {
               const insightRes = await fetch(
                 `https://graph.instagram.com/v21.0/${post.id}/insights` +
@@ -211,7 +223,7 @@ function Dashboard() {
                 ...post,
                 impressions: map.impressions ?? undefined,
                 reach: map.reach ?? undefined,
-                plays: map.plays ?? undefined,
+                plays: map.views ?? undefined,
                 shares: map.shares ?? undefined,
                 saved: map.saved ?? undefined,
               };
