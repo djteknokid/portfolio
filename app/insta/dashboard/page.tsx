@@ -25,9 +25,13 @@ interface MediaItem {
   timestamp: string;
   like_count: number;
   comments_count: number;
-  video_views?: number;
-  shares_count?: number;
   permalink: string;
+  // insights
+  impressions?: number;
+  reach?: number;
+  plays?: number;
+  shares?: number;
+  saved?: number;
 }
 
 interface StoredAccount {
@@ -37,7 +41,7 @@ interface StoredAccount {
   name: string;
 }
 
-type SortKey = "timestamp" | "like_count" | "comments_count" | "video_views" | "shares_count";
+type SortKey = "timestamp" | "like_count" | "comments_count" | "impressions" | "reach" | "plays" | "shares" | "saved";
 type SortDir = "asc" | "desc";
 
 const ACCOUNTS_KEY = "ig_accounts";
@@ -164,13 +168,48 @@ function Dashboard() {
 
         const mediaRes = await fetch(
           `https://graph.instagram.com/v21.0/me/media` +
-            `?fields=id,caption,media_type,thumbnail_url,media_url,timestamp,like_count,comments_count,video_views,shares_count,permalink` +
+            `?fields=id,caption,media_type,thumbnail_url,media_url,timestamp,like_count,comments_count,permalink` +
             `&limit=50` +
             `&access_token=${token}`
         );
         if (!mediaRes.ok) throw new Error("Failed to fetch media");
         const mediaData = await mediaRes.json();
-        setMedia(mediaData.data || []);
+        const posts: MediaItem[] = mediaData.data || [];
+
+        // Fetch insights for each post in parallel (batches of 10 to avoid rate limits)
+        const enriched = await Promise.all(
+          posts.map(async (post) => {
+            // IMAGE posts use different metrics than VIDEO/REEL
+            const isVideo = post.media_type === "VIDEO" || post.media_type === "REELS";
+            const metrics = isVideo
+              ? "impressions,reach,plays,shares,saved,likes,comments"
+              : "impressions,reach,shares,saved,likes,comments";
+            try {
+              const insightRes = await fetch(
+                `https://graph.instagram.com/v21.0/${post.id}/insights` +
+                  `?metric=${metrics}` +
+                  `&access_token=${token}`
+              );
+              if (!insightRes.ok) return post;
+              const insightData = await insightRes.json();
+              const map: Record<string, number> = {};
+              for (const item of insightData.data || []) {
+                map[item.name] = item.values?.[0]?.value ?? item.value ?? 0;
+              }
+              return {
+                ...post,
+                impressions: map.impressions,
+                reach: map.reach,
+                plays: map.plays,
+                shares: map.shares,
+                saved: map.saved,
+              };
+            } catch {
+              return post;
+            }
+          })
+        );
+        setMedia(enriched);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Something went wrong");
       } finally {
@@ -221,15 +260,12 @@ function Dashboard() {
   }
 
   const sortedMedia = [...media].sort((a, b) => {
-    let aVal: number;
-    let bVal: number;
-    if (sortKey === "timestamp") {
-      aVal = new Date(a.timestamp).getTime();
-      bVal = new Date(b.timestamp).getTime();
-    } else {
-      aVal = a[sortKey] ?? -1;
-      bVal = b[sortKey] ?? -1;
-    }
+    const aVal = sortKey === "timestamp"
+      ? new Date(a.timestamp).getTime()
+      : (a[sortKey] ?? -1);
+    const bVal = sortKey === "timestamp"
+      ? new Date(b.timestamp).getTime()
+      : (b[sortKey] ?? -1);
     return sortDir === "desc" ? bVal - aVal : aVal - bVal;
   });
 
@@ -375,34 +411,28 @@ function Dashboard() {
                 <tr className="border-b border-zinc-800">
                   <th className="text-left text-zinc-500 font-normal px-4 py-3 w-10"></th>
                   <th className="text-left text-zinc-500 font-normal px-4 py-3">Caption</th>
-                  <th
-                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
-                    onClick={() => handleSort("like_count")}
-                  >
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("impressions")}>
+                    Impressions <SortIcon active={sortKey === "impressions"} dir={sortDir} />
+                  </th>
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("reach")}>
+                    Reach <SortIcon active={sortKey === "reach"} dir={sortDir} />
+                  </th>
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("plays")}>
+                    Views <SortIcon active={sortKey === "plays"} dir={sortDir} />
+                  </th>
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("like_count")}>
                     Likes <SortIcon active={sortKey === "like_count"} dir={sortDir} />
                   </th>
-                  <th
-                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
-                    onClick={() => handleSort("comments_count")}
-                  >
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("comments_count")}>
                     Comments <SortIcon active={sortKey === "comments_count"} dir={sortDir} />
                   </th>
-                  <th
-                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
-                    onClick={() => handleSort("video_views")}
-                  >
-                    Views <SortIcon active={sortKey === "video_views"} dir={sortDir} />
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("shares")}>
+                    Shares <SortIcon active={sortKey === "shares"} dir={sortDir} />
                   </th>
-                  <th
-                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
-                    onClick={() => handleSort("shares_count")}
-                  >
-                    Shares <SortIcon active={sortKey === "shares_count"} dir={sortDir} />
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("saved")}>
+                    Saved <SortIcon active={sortKey === "saved"} dir={sortDir} />
                   </th>
-                  <th
-                    className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap"
-                    onClick={() => handleSort("timestamp")}
-                  >
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("timestamp")}>
                     Date <SortIcon active={sortKey === "timestamp"} dir={sortDir} />
                   </th>
                 </tr>
@@ -439,13 +469,37 @@ function Dashboard() {
                         {post.caption || <span className="text-zinc-600">No caption</span>}
                       </a>
                     </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.impressions != null ? post.impressions.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.reach != null ? post.reach.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.plays != null ? post.plays.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
                     <td className="px-4 py-2.5 text-right text-zinc-300">{post.like_count.toLocaleString()}</td>
                     <td className="px-4 py-2.5 text-right text-zinc-300">{post.comments_count.toLocaleString()}</td>
                     <td className="px-4 py-2.5 text-right text-zinc-400">
-                      {post.video_views != null ? post.video_views.toLocaleString() : <span className="text-zinc-700">—</span>}
+                      {post.shares != null ? post.shares.toLocaleString() : <span className="text-zinc-700">—</span>}
                     </td>
                     <td className="px-4 py-2.5 text-right text-zinc-400">
-                      {post.shares_count != null ? post.shares_count.toLocaleString() : <span className="text-zinc-700">—</span>}
+                      {post.saved != null ? post.saved.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.impressions != null ? post.impressions.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.reach != null ? post.reach.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.plays != null ? post.plays.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.shares != null ? post.shares.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.saved != null ? post.saved.toLocaleString() : <span className="text-zinc-700">—</span>}
                     </td>
                     <td className="px-4 py-2.5 text-right text-zinc-500 whitespace-nowrap">
                       {new Date(post.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
