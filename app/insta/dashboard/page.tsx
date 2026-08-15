@@ -27,9 +27,8 @@ interface MediaItem {
   comments_count: number;
   permalink: string;
   // insights
-  impressions?: number;
   reach?: number;
-  plays?: number;
+  views?: number;
   shares?: number;
   saved?: number;
 }
@@ -41,7 +40,7 @@ interface StoredAccount {
   name: string;
 }
 
-type SortKey = "timestamp" | "like_count" | "comments_count" | "impressions" | "reach" | "plays" | "shares" | "saved";
+type SortKey = "timestamp" | "like_count" | "comments_count" | "reach" | "views" | "shares" | "saved";
 type SortDir = "asc" | "desc";
 
 const ACCOUNTS_KEY = "ig_accounts";
@@ -221,9 +220,8 @@ function Dashboard() {
               }
               return {
                 ...post,
-                impressions: map.impressions ?? undefined,
                 reach: map.reach ?? undefined,
-                plays: map.views ?? undefined,
+                views: map.views ?? undefined,
                 shares: map.shares ?? undefined,
                 saved: map.saved ?? undefined,
               };
@@ -285,10 +283,10 @@ function Dashboard() {
   const sortedMedia = [...media].sort((a, b) => {
     const aVal = sortKey === "timestamp"
       ? new Date(a.timestamp).getTime()
-      : (a[sortKey] ?? -1);
+      : (a[sortKey as keyof MediaItem] as number ?? -1);
     const bVal = sortKey === "timestamp"
       ? new Date(b.timestamp).getTime()
-      : (b[sortKey] ?? -1);
+      : (b[sortKey as keyof MediaItem] as number ?? -1);
     return sortDir === "desc" ? bVal - aVal : aVal - bVal;
   });
 
@@ -331,7 +329,7 @@ function Dashboard() {
 
   return (
     <main className="min-h-screen bg-black text-white">
-      <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
+      <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
 
         {/* Header */}
         <div className="flex items-start justify-between">
@@ -429,19 +427,16 @@ function Dashboard() {
         <div className="space-y-4">
           <h2 className="text-sm font-medium text-zinc-400">Post performance</h2>
           <div className="bg-zinc-900 rounded-2xl overflow-hidden">
-            <table className="w-full text-sm">
+          <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-800">
                   <th className="text-left text-zinc-500 font-normal px-4 py-3 w-10"></th>
                   <th className="text-left text-zinc-500 font-normal px-4 py-3">Caption</th>
-                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("impressions")}>
-                    Impressions <SortIcon active={sortKey === "impressions"} dir={sortDir} />
-                  </th>
                   <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("reach")}>
                     Reach <SortIcon active={sortKey === "reach"} dir={sortDir} />
                   </th>
-                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("plays")}>
-                    Views <SortIcon active={sortKey === "plays"} dir={sortDir} />
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("views")}>
+                    Views <SortIcon active={sortKey === "views"} dir={sortDir} />
                   </th>
                   <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("like_count")}>
                     Likes <SortIcon active={sortKey === "like_count"} dir={sortDir} />
@@ -493,13 +488,10 @@ function Dashboard() {
                       </a>
                     </td>
                     <td className="px-4 py-2.5 text-right text-zinc-400">
-                      {post.impressions != null ? post.impressions.toLocaleString() : <span className="text-zinc-700">—</span>}
-                    </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400">
                       {post.reach != null ? post.reach.toLocaleString() : <span className="text-zinc-700">—</span>}
                     </td>
                     <td className="px-4 py-2.5 text-right text-zinc-400">
-                      {post.plays != null ? post.plays.toLocaleString() : <span className="text-zinc-700">—</span>}
+                      {post.views != null ? post.views.toLocaleString() : <span className="text-zinc-700">—</span>}
                     </td>
                     <td className="px-4 py-2.5 text-right text-zinc-300">{post.like_count.toLocaleString()}</td>
                     <td className="px-4 py-2.5 text-right text-zinc-300">{post.comments_count.toLocaleString()}</td>
@@ -509,23 +501,8 @@ function Dashboard() {
                     <td className="px-4 py-2.5 text-right text-zinc-400">
                       {post.saved != null ? post.saved.toLocaleString() : <span className="text-zinc-700">—</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400">
-                      {post.impressions != null ? post.impressions.toLocaleString() : <span className="text-zinc-700">—</span>}
-                    </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400">
-                      {post.reach != null ? post.reach.toLocaleString() : <span className="text-zinc-700">—</span>}
-                    </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400">
-                      {post.plays != null ? post.plays.toLocaleString() : <span className="text-zinc-700">—</span>}
-                    </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400">
-                      {post.shares != null ? post.shares.toLocaleString() : <span className="text-zinc-700">—</span>}
-                    </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400">
-                      {post.saved != null ? post.saved.toLocaleString() : <span className="text-zinc-700">—</span>}
-                    </td>
                     <td className="px-4 py-2.5 text-right text-zinc-500 whitespace-nowrap">
-                      {new Date(post.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {new Date(post.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </td>
                   </tr>
                 ))}
