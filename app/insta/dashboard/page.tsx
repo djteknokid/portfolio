@@ -31,6 +31,7 @@ interface MediaItem {
   views?: number;
   shares?: number;
   saved?: number;
+  follows?: number;
 }
 
 interface StoredAccount {
@@ -40,7 +41,7 @@ interface StoredAccount {
   name: string;
 }
 
-type SortKey = "timestamp" | "like_count" | "comments_count" | "reach" | "views" | "shares" | "saved";
+type SortKey = "timestamp" | "like_count" | "comments_count" | "reach" | "views" | "shares" | "saved" | "follows";
 type SortDir = "asc" | "desc";
 
 const ACCOUNTS_KEY = "ig_accounts";
@@ -189,15 +190,15 @@ function Dashboard() {
             const isCarousel = post.media_type === "CAROUSEL_ALBUM";
             let metrics: string;
             if (isReel) {
-              metrics = "reach,views,shares,saved,ig_reels_avg_watch_time";
+              metrics = "reach,views,shares,saved,follows,ig_reels_avg_watch_time";
             } else if (isVideo) {
-              metrics = "reach,views,shares,saved";
+              metrics = "reach,views,shares,saved,follows";
             } else if (isCarousel) {
-              metrics = "reach,shares,saved,total_interactions";
+              metrics = "reach,shares,saved,follows,total_interactions";
             } else if (isImage) {
-              metrics = "reach,shares,saved";
+              metrics = "reach,shares,saved,follows";
             } else {
-              metrics = "reach,shares,saved";
+              metrics = "reach,shares,saved,follows";
             }
             try {
               const insightRes = await fetch(
@@ -224,6 +225,7 @@ function Dashboard() {
                 views: map.views ?? undefined,
                 shares: map.shares ?? undefined,
                 saved: map.saved ?? undefined,
+                follows: map.follows ?? undefined,
               };
             } catch {
               return post;
@@ -450,6 +452,9 @@ function Dashboard() {
                   <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("saved")}>
                     Saved <SortIcon active={sortKey === "saved"} dir={sortDir} />
                   </th>
+                  <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("follows")}>
+                    Followers <SortIcon active={sortKey === "follows"} dir={sortDir} />
+                  </th>
                   <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("timestamp")}>
                     Date <SortIcon active={sortKey === "timestamp"} dir={sortDir} />
                   </th>
@@ -500,6 +505,9 @@ function Dashboard() {
                     </td>
                     <td className="px-4 py-2.5 text-right text-zinc-400">
                       {post.saved != null ? post.saved.toLocaleString() : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-zinc-400">
+                      {post.follows != null ? post.follows.toLocaleString() : <span className="text-zinc-700">—</span>}
                     </td>
                     <td className="px-4 py-2.5 text-right text-zinc-500 whitespace-nowrap">
                       {new Date(post.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
