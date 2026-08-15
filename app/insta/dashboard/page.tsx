@@ -186,38 +186,45 @@ function Dashboard() {
           posts.map(async (post) => {
             const isReel = post.media_type === "REELS";
             const isVideo = post.media_type === "VIDEO";
-            const isImage = post.media_type === "IMAGE";
-            const isCarousel = post.media_type === "CAROUSEL_ALBUM";
             let metrics: string;
             if (isReel) {
-              metrics = "reach,views,shares,saved,follows,ig_reels_avg_watch_time";
+              metrics = "reach,views,shares,saved,ig_reels_avg_watch_time";
             } else if (isVideo) {
-              metrics = "reach,views,shares,saved,follows";
-            } else if (isCarousel) {
-              metrics = "reach,shares,saved,follows,total_interactions";
-            } else if (isImage) {
-              metrics = "reach,shares,saved,follows";
+              metrics = "reach,views,shares,saved";
             } else {
-              metrics = "reach,shares,saved,follows";
+              metrics = "reach,shares,saved";
             }
             try {
-              const insightRes = await fetch(
-                `https://graph.instagram.com/v21.0/${post.id}/insights` +
-                  `?metric=${metrics}` +
-                  `&access_token=${token}`
-              );
+              const [insightRes, followsRes] = await Promise.all([
+                fetch(
+                  `https://graph.instagram.com/v21.0/${post.id}/insights` +
+                    `?metric=${metrics}` +
+                    `&access_token=${token}`
+                ),
+                fetch(
+                  `https://graph.instagram.com/v21.0/${post.id}/insights` +
+                    `?metric=follows` +
+                    `&access_token=${token}`
+                ),
+              ]);
               const insightData = await insightRes.json();
               if (!insightRes.ok) {
                 console.error(`[insights error] ${post.id}:`, JSON.stringify(insightData));
                 return post;
               }
-              console.log(`[insights] ${post.id} (${post.media_type}):`, JSON.stringify(insightData));
               const map: Record<string, number> = {};
               for (const item of (insightData.data || [])) {
-                // API returns either item.value (number) or item.values array
                 map[item.name] = typeof item.value === "number"
                   ? item.value
                   : (item.values?.[0]?.value ?? 0);
+              }
+              if (followsRes.ok) {
+                const followsData = await followsRes.json();
+                for (const item of (followsData.data || [])) {
+                  map[item.name] = typeof item.value === "number"
+                    ? item.value
+                    : (item.values?.[0]?.value ?? 0);
+                }
               }
               return {
                 ...post,
