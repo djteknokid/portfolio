@@ -280,6 +280,7 @@ function FollowerGraph({ token }: { token: string }) {
 function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<string | null>(null);
@@ -288,6 +289,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
   useEffect(() => {
     if (!media.length) return;
     setLoading(true);
+    setError(null);
 
     const postsWithComments = media.filter((p) => p.comments_count > 0).slice(0, 20);
 
@@ -296,24 +298,36 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
         fetch(
           `https://graph.instagram.com/v21.0/${post.id}/comments` +
             `?fields=id,text,username,timestamp,like_count,replies{id,text,username,timestamp}` +
+            `&limit=50` +
             `&access_token=${token}`
         )
           .then((r) => r.json())
-          .then((json) =>
-            (json.data || []).map((c: Comment) => ({
+          .then((json) => {
+            if (json.error) {
+              console.error(`Comments fetch error for post ${post.id}:`, json.error);
+              return [];
+            }
+            return (json.data || []).map((c: Comment) => ({
               ...c,
+              like_count: c.like_count ?? 0,
               postId: post.id,
               postCaption: post.caption,
               postThumb: post.thumbnail_url || post.media_url,
               postPermalink: post.permalink,
-            }))
-          )
-          .catch(() => [])
+            }));
+          })
+          .catch((err) => {
+            console.error(`Network error for post ${post.id}:`, err);
+            return [];
+          })
       )
     ).then((results) => {
       const flat: Comment[] = results.flat();
       flat.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setComments(flat);
+      if (flat.length === 0 && postsWithComments.length > 0) {
+        setError(`Found ${postsWithComments.length} posts with comments but couldn't load them. Check browser console for API errors.`);
+      }
     }).finally(() => setLoading(false));
   }, [token, media]);
 
@@ -351,7 +365,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
   if (!comments.length) {
     return (
       <div className="flex items-center justify-center py-24">
-        <p className="text-zinc-600 text-sm">No comments yet</p>
+        <p className="text-zinc-600 text-sm">{error || "No comments yet"}</p>
       </div>
     );
   }
