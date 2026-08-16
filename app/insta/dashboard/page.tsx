@@ -4,6 +4,135 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
+interface FollowerDataPoint {
+  date: string; // "Aug 1"
+  value: number;
+}
+
+type FollowerRange = "7D" | "30D" | "90D";
+
+function FollowerGraph({ token }: { token: string }) {
+  const [range, setRange] = useState<FollowerRange>("30D");
+  const [data, setData] = useState<FollowerDataPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const days = range === "7D" ? 7 : range === "30D" ? 30 : 90;
+    const until = Math.floor(Date.now() / 1000);
+    const since = until - days * 86400;
+
+    fetch(
+      `https://graph.instagram.com/v21.0/me/insights` +
+        `?metric=follower_count` +
+        `&period=day` +
+        `&since=${since}` +
+        `&until=${until}` +
+        `&access_token=${token}`
+    )
+      .then((r) => r.json())
+      .then((json) => {
+        const points: FollowerDataPoint[] = (json.data?.[0]?.values || []).map(
+          (v: { value: number; end_time: string }) => ({
+            date: new Date(v.end_time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+            value: v.value,
+          })
+        );
+        setData(points);
+      })
+      .catch(() => setData([]))
+      .finally(() => setLoading(false));
+  }, [token, range]);
+
+  const width = 800;
+  const height = 120;
+  const padX = 0;
+  const padY = 8;
+
+  const values = data.map((d) => d.value);
+  const min = values.length ? Math.min(...values) : 0;
+  const max = values.length ? Math.max(...values) : 1;
+  const range_ = max - min || 1;
+
+  const pts = data.map((d, i) => {
+    const x = padX + (i / Math.max(data.length - 1, 1)) * (width - padX * 2);
+    const y = padY + (1 - (d.value - min) / range_) * (height - padY * 2);
+    return { x, y, ...d };
+  });
+
+  const pathD = pts.length
+    ? pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ")
+    : "";
+
+  const areaD = pts.length
+    ? `${pathD} L ${pts[pts.length - 1].x} ${height} L ${pts[0].x} ${height} Z`
+    : "";
+
+  const netChange = values.length >= 2 ? values[values.length - 1] - values[0] : 0;
+  const isPositive = netChange >= 0;
+
+  return (
+    <div className="bg-zinc-900 rounded-2xl p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-zinc-500 text-xs">Follower growth</p>
+          {!loading && data.length > 0 && (
+            <p className={`text-sm font-medium mt-0.5 ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
+              {isPositive ? "+" : ""}{netChange.toLocaleString()} over {range === "7D" ? "7 days" : range === "30D" ? "30 days" : "90 days"}
+            </p>
+          )}
+        </div>
+        <div className="flex gap-1">
+          {(["7D", "30D", "90D"] as FollowerRange[]).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              className={`px-3 py-1 rounded-full text-xs transition-colors ${
+                range === r
+                  ? "bg-white text-black font-medium"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="h-[120px] flex items-center justify-center">
+          <p className="text-zinc-600 text-xs">Loading...</p>
+        </div>
+      ) : data.length === 0 ? (
+        <div className="h-[120px] flex items-center justify-center">
+          <p className="text-zinc-600 text-xs">No data available</p>
+        </div>
+      ) : (
+        <div className="relative">
+          <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height: 120 }}>
+            <defs>
+              <linearGradient id="followerGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d={areaD} fill="url(#followerGrad)" />
+            <path d={pathD} fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <div className="flex justify-between mt-2">
+            {data.length > 0 && (
+              <>
+                <span className="text-zinc-600 text-xs">{data[0].date}</span>
+                <span className="text-zinc-600 text-xs">{data[data.length - 1].date}</span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface Profile {
   id: string;
   username: string;
@@ -417,6 +546,9 @@ function Dashboard() {
             </div>
           ))}
         </div>
+
+        {/* Follower growth graph */}
+        {token && <FollowerGraph token={token} />}
 
         {/* Post performance table */}
         <div className="space-y-4">
