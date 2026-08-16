@@ -5,19 +5,36 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 interface FollowerDataPoint {
-  date: string; // "Aug 1"
+  date: string;
+  fullDate: string;
   value: number;
+  delta: number;
 }
 
 type FollowerRange = "7D" | "30D" | "90D";
+
+function smoothPath(pts: { x: number; y: number }[]): string {
+  if (pts.length < 2) return pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  let d = `M${pts[0].x},${pts[0].y}`;
+  for (let i = 1; i < pts.length; i++) {
+    const prev = pts[i - 1];
+    const curr = pts[i];
+    const cpx = (prev.x + curr.x) / 2;
+    d += ` C${cpx},${prev.y} ${cpx},${curr.y} ${curr.x},${curr.y}`;
+  }
+  return d;
+}
 
 function FollowerGraph({ token }: { token: string }) {
   const [range, setRange] = useState<FollowerRange>("30D");
   const [data, setData] = useState<FollowerDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hovered, setHovered] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     setLoading(true);
+    setHovered(null);
     const days = range === "7D" ? 7 : range === "30D" ? 30 : 90;
     const until = Math.floor(Date.now() / 1000);
     const since = until - days * 86400;
@@ -32,44 +49,78 @@ function FollowerGraph({ token }: { token: string }) {
     )
       .then((r) => r.json())
       .then((json) => {
-        const points: FollowerDataPoint[] = (json.data?.[0]?.values || []).map(
-          (v: { value: number; end_time: string }) => ({
-            date: new Date(v.end_time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-            value: v.value,
-          })
-        );
+        const raw: { value: number; end_time: string }[] = json.data?.[0]?.values || [];
+        const points: FollowerDataPoint[] = raw.map((v, i) => ({
+          date: new Date(v.end_time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          fullDate: new Date(v.end_time).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+          value: v.value,
+          delta: i === 0 ? 0 : v.value - raw[i - 1].value,
+        }));
         setData(points);
       })
       .catch(() => setData([]))
       .finally(() => setLoading(false));
   }, [token, range]);
 
-  const width = 800;
-  const height = 120;
-  const padX = 0;
-  const padY = 8;
+  const W = 800;
+  const H = 160;
+  const padL = 48;
+  const padR = 16;
+  const padT = 16;
+  const padB = 28;
 
   const values = data.map((d) => d.value);
-  const min = values.length ? Math.min(...values) : 0;
-  const max = values.length ? Math.max(...values) : 1;
-  const range_ = max - min || 1;
+  const minV = values.length ? Math.min(...values) : 0;
+  const maxV = values.length ? Math.max(...values) : 1;
+  const spread = maxV - minV || 1;
+  const yPad = spread * 0.15;
+  const yMin = minV - yPad;
+  const yMax = maxV + yPad;
+  const yRange = yMax - yMin;
 
-  const pts = data.map((d, i) => {
-    const x = padX + (i / Math.max(data.length - 1, 1)) * (width - padX * 2);
-    const y = padY + (1 - (d.value - min) / range_) * (height - padY * 2);
-    return { x, y, ...d };
+  function xOf(i: number) {
+    return padL + (i / Math.max(data.length - 1, 1)) * (W - padL - padR);
+  }
+  function yOf(v: number) {
+    return padT + (1 - (v - yMin) / yRange) * (H - padT - padB);
+  }
+
+  const pts = data.map((d, i) => ({ x: xOf(i), y: yOf(d.value) }));
+  const linePath = smoothPath(pts);
+  const areaPath = pts.length
+    ? `${linePath} L${pts[pts.length - 1].x},${H - padB} L${pts[0].x},${H - padB} Z`
+    : "";
+
+  // Y-axis ticks: 4 evenly spaced
+  const yTicks = [0, 1, 2, 3].map((i) => {
+    const v = yMin + (i / 3) * yRange;
+    return { y: yOf(v), label: Math.round(v).toLocaleString() };
   });
 
-  const pathD = pts.length
-    ? pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ")
-    : "";
-
-  const areaD = pts.length
-    ? `${pathD} L ${pts[pts.length - 1].x} ${height} L ${pts[0].x} ${height} Z`
-    : "";
+  // X-axis labels: show ~5-6 evenly spaced, avoid crowding
+  const labelEvery = Math.ceil(data.length / 6);
+  const xLabels = data
+    .map((d, i) => ({ i, d }))
+    .filter(({ i }) => i % labelEvery === 0 || i === data.length - 1);
 
   const netChange = values.length >= 2 ? values[values.length - 1] - values[0] : 0;
   const isPositive = netChange >= 0;
+
+  const hoveredPt = hovered !== null ? pts[hovered] : null;
+  const hoveredData = hovered !== null ? data[hovered] : null;
+
+  function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
+    if (!svgRef.current || data.length === 0) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const mouseX = ((e.clientX - rect.left) / rect.width) * W;
+    let closest = 0;
+    let minDist = Infinity;
+    pts.forEach((p, i) => {
+      const dist = Math.abs(p.x - mouseX);
+      if (dist < minDist) { minDist = dist; closest = i; }
+    });
+    setHovered(closest);
+  }
 
   return (
     <div className="bg-zinc-900 rounded-2xl p-5 space-y-4">
@@ -78,7 +129,7 @@ function FollowerGraph({ token }: { token: string }) {
           <p className="text-zinc-500 text-xs">Follower growth</p>
           {!loading && data.length > 0 && (
             <p className={`text-sm font-medium mt-0.5 ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
-              {isPositive ? "+" : ""}{netChange.toLocaleString()} over {range === "7D" ? "7 days" : range === "30D" ? "30 days" : "90 days"}
+              {isPositive ? "+" : ""}{netChange.toLocaleString()} {range === "7D" ? "this week" : range === "30D" ? "this month" : "last 90 days"}
             </p>
           )}
         </div>
@@ -88,9 +139,7 @@ function FollowerGraph({ token }: { token: string }) {
               key={r}
               onClick={() => setRange(r)}
               className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                range === r
-                  ? "bg-white text-black font-medium"
-                  : "text-zinc-500 hover:text-zinc-300"
+                range === r ? "bg-white text-black font-medium" : "text-zinc-500 hover:text-zinc-300"
               }`}
             >
               {r}
@@ -100,34 +149,123 @@ function FollowerGraph({ token }: { token: string }) {
       </div>
 
       {loading ? (
-        <div className="h-[120px] flex items-center justify-center">
+        <div className="h-[196px] flex items-center justify-center">
           <p className="text-zinc-600 text-xs">Loading...</p>
         </div>
       ) : data.length === 0 ? (
-        <div className="h-[120px] flex items-center justify-center">
+        <div className="h-[196px] flex items-center justify-center">
           <p className="text-zinc-600 text-xs">No data available</p>
         </div>
       ) : (
-        <div className="relative">
-          <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height: 120 }}>
-            <defs>
-              <linearGradient id="followerGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.08" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <path d={areaD} fill="url(#followerGrad)" />
-            <path d={pathD} fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <div className="flex justify-between mt-2">
-            {data.length > 0 && (
-              <>
-                <span className="text-zinc-600 text-xs">{data[0].date}</span>
-                <span className="text-zinc-600 text-xs">{data[data.length - 1].date}</span>
-              </>
-            )}
-          </div>
-        </div>
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${W} ${H}`}
+          className="w-full"
+          style={{ height: 196 }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHovered(null)}
+        >
+          <defs>
+            <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.06" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+            </linearGradient>
+            <clipPath id="graphClip">
+              <rect x={padL} y={padT} width={W - padL - padR} height={H - padT - padB} />
+            </clipPath>
+          </defs>
+
+          {/* Horizontal grid lines */}
+          {yTicks.map((t, i) => (
+            <g key={i}>
+              <line
+                x1={padL} y1={t.y} x2={W - padR} y2={t.y}
+                stroke="#27272a" strokeWidth="1"
+              />
+              <text
+                x={padL - 8} y={t.y + 4}
+                textAnchor="end"
+                fontSize="10"
+                fill="#52525b"
+                fontFamily="system-ui, sans-serif"
+              >
+                {t.label}
+              </text>
+            </g>
+          ))}
+
+          {/* Vertical day lines */}
+          {pts.map((p, i) => (
+            <line
+              key={i}
+              x1={p.x} y1={padT} x2={p.x} y2={H - padB}
+              stroke="#27272a" strokeWidth="1"
+            />
+          ))}
+
+          {/* Area fill */}
+          <path d={areaPath} fill="url(#fg)" clipPath="url(#graphClip)" />
+
+          {/* Line */}
+          <path
+            d={linePath}
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            clipPath="url(#graphClip)"
+          />
+
+          {/* X-axis labels */}
+          {xLabels.map(({ i, d }) => (
+            <text
+              key={i}
+              x={xOf(i)}
+              y={H - 6}
+              textAnchor="middle"
+              fontSize="10"
+              fill="#52525b"
+              fontFamily="system-ui, sans-serif"
+            >
+              {d.date}
+            </text>
+          ))}
+
+          {/* Hover: vertical line + dot + tooltip */}
+          {hoveredPt && hoveredData && (
+            <g>
+              <line
+                x1={hoveredPt.x} y1={padT} x2={hoveredPt.x} y2={H - padB}
+                stroke="#ffffff" strokeWidth="1" strokeOpacity="0.3"
+              />
+              <circle cx={hoveredPt.x} cy={hoveredPt.y} r="4" fill="#18181b" stroke="#ffffff" strokeWidth="2" />
+
+              {/* Tooltip box */}
+              {(() => {
+                const tw = 110;
+                const th = 44;
+                const tx = Math.min(Math.max(hoveredPt.x - tw / 2, padL), W - padR - tw);
+                const ty = hoveredPt.y - th - 12;
+                const deltaStr = hoveredData.delta === 0
+                  ? "—"
+                  : `${hoveredData.delta > 0 ? "+" : ""}${hoveredData.delta.toLocaleString()}`;
+                return (
+                  <g>
+                    <rect x={tx} y={ty} width={tw} height={th} rx="6" fill="#27272a" />
+                    <text x={tx + tw / 2} y={ty + 14} textAnchor="middle" fontSize="10" fill="#71717a" fontFamily="system-ui, sans-serif">
+                      {hoveredData.fullDate}
+                    </text>
+                    <text x={tx + tw / 2} y={ty + 32} textAnchor="middle" fontSize="13" fontWeight="600" fill="#ffffff" fontFamily="system-ui, sans-serif">
+                      {hoveredData.value.toLocaleString()}
+                      <tspan fontSize="10" fontWeight="400" fill={hoveredData.delta > 0 ? "#34d399" : hoveredData.delta < 0 ? "#f87171" : "#71717a"}> {deltaStr}</tspan>
+                    </text>
+                  </g>
+                );
+              })()}
+            </g>
+          )}
+        </svg>
       )}
     </div>
   );
