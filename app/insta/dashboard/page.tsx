@@ -291,13 +291,16 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
     setLoading(true);
     setError(null);
 
-    const postsWithComments = media.filter((p) => p.comments_count > 0).slice(0, 20);
+    // Reels comments are blocked by Instagram API in Development mode
+    // Only fetch from feed posts (IMAGE, CAROUSEL_ALBUM) which work with tester accounts
+    const postsWithComments = media
+      .filter((p) => p.comments_count > 0 && (p.media_type === "IMAGE" || p.media_type === "CAROUSEL_ALBUM"))
+      .slice(0, 20);
 
-    const newestPost = [...postsWithComments].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
-    if (newestPost) {
-      fetch(`https://graph.instagram.com/v21.0/${newestPost.id}/comments?fields=id,text,username,timestamp&limit=5&access_token=${token}`)
-        .then(r => { console.log("[comments] status:", r.status, r.statusText); return r.text(); })
-        .then(t => console.log("[comments] body:", t || "(empty)"));
+    if (postsWithComments.length === 0) {
+      setError("No feed posts with comments found. Comments on Reels require the app to be in Live mode (App Review).");
+      setLoading(false);
+      return;
     }
 
     Promise.all(
