@@ -48,6 +48,16 @@ export default function LoginPage() {
             {!["access_denied", "no_code", "token_exchange_failed", "long_token_failed"].includes(error) && "Something went wrong. Please try again."}
           </p>
         )}
+        {isAdding && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-4 text-left space-y-2 max-w-xs">
+            <p className="text-zinc-300 text-xs font-medium">Before connecting</p>
+            <ol className="text-zinc-500 text-xs space-y-1.5 list-decimal list-inside">
+              <li>Open Instagram in a new tab</li>
+              <li>Switch to the account you want to add</li>
+              <li>Come back here and tap Connect</li>
+            </ol>
+          </div>
+        )}
         <a
           href={authUrl}
           className="inline-block bg-white text-black text-sm font-medium px-6 py-3 rounded-full hover:bg-zinc-100 transition-colors"
