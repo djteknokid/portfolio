@@ -24,7 +24,7 @@ export default function LoginPage() {
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&scope=${scopes}` +
     `&response_type=code` +
-    (isAdding ? `&force_authentication=1` : "");
+    (isAdding ? `&force_authentication=1&enable_fb_login=0&prompt=select_account` : "");
 
   return (
     <main className="min-h-screen bg-black flex items-center justify-center">
