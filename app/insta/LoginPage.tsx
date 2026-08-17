@@ -23,7 +23,8 @@ export default function LoginPage() {
     `?client_id=${appId}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&scope=${scopes}` +
-    `&response_type=code`;
+    `&response_type=code` +
+    (isAdding ? `&force_authentication=1` : "");
 
   return (
     <main className="min-h-screen bg-black flex items-center justify-center">
