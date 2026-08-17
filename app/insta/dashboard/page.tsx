@@ -292,15 +292,6 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
     setError(null);
 
     const postsWithComments = media.filter((p) => p.comments_count > 0).slice(0, 20);
-    console.log(`[comments] fetching from ${postsWithComments.length} posts`, postsWithComments.map(p => ({id: p.id, count: p.comments_count})));
-
-    // Test with just the first post to see raw response
-    const firstPost = postsWithComments[0];
-    if (firstPost) {
-      const testUrl = `https://graph.instagram.com/v21.0/${firstPost.id}/comments?fields=id,text,username,timestamp&limit=5&access_token=${token}`;
-      console.log(`[comments] test URL:`, testUrl.replace(token, "TOKEN"));
-      fetch(testUrl).then(r => r.json()).then(j => console.log(`[comments] test response:`, j));
-    }
 
     Promise.all(
       postsWithComments.map((post) =>
@@ -312,11 +303,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
         )
           .then((r) => r.json())
           .then((json) => {
-            if (json.error) {
-              console.error(`[comments] error for post ${post.id}:`, json.error.message, json.error.code, json.error.error_subcode);
-              return [];
-            }
-            console.log(`[comments] post ${post.id}: got ${(json.data||[]).length} comments`);
+            if (json.error) return [];
             return (json.data || []).map((c: Comment) => ({
               ...c,
               like_count: 0,
@@ -326,17 +313,14 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
               postPermalink: post.permalink,
             }));
           })
-          .catch((err) => {
-            console.error(`[comments] network error for post ${post.id}:`, err);
-            return [];
-          })
+          .catch(() => [])
       )
     ).then((results) => {
       const flat: Comment[] = results.flat();
       flat.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setComments(flat);
       if (flat.length === 0 && postsWithComments.length > 0) {
-        setError(`Found ${postsWithComments.length} posts with comments but couldn't load them. Check browser console for API errors.`);
+        setError(`Instagram's API only serves comments on posts made after your account converted to a Business account. Comments on older posts aren't accessible via the API.`);
       }
     }).finally(() => setLoading(false));
   }, [token, media]);
@@ -374,8 +358,13 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
 
   if (!comments.length) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <p className="text-zinc-600 text-sm">{error || "No comments yet"}</p>
+      <div className="flex flex-col items-center justify-center py-24 gap-3 max-w-sm mx-auto text-center">
+        <p className="text-zinc-400 text-sm">{error || "No comments yet"}</p>
+        {error && (
+          <p className="text-zinc-600 text-xs">
+            New comments on posts made after your Business account conversion will appear here automatically.
+          </p>
+        )}
       </div>
     );
   }
