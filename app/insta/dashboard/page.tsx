@@ -297,7 +297,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
       postsWithComments.map((post) =>
         fetch(
           `https://graph.instagram.com/v21.0/${post.id}/comments` +
-            `?fields=id,text,username,timestamp,like_count,replies{id,text,username,timestamp}` +
+            `?fields=id,text,username,timestamp,replies{id,text,username,timestamp}` +
             `&limit=50` +
             `&access_token=${token}`
         )
@@ -309,7 +309,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
             }
             return (json.data || []).map((c: Comment) => ({
               ...c,
-              like_count: c.like_count ?? 0,
+              like_count: 0,
               postId: post.id,
               postCaption: post.caption,
               postThumb: post.thumbnail_url || post.media_url,
@@ -397,14 +397,6 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
               <div className="flex items-baseline gap-2">
                 <span className="text-white text-sm font-medium">@{comment.username}</span>
                 <span className="text-zinc-600 text-xs">{timeAgo(comment.timestamp)}</span>
-                {comment.like_count > 0 && (
-                  <span className="text-zinc-600 text-xs ml-auto flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                    </svg>
-                    {comment.like_count}
-                  </span>
-                )}
               </div>
               <p className="text-zinc-300 text-sm mt-0.5 leading-snug">{comment.text}</p>
 
