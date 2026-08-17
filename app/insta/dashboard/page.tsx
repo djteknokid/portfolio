@@ -292,6 +292,15 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
     setError(null);
 
     const postsWithComments = media.filter((p) => p.comments_count > 0).slice(0, 20);
+    console.log(`[comments] fetching from ${postsWithComments.length} posts`, postsWithComments.map(p => ({id: p.id, count: p.comments_count})));
+
+    // Test with just the first post to see raw response
+    const firstPost = postsWithComments[0];
+    if (firstPost) {
+      const testUrl = `https://graph.instagram.com/v21.0/${firstPost.id}/comments?fields=id,text,username,timestamp&limit=5&access_token=${token}`;
+      console.log(`[comments] test URL:`, testUrl.replace(token, "TOKEN"));
+      fetch(testUrl).then(r => r.json()).then(j => console.log(`[comments] test response:`, j));
+    }
 
     Promise.all(
       postsWithComments.map((post) =>
@@ -304,9 +313,10 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
           .then((r) => r.json())
           .then((json) => {
             if (json.error) {
-              console.error(`Comments fetch error for post ${post.id}:`, json.error);
+              console.error(`[comments] error for post ${post.id}:`, json.error.message, json.error.code, json.error.error_subcode);
               return [];
             }
+            console.log(`[comments] post ${post.id}: got ${(json.data||[]).length} comments`);
             return (json.data || []).map((c: Comment) => ({
               ...c,
               like_count: 0,
@@ -317,7 +327,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
             }));
           })
           .catch((err) => {
-            console.error(`Network error for post ${post.id}:`, err);
+            console.error(`[comments] network error for post ${post.id}:`, err);
             return [];
           })
       )
