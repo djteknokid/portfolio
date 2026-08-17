@@ -296,7 +296,8 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
     const newestPost = [...postsWithComments].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
     if (newestPost) {
       fetch(`https://graph.instagram.com/v21.0/${newestPost.id}/comments?fields=id,text,username,timestamp&limit=5&access_token=${token}`)
-        .then(r => r.text()).then(t => console.log("[comments] raw response:", t));
+        .then(r => { console.log("[comments] status:", r.status, r.statusText); return r.text(); })
+        .then(t => console.log("[comments] body:", t || "(empty)"));
     }
 
     Promise.all(
