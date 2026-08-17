@@ -293,6 +293,12 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
 
     const postsWithComments = media.filter((p) => p.comments_count > 0).slice(0, 20);
 
+    const newestPost = [...postsWithComments].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+    if (newestPost) {
+      fetch(`https://graph.instagram.com/v21.0/${newestPost.id}/comments?fields=id,text,username,timestamp&limit=5&access_token=${token}`)
+        .then(r => r.text()).then(t => console.log("[comments] raw response:", t));
+    }
+
     Promise.all(
       postsWithComments.map((post) =>
         fetch(
