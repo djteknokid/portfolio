@@ -291,7 +291,19 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
     setLoading(true);
     setError(null);
 
+    // Check token scopes
+    fetch(`https://graph.instagram.com/v21.0/me/permissions?access_token=${token}`)
+      .then(r => r.json())
+      .then(j => console.log("[comments] token permissions:", JSON.stringify(j)));
+
     const postsWithComments = media.filter((p) => p.comments_count > 0).slice(0, 20);
+    // Try the most recent post with comments (most likely post-conversion)
+    const newestPost = [...postsWithComments].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+    if (newestPost) {
+      console.log("[comments] testing newest post:", newestPost.id, newestPost.timestamp, "count:", newestPost.comments_count);
+      fetch(`https://graph.instagram.com/v21.0/${newestPost.id}/comments?fields=id,text,username,timestamp&limit=5&access_token=${token}`)
+        .then(r => r.json()).then(j => console.log("[comments] newest post response:", JSON.stringify(j)));
+    }
 
     Promise.all(
       postsWithComments.map((post) =>
