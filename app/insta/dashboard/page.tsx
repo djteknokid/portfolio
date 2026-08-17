@@ -73,7 +73,7 @@ interface StoredAccount {
 
 type SortKey = "timestamp" | "like_count" | "comments_count" | "reach" | "views" | "shares" | "saved" | "follows";
 type SortDir = "asc" | "desc";
-type Tab = "stats" | "comments";
+type Tab = "stats" | "comments" | "audience";
 
 const ACCOUNTS_KEY = "ig_accounts";
 const ACTIVE_KEY = "ig_active_username";
@@ -461,6 +461,229 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
   );
 }
 
+// ─── AudienceTab ──────────────────────────────────────────────────────────────
+
+interface DemographicResult {
+  dimension_values: string[];
+  value: number;
+}
+
+interface AudienceData {
+  gender: { label: string; value: number; pct: number }[];
+  age: { label: string; value: number; pct: number }[];
+  country: { label: string; value: number; pct: number }[];
+  city: { label: string; value: number; pct: number }[];
+  follows: { date: string; follows: number; unfollows: number }[];
+  onlineHours: { hour: number; value: number }[];
+}
+
+function BarRow({ label, pct, value }: { label: string; pct: number; value: number }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-zinc-400 text-xs w-24 shrink-0 truncate">{label}</span>
+      <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-full bg-white rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-zinc-400 text-xs w-10 text-right shrink-0">{pct.toFixed(1)}%</span>
+      <span className="text-zinc-600 text-xs w-14 text-right shrink-0">{value.toLocaleString()}</span>
+    </div>
+  );
+}
+
+function AudienceTab({ token, igUserId }: { token: string; igUserId: string }) {
+  const [data, setData] = useState<AudienceData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token || !igUserId) return;
+
+    async function fetchDemographic(metric: string, breakdown: string) {
+      const res = await fetch(
+        `https://graph.instagram.com/v21.0/${igUserId}/insights` +
+          `?metric=${metric}&period=lifetime&timeframe=last_30_days` +
+          `&breakdown=${breakdown}&metric_type=total_value` +
+          `&access_token=${token}`
+      );
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+      const results: DemographicResult[] = json.data?.[0]?.total_value?.breakdowns?.[0]?.results || [];
+      const total = results.reduce((s, r) => s + r.value, 0);
+      return results
+        .map((r) => ({ label: r.dimension_values[0], value: r.value, pct: total > 0 ? (r.value / total) * 100 : 0 }))
+        .sort((a, b) => b.value - a.value);
+    }
+
+    async function fetchFollowActivity() {
+      const res = await fetch(
+        `https://graph.instagram.com/v21.0/${igUserId}/insights` +
+          `?metric=follows_and_unfollows&period=day&since=${Math.floor(Date.now() / 1000) - 30 * 86400}` +
+          `&until=${Math.floor(Date.now() / 1000)}&breakdown=follow_type&metric_type=total_value` +
+          `&access_token=${token}`
+      );
+      const json = await res.json();
+      if (json.error) return [];
+      return (json.data || []).map((d: { end_time: string; total_value: { breakdowns: { results: { dimension_values: string[]; value: number }[] }[] } }) => {
+        const results = d.total_value?.breakdowns?.[0]?.results || [];
+        const follows = results.find((r: { dimension_values: string[] }) => r.dimension_values[0] === "FOLLOW")?.value || 0;
+        const unfollows = results.find((r: { dimension_values: string[] }) => r.dimension_values[0] === "UNFOLLOW")?.value || 0;
+        return { date: d.end_time?.slice(0, 10), follows, unfollows };
+      });
+    }
+
+    async function fetchOnlineFollowers() {
+      const res = await fetch(
+        `https://graph.instagram.com/v21.0/${igUserId}/insights` +
+          `?metric=online_followers&period=lifetime&access_token=${token}`
+      );
+      const json = await res.json();
+      if (json.error) return [];
+      const hourData = json.data?.[0]?.values?.[0]?.value || {};
+      return Object.entries(hourData).map(([hour, value]) => ({ hour: parseInt(hour), value: value as number }));
+    }
+
+    Promise.all([
+      fetchDemographic("follower_demographics", "gender").catch(() => []),
+      fetchDemographic("follower_demographics", "age").catch(() => []),
+      fetchDemographic("follower_demographics", "country").catch(() => []),
+      fetchDemographic("follower_demographics", "city").catch(() => []),
+      fetchFollowActivity().catch(() => []),
+      fetchOnlineFollowers().catch(() => []),
+    ]).then(([gender, age, country, city, follows, onlineHours]) => {
+      setData({ gender, age, country, city, follows, onlineHours });
+    }).catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [token, igUserId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <p className="text-zinc-500 text-sm">Loading audience data...</p>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-2">
+        <p className="text-zinc-500 text-sm">Could not load audience data</p>
+        <p className="text-zinc-700 text-xs max-w-xs text-center">{error}</p>
+      </div>
+    );
+  }
+
+  const noData = !data.gender.length && !data.age.length && !data.country.length;
+
+  if (noData) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-2">
+        <p className="text-zinc-500 text-sm">No audience data available yet</p>
+        <p className="text-zinc-700 text-xs max-w-xs text-center">Instagram requires at least 100 followers and may take up to 48 hours to populate demographic data.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      {/* Gender */}
+      {data.gender.length > 0 && (
+        <div className="bg-zinc-900 rounded-2xl p-5 space-y-4">
+          <p className="text-white text-sm font-medium">Gender</p>
+          <div className="space-y-3">
+            {data.gender.map((g) => (
+              <BarRow key={g.label} label={g.label === "M" ? "Male" : g.label === "F" ? "Female" : "Unknown"} pct={g.pct} value={g.value} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Age */}
+      {data.age.length > 0 && (
+        <div className="bg-zinc-900 rounded-2xl p-5 space-y-4">
+          <p className="text-white text-sm font-medium">Age</p>
+          <div className="space-y-3">
+            {data.age.map((a) => (
+              <BarRow key={a.label} label={a.label} pct={a.pct} value={a.value} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Top Countries */}
+      {data.country.length > 0 && (
+        <div className="bg-zinc-900 rounded-2xl p-5 space-y-4">
+          <p className="text-white text-sm font-medium">Top Countries</p>
+          <div className="space-y-3">
+            {data.country.slice(0, 10).map((c) => (
+              <BarRow key={c.label} label={c.label} pct={c.pct} value={c.value} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Top Cities */}
+      {data.city.length > 0 && (
+        <div className="bg-zinc-900 rounded-2xl p-5 space-y-4">
+          <p className="text-white text-sm font-medium">Top Cities</p>
+          <div className="space-y-3">
+            {data.city.slice(0, 10).map((c) => (
+              <BarRow key={c.label} label={c.label} pct={c.pct} value={c.value} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Follow / Unfollow activity */}
+      {data.follows.length > 0 && (
+        <div className="bg-zinc-900 rounded-2xl p-5 space-y-4 md:col-span-2">
+          <p className="text-white text-sm font-medium">Follows & Unfollows — Last 30 Days</p>
+          <div className="overflow-x-auto">
+            <div className="flex items-end gap-1 h-20 min-w-max">
+              {data.follows.slice(-30).map((d) => {
+                const max = Math.max(...data.follows.map((f) => Math.max(f.follows, f.unfollows)), 1);
+                return (
+                  <div key={d.date} className="flex gap-0.5 items-end" title={`${d.date}: +${d.follows} -${d.unfollows}`}>
+                    <div className="w-2 bg-white rounded-sm" style={{ height: `${(d.follows / max) * 100}%` }} />
+                    <div className="w-2 bg-zinc-600 rounded-sm" style={{ height: `${(d.unfollows / max) * 100}%` }} />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-sm bg-white" /><span className="text-zinc-500 text-xs">Follows</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-sm bg-zinc-600" /><span className="text-zinc-500 text-xs">Unfollows</span></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Online followers by hour */}
+      {data.onlineHours.length > 0 && (
+        <div className="bg-zinc-900 rounded-2xl p-5 space-y-4 md:col-span-2">
+          <p className="text-white text-sm font-medium">When Your Followers Are Online</p>
+          <div className="flex items-end gap-1 h-16">
+            {Array.from({ length: 24 }, (_, h) => {
+              const point = data.onlineHours.find((o) => o.hour === h);
+              const max = Math.max(...data.onlineHours.map((o) => o.value), 1);
+              const pct = point ? (point.value / max) * 100 : 0;
+              return (
+                <div key={h} className="flex-1 flex flex-col items-center gap-1" title={`${h}:00 — ${point?.value.toLocaleString() || 0} online`}>
+                  <div className="w-full rounded-sm bg-white transition-all" style={{ height: `${pct}%`, minHeight: pct > 0 ? "2px" : "0" }} />
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-between text-zinc-600 text-xs">
+            <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
 // ─── ChatBot ──────────────────────────────────────────────────────────────────
 
 interface ChatMessage { role: "user" | "assistant"; content: string; }
@@ -840,6 +1063,12 @@ function Dashboard() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab("audience")}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === "audience" ? "text-white border-white" : "text-zinc-500 border-transparent hover:text-zinc-300"}`}
+          >
+            Audience
+          </button>
         </div>
 
         {activeTab === "stats" && (
@@ -923,6 +1152,10 @@ function Dashboard() {
 
         {activeTab === "comments" && token && (
           <CommentsTab token={token} media={media} />
+        )}
+
+        {activeTab === "audience" && token && profile && (
+          <AudienceTab token={token} igUserId={profile.id} />
         )}
 
       </div>
