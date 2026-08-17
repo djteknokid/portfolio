@@ -291,14 +291,18 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
     setLoading(true);
     setError(null);
 
-    // Reels comments are blocked by Instagram API in Development mode
-    // Only fetch from feed posts (IMAGE, CAROUSEL_ALBUM) which work with tester accounts
+    // Debug: log all media types and comment counts
+    console.log("[comments] media types:", media.map(p => `${p.media_type}(${p.comments_count})`));
+
+    // Include IMAGE, CAROUSEL_ALBUM, and VIDEO feed posts (not REELS)
     const postsWithComments = media
-      .filter((p) => p.comments_count > 0 && (p.media_type === "IMAGE" || p.media_type === "CAROUSEL_ALBUM"))
+      .filter((p) => p.comments_count > 0 && p.media_type !== "REELS")
       .slice(0, 20);
 
+    console.log("[comments] posts with comments (non-REELS):", postsWithComments.map(p => `${p.id} type=${p.media_type} count=${p.comments_count}`));
+
     if (postsWithComments.length === 0) {
-      setError("No feed posts with comments found. Comments on Reels require the app to be in Live mode (App Review).");
+      setError("No posts with comments found.");
       setLoading(false);
       return;
     }
@@ -313,6 +317,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
         )
           .then((r) => r.json())
           .then((json) => {
+            console.log(`[comments] post ${post.id} (${post.media_type}):`, JSON.stringify(json).slice(0, 200));
             if (json.error) return [];
             return (json.data || []).map((c: Comment) => ({
               ...c,
