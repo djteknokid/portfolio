@@ -73,7 +73,7 @@ interface StoredAccount {
 
 type SortKey = "timestamp" | "like_count" | "comments_count" | "reach" | "views" | "shares" | "saved" | "follows";
 type SortDir = "asc" | "desc";
-type Tab = "stats" | "comments" | "audience";
+type Tab = "stats" | "comments" | "audience" | "ideas";
 
 const ACCOUNTS_KEY = "ig_accounts";
 const ACTIVE_KEY = "ig_active_username";
@@ -700,6 +700,220 @@ function AudienceTab({ token, igUserId }: { token: string; igUserId: string }) {
   );
 }
 
+// ─── IdeasTab ─────────────────────────────────────────────────────────────────
+
+interface ContentIdea {
+  number: number;
+  title: string;
+  description: string;
+  execution: string;
+  format: string;
+  hook: string;
+}
+
+function IdeasTab({ username, media }: { username: string; media: MediaItem[] }) {
+  const [ideas, setIdeas] = useState<ContentIdea[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [generated, setGenerated] = useState(false);
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  const topPosts = [...media]
+    .filter((p) => p.reach > 0 || p.views > 0 || p.like_count > 0)
+    .sort((a, b) => (b.reach || b.views || 0) - (a.reach || a.views || 0))
+    .slice(0, 20);
+
+  async function generate() {
+    setLoading(true);
+    setError(null);
+    setIdeas([]);
+
+    const postSummary = topPosts.map((p, i) => ({
+      rank: i + 1,
+      caption: p.caption?.slice(0, 120) || "(no caption)",
+      type: p.media_type,
+      date: p.timestamp?.slice(0, 10),
+      likes: p.like_count,
+      comments: p.comments_count,
+      reach: p.reach,
+      views: p.views,
+      shares: p.shares,
+      saved: p.saved,
+    }));
+
+    const prompt = `You are a creative Instagram strategist for @${username}. Analyze their top 20 performing posts and generate exactly 20 content ideas for their next posts.
+
+TOP 20 POSTS BY REACH/VIEWS:
+${JSON.stringify(postSummary, null, 2)}
+
+For each idea, respond with a JSON array of exactly 20 objects with these fields:
+- number: 1-20
+- title: Short catchy name for the content idea (5 words max)
+- description: What this post is about and why it will perform well based on their data (2-3 sentences)
+- execution: Step-by-step how to create and execute this post (3-5 specific steps)
+- format: One of: Reel, Carousel, Photo, Story
+- hook: The opening line or visual hook to grab attention in the first 2 seconds
+
+Base ideas on patterns from their actual top posts — topics, styles, formats, and content themes that already work for this specific account. Be specific and actionable, not generic.
+
+Return ONLY the JSON array, no other text.`;
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: prompt,
+          username,
+          stats: { topPosts: postSummary },
+          noHistory: true,
+        }),
+      });
+      const data = await res.json();
+      const raw = data.reply || "";
+      const match = raw.match(/\[[\s\S]*\]/);
+      if (!match) throw new Error("Invalid response format");
+      const parsed: ContentIdea[] = JSON.parse(match[0]);
+      setIdeas(parsed);
+      setGenerated(true);
+    } catch {
+      setError("Failed to generate ideas. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const formatColor: Record<string, string> = {
+    Reel: "text-purple-400 bg-purple-400/10",
+    Carousel: "text-blue-400 bg-blue-400/10",
+    Photo: "text-green-400 bg-green-400/10",
+    Story: "text-amber-400 bg-amber-400/10",
+  };
+
+  return (
+    <div className="space-y-6 py-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <h2 className="text-white text-lg font-semibold">Content Ideas</h2>
+          <p className="text-zinc-500 text-sm">
+            {generated
+              ? `20 ideas based on your top ${topPosts.length} posts`
+              : `AI-generated ideas based on your top ${topPosts.length} performing posts`}
+          </p>
+        </div>
+        <button
+          onClick={generate}
+          disabled={loading}
+          className="flex items-center gap-2 bg-white text-black text-sm font-medium px-4 py-2 rounded-full hover:bg-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <>
+              <span className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+              Analyzing...
+            </>
+          ) : generated ? (
+            "Regenerate"
+          ) : (
+            "Generate 20 Ideas"
+          )}
+        </button>
+      </div>
+
+      {error && (
+        <p className="text-red-400 text-sm">{error}</p>
+      )}
+
+      {/* Loading state */}
+      {loading && (
+        <div className="grid gap-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-zinc-900 rounded-2xl p-5 animate-pulse">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-7 h-7 bg-zinc-800 rounded-full" />
+                <div className="h-4 bg-zinc-800 rounded w-48" />
+                <div className="h-5 bg-zinc-800 rounded-full w-16 ml-auto" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 bg-zinc-800 rounded w-full" />
+                <div className="h-3 bg-zinc-800 rounded w-3/4" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Ideas list */}
+      {!loading && ideas.length > 0 && (
+        <div className="grid gap-3">
+          {ideas.map((idea) => (
+            <div
+              key={idea.number}
+              className="bg-zinc-900 rounded-2xl overflow-hidden border border-transparent hover:border-zinc-700 transition-colors"
+            >
+              {/* Summary row */}
+              <button
+                onClick={() => setExpanded(expanded === idea.number ? null : idea.number)}
+                className="w-full text-left px-5 py-4"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-zinc-600 text-sm font-mono w-6 shrink-0">{String(idea.number).padStart(2, "0")}</span>
+                  <span className="text-white text-sm font-medium flex-1">{idea.title}</span>
+                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${formatColor[idea.format] || "text-zinc-400 bg-zinc-800"}`}>
+                    {idea.format}
+                  </span>
+                  <svg
+                    className={`w-4 h-4 text-zinc-600 shrink-0 transition-transform ${expanded === idea.number ? "rotate-180" : ""}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                <p className="text-zinc-500 text-xs mt-1.5 ml-9 text-left line-clamp-1">{idea.description}</p>
+              </button>
+
+              {/* Expanded detail */}
+              {expanded === idea.number && (
+                <div className="px-5 pb-5 ml-9 space-y-4 border-t border-zinc-800 pt-4">
+                  {/* Hook */}
+                  <div className="space-y-1">
+                    <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Opening Hook</p>
+                    <p className="text-white text-sm bg-zinc-800 rounded-xl px-4 py-3 italic">"{idea.hook}"</p>
+                  </div>
+                  {/* Description */}
+                  <div className="space-y-1">
+                    <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Why This Works</p>
+                    <p className="text-zinc-300 text-sm leading-relaxed">{idea.description}</p>
+                  </div>
+                  {/* Execution */}
+                  <div className="space-y-2">
+                    <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">How To Execute</p>
+                    <div className="space-y-2">
+                      {idea.execution.split(/\n|\d+\.\s+/).filter(s => s.trim()).map((step, i) => (
+                        <div key={i} className="flex gap-3">
+                          <span className="text-zinc-600 text-xs font-mono mt-0.5 shrink-0">{i + 1}.</span>
+                          <p className="text-zinc-300 text-sm leading-relaxed">{step.trim()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && !generated && (
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+          <p className="text-zinc-600 text-sm">Hit Generate to get 20 content ideas<br />tailored to what already works for your account.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── ChatBot ──────────────────────────────────────────────────────────────────
 
 interface ChatMessage { role: "user" | "assistant"; content: string; }
@@ -1085,6 +1299,12 @@ function Dashboard() {
           >
             Audience
           </button>
+          <button
+            onClick={() => setActiveTab("ideas")}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === "ideas" ? "text-white border-white" : "text-zinc-500 border-transparent hover:text-zinc-300"}`}
+          >
+            Ideas
+          </button>
         </div>
 
         {activeTab === "stats" && (
@@ -1172,6 +1392,10 @@ function Dashboard() {
 
         {activeTab === "audience" && token && profile && (
           <AudienceTab token={token} igUserId={profile.id} />
+        )}
+
+        {activeTab === "ideas" && (
+          <IdeasTab username={activeUsername!} media={media} />
         )}
 
       </div>
