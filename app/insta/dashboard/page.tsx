@@ -299,17 +299,12 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
       .then(r => r.json())
       .then(d => console.log("[comments] token check:", JSON.stringify(d)));
 
-    fetch(`https://graph.facebook.com/debug_token?input_token=${token}&access_token=${token}`)
-      .then(r => r.json())
-      .then(d => console.log("[comments] token scopes:", JSON.stringify(d).slice(0, 500)))
-      .catch(() => {});
-
-    // Include all post types — VIDEO includes both feed video and Reels
+    // Include all post types
     const postsWithComments = media
       .filter((p) => p.comments_count > 0)
-      .slice(0, 5); // test with just 5 first
+      .slice(0, 5);
 
-    console.log("[comments] posts with comments (non-REELS):", postsWithComments.map(p => `${p.id} type=${p.media_type} count=${p.comments_count}`));
+    console.log("[comments] posts with comments:", postsWithComments.map(p => `${p.id} type=${p.media_type} count=${p.comments_count}`));
 
     if (postsWithComments.length === 0) {
       setError("No posts with comments found.");
@@ -317,29 +312,32 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
       return;
     }
 
+    async function fetchComments(postId: string): Promise<Comment[]> {
+      const url =
+        `https://graph.instagram.com/v21.0/${postId}/comments` +
+        `?fields=id,text,username,timestamp,replies{id,text,username,timestamp}` +
+        `&limit=50` +
+        `&access_token=${token}`;
+      const json = await fetch(url).then(r => r.json());
+      console.log(`[comments] post ${postId} page 1:`, JSON.stringify(json).slice(0, 300));
+      if (json.error || !json.data) return [];
+      // Stop immediately if first page is empty — no infinite pagination
+      if (json.data.length === 0) return [];
+      return json.data;
+    }
+
     Promise.all(
-      postsWithComments.map((post) =>
-        fetch(
-          `https://graph.instagram.com/v21.0/${post.id}/comments` +
-            `?fields=id,text,username,timestamp,replies{id,text,username,timestamp}` +
-            `&limit=50` +
-            `&access_token=${token}`
-        )
-          .then((r) => r.json())
-          .then((json) => {
-            console.log(`[comments] post ${post.id} (${post.media_type}):`, JSON.stringify(json).slice(0, 200));
-            if (json.error) return [];
-            return (json.data || []).map((c: Comment) => ({
-              ...c,
-              like_count: 0,
-              postId: post.id,
-              postCaption: post.caption,
-              postThumb: post.thumbnail_url || post.media_url,
-              postPermalink: post.permalink,
-            }));
-          })
-          .catch(() => [])
-      )
+      postsWithComments.map(async (post) => {
+        const comments = await fetchComments(post.id);
+        return comments.map((c: Comment) => ({
+          ...c,
+          like_count: 0,
+          postId: post.id,
+          postCaption: post.caption,
+          postThumb: post.thumbnail_url || post.media_url,
+          postPermalink: post.permalink,
+        }));
+      })
     ).then((results) => {
       const flat: Comment[] = results.flat();
       flat.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
