@@ -719,8 +719,8 @@ function IdeasTab({ username, media }: { username: string; media: MediaItem[] })
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const topPosts = [...media]
-    .filter((p) => p.reach > 0 || p.views > 0 || p.like_count > 0)
-    .sort((a, b) => (b.reach || b.views || 0) - (a.reach || a.views || 0))
+    .filter((p) => (p.reach ?? 0) > 0 || (p.views ?? 0) > 0 || (p.like_count ?? 0) > 0)
+    .sort((a, b) => (b.reach ?? b.views ?? 0) - (a.reach ?? a.views ?? 0))
     .slice(0, 20);
 
   async function generate() {
