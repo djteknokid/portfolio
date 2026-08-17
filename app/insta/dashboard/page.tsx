@@ -327,7 +327,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
       flat.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setComments(flat);
       if (flat.length === 0 && postsWithComments.length > 0) {
-        setError(`Comments require the app to be in Live mode on Meta's developer platform. Currently in Development mode — submit for App Review to enable this feature.`);
+        setError(`No comments returned by Instagram API. This can happen if comments are disabled on your posts, or if the token needs to be refreshed. Try disconnecting and reconnecting your account.`);
       }
     }).finally(() => setLoading(false));
   }, [token, media]);
@@ -369,7 +369,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
         <p className="text-zinc-400 text-sm">{error || "No comments yet"}</p>
         {error && (
           <p className="text-zinc-600 text-xs">
-            Go to developers.facebook.com → your app → App Review to request production access.
+            Check Instagram Settings → Privacy → Comments to make sure comments are enabled.
           </p>
         )}
       </div>
