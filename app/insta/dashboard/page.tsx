@@ -294,10 +294,20 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
     // Debug: log all media types and comment counts
     console.log("[comments] media types:", media.map(p => `${p.media_type}(${p.comments_count})`));
 
-    // Include IMAGE, CAROUSEL_ALBUM, and VIDEO feed posts (not REELS)
+    // Check token permissions first
+    fetch(`https://graph.instagram.com/v21.0/me?fields=id,username&access_token=${token}`)
+      .then(r => r.json())
+      .then(d => console.log("[comments] token check:", JSON.stringify(d)));
+
+    fetch(`https://graph.facebook.com/debug_token?input_token=${token}&access_token=${token}`)
+      .then(r => r.json())
+      .then(d => console.log("[comments] token scopes:", JSON.stringify(d).slice(0, 500)))
+      .catch(() => {});
+
+    // Include all post types — VIDEO includes both feed video and Reels
     const postsWithComments = media
-      .filter((p) => p.comments_count > 0 && p.media_type !== "REELS")
-      .slice(0, 20);
+      .filter((p) => p.comments_count > 0)
+      .slice(0, 5); // test with just 5 first
 
     console.log("[comments] posts with comments (non-REELS):", postsWithComments.map(p => `${p.id} type=${p.media_type} count=${p.comments_count}`));
 
