@@ -291,19 +291,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
     setLoading(true);
     setError(null);
 
-    // Check token scopes
-    fetch(`https://graph.instagram.com/v21.0/me/permissions?access_token=${token}`)
-      .then(r => r.json())
-      .then(j => console.log("[comments] token permissions:", JSON.stringify(j)));
-
     const postsWithComments = media.filter((p) => p.comments_count > 0).slice(0, 20);
-    // Try the most recent post with comments (most likely post-conversion)
-    const newestPost = [...postsWithComments].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
-    if (newestPost) {
-      console.log("[comments] testing newest post:", newestPost.id, newestPost.timestamp, "count:", newestPost.comments_count);
-      fetch(`https://graph.instagram.com/v21.0/${newestPost.id}/comments?fields=id,text,username,timestamp&limit=5&access_token=${token}`)
-        .then(r => r.json()).then(j => console.log("[comments] newest post response:", JSON.stringify(j)));
-    }
 
     Promise.all(
       postsWithComments.map((post) =>
@@ -332,7 +320,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
       flat.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setComments(flat);
       if (flat.length === 0 && postsWithComments.length > 0) {
-        setError(`Instagram's API only serves comments on posts made after your account converted to a Business account. Comments on older posts aren't accessible via the API.`);
+        setError(`Comments require the app to be in Live mode on Meta's developer platform. Currently in Development mode — submit for App Review to enable this feature.`);
       }
     }).finally(() => setLoading(false));
   }, [token, media]);
@@ -374,7 +362,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
         <p className="text-zinc-400 text-sm">{error || "No comments yet"}</p>
         {error && (
           <p className="text-zinc-600 text-xs">
-            New comments on posts made after your Business account conversion will appear here automatically.
+            Go to developers.facebook.com → your app → App Review to request production access.
           </p>
         )}
       </div>
