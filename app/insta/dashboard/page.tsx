@@ -40,6 +40,7 @@ interface MediaItem {
   reach?: number;
   views?: number;
   shares?: number;
+  reposts?: number;
   saved?: number;
   follows?: number;
 }
@@ -71,7 +72,7 @@ interface StoredAccount {
   name: string;
 }
 
-type SortKey = "timestamp" | "like_count" | "comments_count" | "reach" | "views" | "shares" | "saved" | "follows";
+type SortKey = "timestamp" | "like_count" | "comments_count" | "reach" | "views" | "shares" | "reposts" | "saved" | "follows";
 type SortDir = "asc" | "desc";
 type Tab = "stats" | "comments" | "audience" | "ideas";
 
@@ -1134,7 +1135,7 @@ function Dashboard() {
         setProfile(await profileRes.json());
 
         const mediaRes = await fetch(
-          `https://graph.instagram.com/v21.0/me/media?fields=id,caption,media_type,thumbnail_url,media_url,timestamp,like_count,comments_count,permalink&limit=50&access_token=${token}`
+          `https://graph.instagram.com/v21.0/me/media?fields=id,caption,media_type,thumbnail_url,media_url,timestamp,like_count,comments_count,permalink,reposts_count&limit=50&access_token=${token}`
         );
         if (!mediaRes.ok) throw new Error("Failed to fetch media");
         const mediaData = await mediaRes.json();
@@ -1169,6 +1170,7 @@ function Dashboard() {
                 views: map.views ?? undefined,
                 shares: map.shares ?? undefined,
                 saved: map.saved ?? undefined,
+                reposts: (post as MediaItem & { reposts_count?: number }).reposts_count ?? undefined,
                 follows: supportsFollows ? (map.follows ?? undefined) : undefined,
               };
             } catch { return post; }
@@ -1382,6 +1384,7 @@ function Dashboard() {
                       <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("like_count")}>Likes <SortIcon active={sortKey === "like_count"} dir={sortDir} /></th>
                       <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("comments_count")}>Comments <SortIcon active={sortKey === "comments_count"} dir={sortDir} /></th>
                       <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("shares")}>Shares <SortIcon active={sortKey === "shares"} dir={sortDir} /></th>
+                      <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("reposts")}>Reposts <SortIcon active={sortKey === "reposts"} dir={sortDir} /></th>
                       <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("saved")}>Saved <SortIcon active={sortKey === "saved"} dir={sortDir} /></th>
                       <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("follows")}>Followers <SortIcon active={sortKey === "follows"} dir={sortDir} /></th>
                       <th className="text-right text-zinc-500 font-normal px-4 py-3 cursor-pointer hover:text-zinc-300 whitespace-nowrap" onClick={() => handleSort("timestamp")}>Date <SortIcon active={sortKey === "timestamp"} dir={sortDir} /></th>
@@ -1413,6 +1416,7 @@ function Dashboard() {
                         <td className="px-4 py-2.5 text-right text-zinc-300">{post.like_count.toLocaleString()}</td>
                         <td className="px-4 py-2.5 text-right text-zinc-300">{post.comments_count.toLocaleString()}</td>
                         <td className="px-4 py-2.5 text-right text-zinc-400">{post.shares != null ? post.shares.toLocaleString() : <span className="text-zinc-700">—</span>}</td>
+                        <td className="px-4 py-2.5 text-right text-zinc-400">{post.reposts != null ? post.reposts.toLocaleString() : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-4 py-2.5 text-right text-zinc-400">{post.saved != null ? post.saved.toLocaleString() : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-4 py-2.5 text-right text-zinc-400">{post.follows != null ? post.follows.toLocaleString() : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-4 py-2.5 text-right text-zinc-500 whitespace-nowrap">
