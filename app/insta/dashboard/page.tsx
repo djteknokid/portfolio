@@ -963,8 +963,7 @@ Return ONLY the JSON array, no other text.`;
 
 interface ChatMessage { role: "user" | "assistant"; content: string; }
 
-function ChatBot({ username, stats }: { username: string; stats: object }) {
-  const [open, setOpen] = useState(false);
+function ChatBot({ username, stats, open, setOpen }: { username: string; stats: object; open: boolean; setOpen: (v: boolean) => void }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -996,91 +995,75 @@ function ChatBot({ username, stats }: { username: string; stats: object }) {
   }
 
   return (
-    <>
-      {/* Floating button */}
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-6 right-6 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-zinc-100 transition-colors z-50"
-      >
-        {open ? (
-          <svg className="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <div className="flex flex-col h-full border-l border-zinc-800 bg-black">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between shrink-0">
+        <div>
+          <p className="text-white text-sm font-medium">Stats Assistant</p>
+          <p className="text-zinc-500 text-xs">@{username}</p>
+        </div>
+        <button onClick={() => setOpen(false)} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-zinc-800 transition-colors">
+          <svg className="w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
-        ) : (
-          <svg className="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-          </svg>
-        )}
-      </button>
+        </button>
+      </div>
 
-      {/* Chat panel */}
-      {open && (
-        <div className="fixed bottom-22 right-6 w-80 bg-zinc-900 rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden border border-zinc-800" style={{ height: "460px" }}>
-          {/* Header */}
-          <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
-            <div>
-              <p className="text-white text-sm font-medium">Stats Assistant</p>
-              <p className="text-zinc-500 text-xs">@{username}</p>
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        {messages.length === 0 && (
+          <div className="space-y-2 pt-4">
+            <p className="text-zinc-500 text-xs text-center">Ask anything about your stats</p>
+            {["Which post got the most reach?", "What's my best performing reel?", "How is my engagement rate?"].map((q) => (
+              <button key={q} onClick={() => { setInput(q); }} className="w-full text-left text-xs text-zinc-400 bg-zinc-900 hover:bg-zinc-800 px-3 py-2 rounded-xl transition-colors">
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-snug ${
+              m.role === "user" ? "bg-white text-black" : "bg-zinc-900 text-zinc-100"
+            }`}>
+              {m.content}
             </div>
           </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-            {messages.length === 0 && (
-              <div className="space-y-2 pt-4">
-                <p className="text-zinc-500 text-xs text-center">Ask anything about your stats</p>
-                {["Which post got the most reach?", "What's my best performing reel?", "How is my engagement rate?"].map((q) => (
-                  <button key={q} onClick={() => { setInput(q); }} className="w-full text-left text-xs text-zinc-400 bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-xl transition-colors">
-                    {q}
-                  </button>
-                ))}
+        ))}
+        {sending && (
+          <div className="flex justify-start">
+            <div className="bg-zinc-900 px-3 py-2 rounded-2xl">
+              <div className="flex gap-1 items-center h-4">
+                <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
-            )}
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-snug ${
-                  m.role === "user" ? "bg-white text-black" : "bg-zinc-800 text-zinc-100"
-                }`}>
-                  {m.content}
-                </div>
-              </div>
-            ))}
-            {sending && (
-              <div className="flex justify-start">
-                <div className="bg-zinc-800 px-3 py-2 rounded-2xl">
-                  <div className="flex gap-1 items-center h-4">
-                    <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={bottomRef} />
+            </div>
           </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
 
-          {/* Input */}
-          <div className="px-3 py-3 border-t border-zinc-800 flex gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Ask about your stats..."
-              className="flex-1 bg-zinc-800 text-white text-sm px-3 py-2 rounded-xl outline-none placeholder-zinc-600 focus:ring-1 focus:ring-zinc-600"
-            />
-            <button
-              onClick={send}
-              disabled={!input.trim() || sending}
-              className="w-8 h-8 bg-white rounded-xl flex items-center justify-center disabled:opacity-30 hover:bg-zinc-100 transition-colors flex-shrink-0"
-            >
-              <svg className="w-3.5 h-3.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-    </>
+      {/* Input */}
+      <div className="px-3 py-3 border-t border-zinc-800 flex gap-2 shrink-0">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && send()}
+          placeholder="Ask about your stats..."
+          className="flex-1 bg-zinc-900 text-white text-sm px-3 py-2 rounded-xl outline-none placeholder-zinc-600 focus:ring-1 focus:ring-zinc-700"
+        />
+        <button
+          onClick={send}
+          disabled={!input.trim() || sending}
+          className="w-8 h-8 bg-white rounded-xl flex items-center justify-center disabled:opacity-30 hover:bg-zinc-100 transition-colors flex-shrink-0"
+        >
+          <svg className="w-3.5 h-3.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -1099,6 +1082,7 @@ function Dashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [chatOpen, setChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("stats");
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -1264,7 +1248,9 @@ function Dashboard() {
   const totalComments = media.reduce((sum, p) => sum + p.comments_count, 0);
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-black text-white flex">
+      {/* Main content */}
+      <div className={`flex-1 min-w-0 transition-all duration-300`}>
       <div className="max-w-7xl mx-auto px-6 py-12 space-y-8">
 
         {/* Header */}
@@ -1349,6 +1335,16 @@ function Dashboard() {
             className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === "ideas" ? "text-white border-white" : "text-zinc-500 border-transparent hover:text-zinc-300"}`}
           >
             Ideas
+          </button>
+          <div className="flex-1" />
+          <button
+            onClick={() => setChatOpen(o => !o)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors mb-1 ${chatOpen ? "bg-white text-black" : "bg-zinc-900 text-zinc-400 hover:text-white"}`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            Ask AI
           </button>
         </div>
 
@@ -1445,32 +1441,39 @@ function Dashboard() {
 
       </div>
 
-      {/* Chatbot — always visible when logged in */}
-      {activeUsername && profile && (
-        <ChatBot
-          username={activeUsername}
-          stats={{
-            profile: {
-              username: profile.username,
-              followers: profile.followers_count,
-              following: profile.follows_count,
-              posts: profile.media_count,
-            },
-            recentPosts: media.slice(0, 30).map((p) => ({
-              id: p.id,
-              type: p.media_type,
-              caption: p.caption?.slice(0, 100),
-              date: p.timestamp,
-              likes: p.like_count,
-              comments: p.comments_count,
-              reach: p.reach,
-              views: p.views,
-              shares: p.shares,
-              saved: p.saved,
-              follows: p.follows,
-            })),
-          }}
-        />
+      </div>
+      </div>
+
+      {/* Chat side panel */}
+      {chatOpen && activeUsername && profile && (
+        <div className="w-80 shrink-0 sticky top-0 h-screen flex flex-col">
+          <ChatBot
+            open={chatOpen}
+            setOpen={setChatOpen}
+            username={activeUsername}
+            stats={{
+              profile: {
+                username: profile.username,
+                followers: profile.followers_count,
+                following: profile.follows_count,
+                posts: profile.media_count,
+              },
+              recentPosts: media.slice(0, 30).map((p) => ({
+                id: p.id,
+                type: p.media_type,
+                caption: p.caption?.slice(0, 100),
+                date: p.timestamp,
+                likes: p.like_count,
+                comments: p.comments_count,
+                reach: p.reach,
+                views: p.views,
+                shares: p.shares,
+                saved: p.saved,
+                follows: p.follows,
+              })),
+            }}
+          />
+        </div>
       )}
     </main>
   );
