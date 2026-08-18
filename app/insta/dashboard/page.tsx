@@ -711,7 +711,7 @@ interface ContentIdea {
   hook: string;
 }
 
-function IdeasTab({ username, media }: { username: string; media: MediaItem[] }) {
+function IdeasTab({ username, media, token, igUserId }: { username: string; media: MediaItem[]; token: string; igUserId: string }) {
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -723,6 +723,30 @@ function IdeasTab({ username, media }: { username: string; media: MediaItem[] })
     .sort((a, b) => (b.reach ?? b.views ?? 0) - (a.reach ?? a.views ?? 0))
     .slice(0, 20);
 
+  async function fetchAudience() {
+    const base = `https://graph.instagram.com/v21.0/${igUserId}/insights`;
+    const params = `&period=lifetime&timeframe=last_30_days&metric_type=total_value&access_token=${token}`;
+    const [genderRes, ageRes, countryRes] = await Promise.all([
+      fetch(`${base}?metric=follower_demographics&breakdown=gender${params}`).then(r => r.json()),
+      fetch(`${base}?metric=follower_demographics&breakdown=age${params}`).then(r => r.json()),
+      fetch(`${base}?metric=follower_demographics&breakdown=country${params}`).then(r => r.json()),
+    ]);
+
+    const extract = (res: { data?: { name: string; total_value?: { breakdowns?: { dimension_values: string[]; value: number }[] } }[] }) => {
+      const breakdowns = res?.data?.[0]?.total_value?.breakdowns ?? [];
+      return breakdowns.map((b: { dimension_values: string[]; value: number }) => ({
+        label: b.dimension_values[0],
+        value: b.value,
+      })).sort((a: { value: number }, b: { value: number }) => b.value - a.value).slice(0, 5);
+    };
+
+    return {
+      gender: extract(genderRes),
+      age: extract(ageRes),
+      topCountries: extract(countryRes),
+    };
+  }
+
   async function generate() {
     setLoading(true);
     setError(null);
@@ -730,7 +754,7 @@ function IdeasTab({ username, media }: { username: string; media: MediaItem[] })
 
     const postSummary = topPosts.map((p, i) => ({
       rank: i + 1,
-      caption: p.caption?.slice(0, 120) || "(no caption)",
+      caption: p.caption?.slice(0, 150) || "(no caption)",
       type: p.media_type,
       date: p.timestamp?.slice(0, 10),
       likes: p.like_count,
@@ -741,20 +765,39 @@ function IdeasTab({ username, media }: { username: string; media: MediaItem[] })
       saved: p.saved,
     }));
 
-    const prompt = `You are a creative Instagram strategist for @${username}. Analyze their top 20 performing posts and generate exactly 20 content ideas for their next posts.
+    let audienceContext = "";
+    try {
+      const audience = await fetchAudience();
+      audienceContext = `
+AUDIENCE DEMOGRAPHICS (last 30 days):
+- Gender breakdown: ${audience.gender.map((g: { label: string; value: number }) => `${g.label}: ${g.value}`).join(", ")}
+- Age breakdown: ${audience.age.map((a: { label: string; value: number }) => `${a.label}: ${a.value}`).join(", ")}
+- Top countries: ${audience.topCountries.map((c: { label: string; value: number }) => `${c.label}: ${c.value}`).join(", ")}`;
+    } catch {
+      audienceContext = "";
+    }
 
-TOP 20 POSTS BY REACH/VIEWS:
+    const prompt = `You are a specialist Instagram content strategist for @${username}, a VJ and electronic music artist account. Analyze their actual post data and audience to generate 10 hyper-specific content ideas.
+
+TOP PERFORMING POSTS (by reach/views):
 ${JSON.stringify(postSummary, null, 2)}
+${audienceContext}
 
-For each idea, respond with a JSON array of exactly 20 objects with these fields:
-- number: 1-20
-- title: Short catchy name for the content idea (5 words max)
-- description: What this post is about and why it will perform well based on their data (2-3 sentences)
-- execution: Step-by-step how to create and execute this post (3-5 specific steps)
+IMPORTANT RULES FOR SPECIFICITY:
+- Do NOT use generic placeholders like "a nostalgic TV show" — name the ACTUAL show (e.g. "Dragon Ball Z", "Evangelion", "Cowboy Bebop")
+- Do NOT say "a classic track" — name the ACTUAL artist and track based on what fits this account's style
+- Do NOT say "a visual style" — name the ACTUAL aesthetic (e.g. "Y2K glitch art", "VHS Lo-fi", "80s synthwave neon")
+- Reference the actual captions and themes from their top posts to infer what their content is about
+- Tailor every idea to the specific countries and demographics in their audience
+- Every idea must feel like it was written specifically for THIS account, not a template
+
+For each idea respond with a JSON array of exactly 10 objects:
+- number: 1-10
+- title: The SPECIFIC content idea with real names/references (not generic — e.g. "VJ set to Daft Punk's One More Time" not "Classic Electronic Track Mix")
+- description: Why this specific idea will work for THIS account based on their actual data (2-3 sentences, cite real numbers from their posts)
+- execution: 4-5 concrete steps to create this exact post
 - format: One of: Reel, Carousel, Photo, Story
-- hook: The opening line or visual hook to grab attention in the first 2 seconds
-
-Base ideas on patterns from their actual top posts — topics, styles, formats, and content themes that already work for this specific account. Be specific and actionable, not generic.
+- hook: The exact opening line or visual that grabs attention in 2 seconds
 
 Return ONLY the JSON array, no other text.`;
 
@@ -798,8 +841,8 @@ Return ONLY the JSON array, no other text.`;
           <h2 className="text-white text-lg font-semibold">Content Ideas</h2>
           <p className="text-zinc-500 text-sm">
             {generated
-              ? `20 ideas based on your top ${topPosts.length} posts`
-              : `AI-generated ideas based on your top ${topPosts.length} performing posts`}
+              ? `10 ideas tailored to your top posts and audience`
+              : `AI ideas based on your top posts and audience demographics`}
           </p>
         </div>
         <button
@@ -815,7 +858,7 @@ Return ONLY the JSON array, no other text.`;
           ) : generated ? (
             "Regenerate"
           ) : (
-            "Generate 20 Ideas"
+            "Generate 10 Ideas"
           )}
         </button>
       </div>
@@ -907,7 +950,7 @@ Return ONLY the JSON array, no other text.`;
       {/* Empty state */}
       {!loading && !generated && (
         <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-          <p className="text-zinc-600 text-sm">Hit Generate to get 20 content ideas<br />tailored to what already works for your account.</p>
+          <p className="text-zinc-600 text-sm">Hit Generate to get 10 specific content ideas<br />tailored to your posts, audience, and demographics.</p>
         </div>
       )}
     </div>
@@ -1394,8 +1437,8 @@ function Dashboard() {
           <AudienceTab token={token} igUserId={profile.id} />
         )}
 
-        {activeTab === "ideas" && (
-          <IdeasTab username={activeUsername!} media={media} />
+        {activeTab === "ideas" && profile && (
+          <IdeasTab username={activeUsername!} media={media} token={token!} igUserId={profile.id} />
         )}
 
       </div>
