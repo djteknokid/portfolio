@@ -777,27 +777,28 @@ AUDIENCE DEMOGRAPHICS (last 30 days):
       audienceContext = "";
     }
 
-    const prompt = `You are a specialist Instagram content strategist for @${username}, a VJ and electronic music artist account. Analyze their actual post data and audience to generate 10 hyper-specific content ideas.
+    const prompt = `You are a specialist Instagram content strategist for @${username}, a VJ and electronic music artist account.
 
-TOP PERFORMING POSTS (by reach/views):
-${JSON.stringify(postSummary, null, 2)}
+YOUR JOB: Generate 5 content ideas that explore COMPLETELY DIFFERENT territory from what this account has already posted. Not behind-the-scenes versions of existing content. Not the same themes with a different angle. Genuinely new directions.
+
+WHAT THEY ALREADY POST (do NOT suggest variations of these):
+${postSummary.map(p => `- ${p.caption}`).filter(c => c !== "- (no caption)").slice(0, 10).join("\n")}
 ${audienceContext}
 
-IMPORTANT RULES FOR SPECIFICITY:
-- Do NOT use generic placeholders like "a nostalgic TV show" — name the ACTUAL show (e.g. "Dragon Ball Z", "Evangelion", "Cowboy Bebop")
-- Do NOT say "a classic track" — name the ACTUAL artist and track based on what fits this account's style
-- Do NOT say "a visual style" — name the ACTUAL aesthetic (e.g. "Y2K glitch art", "VHS Lo-fi", "80s synthwave neon")
-- Reference the actual captions and themes from their top posts to infer what their content is about
-- Tailor every idea to the specific countries and demographics in their audience
-- Every idea must feel like it was written specifically for THIS account, not a template
+RULES:
+- Each idea must be a topic or format this account has NOT explored yet
+- Name specific references — real artists, real shows, real events, real places — based on what fits a VJ/electronic music audience in their top countries
+- No "behind the scenes", no "day in the life", no variations of their existing content
+- Think: what does their audience care about OUTSIDE of what this account currently covers?
+- Make each of the 5 ideas feel like it opens a completely new content category for this account
 
-For each idea respond with a JSON array of exactly 10 objects:
-- number: 1-10
-- title: The SPECIFIC content idea with real names/references (not generic — e.g. "VJ set to Daft Punk's One More Time" not "Classic Electronic Track Mix")
-- description: Why this specific idea will work for THIS account based on their actual data (2-3 sentences, cite real numbers from their posts)
-- execution: 4-5 concrete steps to create this exact post
+Return a JSON array of exactly 5 objects:
+- number: 1-5
+- title: Specific idea title with real names (e.g. "Why Aphex Twin's Windowlicker Video Changed VJing Forever" not "Classic Music Video Analysis")
+- description: Why this new direction will resonate with their specific audience — cite their demographic data
+- execution: 4 concrete steps to make this exact post
 - format: One of: Reel, Carousel, Photo, Story
-- hook: The exact opening line or visual that grabs attention in 2 seconds
+- hook: The exact first line or visual that grabs attention in 2 seconds
 
 Return ONLY the JSON array, no other text.`;
 
@@ -841,8 +842,8 @@ Return ONLY the JSON array, no other text.`;
           <h2 className="text-white text-lg font-semibold">Content Ideas</h2>
           <p className="text-zinc-500 text-sm">
             {generated
-              ? `10 ideas tailored to your top posts and audience`
-              : `AI ideas based on your top posts and audience demographics`}
+              ? `5 new directions for your account`
+              : `5 ideas in completely new territory for your account`}
           </p>
         </div>
         <button
@@ -858,7 +859,7 @@ Return ONLY the JSON array, no other text.`;
           ) : generated ? (
             "Regenerate"
           ) : (
-            "Generate 10 Ideas"
+            "Generate 5 Ideas"
           )}
         </button>
       </div>
@@ -950,7 +951,7 @@ Return ONLY the JSON array, no other text.`;
       {/* Empty state */}
       {!loading && !generated && (
         <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-          <p className="text-zinc-600 text-sm">Hit Generate to get 10 specific content ideas<br />tailored to your posts, audience, and demographics.</p>
+          <p className="text-zinc-600 text-sm">Hit Generate to get 5 ideas in completely new territory<br />based on your audience demographics.</p>
         </div>
       )}
     </div>
