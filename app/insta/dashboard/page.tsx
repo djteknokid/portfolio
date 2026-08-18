@@ -777,28 +777,25 @@ AUDIENCE DEMOGRAPHICS (last 30 days):
       audienceContext = "";
     }
 
-    const prompt = `You are a specialist Instagram content strategist for @${username}, a VJ and electronic music artist account.
+    const prompt = `You are an Instagram content strategist. Analyze this account's actual post captions and performance data to understand what this account is about, then generate 5 content ideas in completely new territory.
 
-YOUR JOB: Generate 5 content ideas that explore COMPLETELY DIFFERENT territory from what this account has already posted. Not behind-the-scenes versions of existing content. Not the same themes with a different angle. Genuinely new directions.
-
-WHAT THEY ALREADY POST (do NOT suggest variations of these):
-${postSummary.map(p => `- ${p.caption}`).filter(c => c !== "- (no caption)").slice(0, 10).join("\n")}
+ACTUAL POST CAPTIONS AND PERFORMANCE (top posts by reach):
+${postSummary.map(p => `- [reach:${p.reach} views:${p.views} likes:${p.likes} shares:${p.shares}] ${p.caption}`).join("\n")}
 ${audienceContext}
 
-RULES:
-- Each idea must be a topic or format this account has NOT explored yet
-- Name specific references — real artists, real shows, real events, real places — based on what fits a VJ/electronic music audience in their top countries
-- No "behind the scenes", no "day in the life", no variations of their existing content
-- Think: what does their audience care about OUTSIDE of what this account currently covers?
-- Make each of the 5 ideas feel like it opens a completely new content category for this account
+STEP 1 — Understand the account: Read the captions carefully. What topics, themes, eras, and cultural references does this account consistently cover? What language do they post in? What is the emotional tone?
+
+STEP 2 — Identify gaps: What adjacent topics would resonate with this exact audience but haven't been covered yet? Think about what their followers are nostalgic about BEYOND what's already been posted.
+
+STEP 3 — Generate 5 ideas in new territory: Each idea must be a specific topic this account has NOT posted about yet, but would deeply resonate with the same audience. Use real names — specific movies, shows, songs, people, events, years. Match the language and cultural context of the existing posts.
 
 Return a JSON array of exactly 5 objects:
 - number: 1-5
-- title: Specific idea title with real names (e.g. "Why Aphex Twin's Windowlicker Video Changed VJing Forever" not "Classic Music Video Analysis")
-- description: Why this new direction will resonate with their specific audience — cite their demographic data
-- execution: 4 concrete steps to make this exact post
+- title: Specific post idea with real names/references matching the account's language and cultural context
+- description: Why this specific topic will resonate with this audience — reference patterns from their actual top posts
+- execution: 4 concrete steps to create this exact post in the same style as their existing content
 - format: One of: Reel, Carousel, Photo, Story
-- hook: The exact first line or visual that grabs attention in 2 seconds
+- hook: The exact opening line that matches the tone and language of their existing posts
 
 Return ONLY the JSON array, no other text.`;
 
