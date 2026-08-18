@@ -43,7 +43,7 @@ Be concise and specific. Reference actual numbers from their data. When they ask
   }
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: noHistory ? "gpt-4o" : "gpt-4o-mini",
     messages,
     max_tokens: noHistory ? 4000 : 500,
   });

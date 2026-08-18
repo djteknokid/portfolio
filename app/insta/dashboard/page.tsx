@@ -777,25 +777,32 @@ AUDIENCE DEMOGRAPHICS (last 30 days):
       audienceContext = "";
     }
 
-    const prompt = `You are an Instagram content strategist. Analyze this account's actual post captions and performance data to understand what this account is about, then generate 5 content ideas in completely new territory.
+    const prompt = `You are an Instagram content strategist analyzing a Korean nostalgia account.
 
 ACTUAL POST CAPTIONS AND PERFORMANCE (top posts by reach):
-${postSummary.map(p => `- [reach:${p.reach} views:${p.views} likes:${p.likes} shares:${p.shares}] ${p.caption}`).join("\n")}
+${postSummary.map(p => `- [reach:${p.reach} likes:${p.likes} shares:${p.shares}] ${p.caption}`).join("\n")}
 ${audienceContext}
 
-STEP 1 — Understand the account: Read the captions carefully. What topics, themes, eras, and cultural references does this account consistently cover? What language do they post in? What is the emotional tone?
+VERIFIED REAL KOREAN NOSTALGIC REFERENCES YOU CAN USE (pick only from this list — do not invent titles):
 
-STEP 2 — Identify gaps: What adjacent topics would resonate with this exact audience but haven't been covered yet? Think about what their followers are nostalgic about BEYOND what's already been posted.
+TV Shows/드라마: 모래시계, 아스팔트 사나이, 전원일기, 수사반장, 베스트극장, 사랑이 뭐길래, 마지막 승부, 첫사랑, 파일럿, 남자 셋 여자 셋, 청춘의 덫, 목욕탕집 남자들, 여명의 눈동자
+Kids/Animation: 달려라 하니, 아기공룡 둘리, 영심이, 꼬비꼬비, 날아라 슈퍼보드, 떠돌이 까치, 검정고무신, 요술공주 밍키, 신비한 별의 쌍둥이 공주, 머털도사, 독수리 오형제
+Movies: 결혼 이야기(1992), 미스터 맘마(1992), 투캅스(1993), 구미호(1994), 101번째 프로포즈(1993), 은행나무 침대(1996), 편지(1997), 접속(1997), 비트(1997)
+Music/가요: 서태지와 아이들, 듀스, 015B, 김건모, 신승훈, 이승환, 김광석, 변진섭, 박미경, 룰라, 클론, 젝스키스, H.O.T, S.E.S
+Games/문화: 오락실 보글보글, 1942, 탑블레이드, 포켓몬빵 띠부씰, 달고나, 문방구 뽑기, 하이마트, 삐삐(무선호출기)
+Foreign shows popular in Korea at the time: 맥가이버, 에어울프, 전격Z작전, 슈퍼맨, 소머즈, 600만불의 사나이, X파일, ER, 비버리힐스 90210
 
-STEP 3 — Generate 5 ideas in new territory: Each idea must be a specific topic this account has NOT posted about yet, but would deeply resonate with the same audience. Use real names — specific movies, shows, songs, people, events, years. Match the language and cultural context of the existing posts.
+TASK: Based on the captions above (which already cover some of these), identify 5 specific references from the list above that this account has NOT yet posted about, and generate one content idea per reference.
+
+Each idea must match the posting style and emotional tone of the existing captions — nostalgic, first-person, specific memories.
 
 Return a JSON array of exactly 5 objects:
 - number: 1-5
-- title: Specific post idea with real names/references matching the account's language and cultural context
-- description: Why this specific topic will resonate with this audience — reference patterns from their actual top posts
-- execution: 4 concrete steps to create this exact post in the same style as their existing content
+- title: The specific show/movie/song name from the verified list above
+- description: Why this specific reference will resonate — what memory or emotion it triggers for the audience
+- execution: 4 concrete steps to create this post in the same style as their existing content
 - format: One of: Reel, Carousel, Photo, Story
-- hook: The exact opening line that matches the tone and language of their existing posts
+- hook: Opening line in Korean, matching the nostalgic first-person tone of their existing captions
 
 Return ONLY the JSON array, no other text.`;
 
