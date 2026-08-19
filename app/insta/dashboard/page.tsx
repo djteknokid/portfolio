@@ -1446,7 +1446,6 @@ function Dashboard() {
       </div>
 
       </div>
-      </div>
 
       {/* Chat side panel */}
       {chatOpen && activeUsername && profile && (
