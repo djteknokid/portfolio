@@ -1308,7 +1308,7 @@ function Dashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-zinc-800 -mb-4">
+        <div className="flex gap-1 border-b border-zinc-800">
           <button
             onClick={() => setActiveTab("stats")}
             className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === "stats" ? "text-white border-white" : "text-zinc-500 border-transparent hover:text-zinc-300"}`}
