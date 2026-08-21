@@ -292,20 +292,9 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
     setLoading(true);
     setError(null);
 
-    // Debug: log all media types and comment counts
-    console.log("[comments] media types:", media.map(p => `${p.media_type}(${p.comments_count})`));
-
-    // Check token permissions first
-    fetch(`https://graph.instagram.com/v21.0/me?fields=id,username&access_token=${token}`)
-      .then(r => r.json())
-      .then(d => console.log("[comments] token check:", JSON.stringify(d)));
-
-    // Include all post types
     const postsWithComments = media
       .filter((p) => p.comments_count > 0)
       .slice(0, 5);
-
-    console.log("[comments] posts with comments:", postsWithComments.map(p => `${p.id} type=${p.media_type} count=${p.comments_count}`));
 
     if (postsWithComments.length === 0) {
       setError("No posts with comments found.");
@@ -320,9 +309,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
         `&limit=50` +
         `&access_token=${token}`;
       const json = await fetch(url).then(r => r.json());
-      console.log(`[comments] post ${postId} page 1:`, JSON.stringify(json).slice(0, 300));
       if (json.error || !json.data) return [];
-      // Stop immediately if first page is empty — no infinite pagination
       if (json.data.length === 0) return [];
       return json.data;
     }
@@ -1159,7 +1146,7 @@ function Dashboard() {
                 `https://graph.instagram.com/v21.0/${post.id}/insights?metric=${metrics}&access_token=${token}`
               );
               const insightData = await insightRes.json();
-              if (!insightRes.ok) { console.error(`[insights error] ${post.id}:`, JSON.stringify(insightData)); return post; }
+              if (!insightRes.ok) { return post; }
               const map: Record<string, number> = {};
               for (const item of (insightData.data || [])) {
                 map[item.name] = typeof item.value === "number" ? item.value : (item.values?.[0]?.value ?? 0);
