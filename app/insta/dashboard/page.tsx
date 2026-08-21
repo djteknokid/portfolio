@@ -372,13 +372,13 @@ function CommentsTab({ token, media, profile }: { token: string; media: MediaIte
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: `You are replying on behalf of @${profile.username} to a comment on their Instagram post.
+          message: `Reply to this Instagram comment as @${profile.username}.
 
-Creator bio: "${profile.biography || "No bio"}"
-Post caption: "${comment.postCaption || "No caption"}"
-Comment by @${comment.username || comment.from?.username || "someone"}: "${comment.text}"
+Bio: "${profile.biography || ""}"
+Post: "${comment.postCaption?.slice(0, 100) || ""}"
+Comment: "${comment.text}"
 
-Write ONE short, natural reply (1-2 sentences max). Match the tone of the caption. Be warm and genuine. No hashtags. No emojis unless the caption uses them. Return only the reply text, nothing else.`,
+Write a reply. Max 8 words. Sound like a real person, not AI. Match the vibe of the post. No hashtags. No "Great comment!" or generic praise. Just reply naturally. Return only the reply, nothing else.`,
           username: profile.username,
           stats: {},
           noHistory: true,
