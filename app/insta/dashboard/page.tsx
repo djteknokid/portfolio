@@ -278,13 +278,14 @@ function FollowerGraph({ token }: { token: string }) {
   );
 }
 
-function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
+function CommentsTab({ token, media, profile }: { token: string; media: MediaItem[]; profile: Profile }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<string | null>(null);
   const [sent, setSent] = useState<Set<string>>(new Set());
+  const [suggesting, setSuggesting] = useState<string | null>(null);
 
   useEffect(() => {
     if (!media.length) return;
@@ -351,10 +352,38 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
       if (res.ok) {
         setSent((prev) => new Set(prev).add(commentId));
         setReplyText((prev) => ({ ...prev, [commentId]: "" }));
-        setReplyingTo(null);
       }
     } finally {
       setSending(null);
+    }
+  }
+
+  async function suggestReply(comment: Comment) {
+    setSuggesting(comment.id);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `You are replying on behalf of @${profile.username} to a comment on their Instagram post.
+
+Creator bio: "${profile.biography || "No bio"}"
+Post caption: "${comment.postCaption || "No caption"}"
+Comment by @${comment.username}: "${comment.text}"
+
+Write ONE short, natural reply (1-2 sentences max). Match the tone of the caption. Be warm and genuine. No hashtags. No emojis unless the caption uses them. Return only the reply text, nothing else.`,
+          username: profile.username,
+          stats: {},
+          noHistory: true,
+        }),
+      });
+      const data = await res.json();
+      const suggestion = data.reply?.trim() || "";
+      if (suggestion) {
+        setReplyText((prev) => ({ ...prev, [comment.id]: suggestion }));
+      }
+    } finally {
+      setSuggesting(null);
     }
   }
 
@@ -437,6 +466,15 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
                   onKeyDown={(e) => { if (e.key === "Enter") sendReply(comment.id); }}
                   className="flex-1 bg-zinc-800 text-white text-sm rounded-full px-4 py-1.5 outline-none placeholder-zinc-600 focus:ring-1 focus:ring-zinc-600"
                 />
+                <button
+                  onClick={() => suggestReply(comment)}
+                  disabled={suggesting === comment.id}
+                  className="text-xs font-medium text-zinc-400 bg-zinc-800 hover:bg-zinc-700 hover:text-white disabled:opacity-40 px-3 py-1.5 rounded-full transition-colors whitespace-nowrap flex items-center gap-1.5"
+                >
+                  {suggesting === comment.id ? (
+                    <><span className="w-2.5 h-2.5 border border-zinc-500 border-t-white rounded-full animate-spin" />AI</>
+                  ) : "✦ AI"}
+                </button>
                 <button
                   onClick={() => sendReply(comment.id)}
                   disabled={!replyText[comment.id]?.trim() || sending === comment.id}
@@ -1406,8 +1444,8 @@ function Dashboard() {
           </div>
         )}
 
-        {activeTab === "comments" && token && (
-          <CommentsTab token={token} media={media} />
+        {activeTab === "comments" && token && profile && (
+          <CommentsTab token={token} media={media} profile={profile} />
         )}
 
         {activeTab === "audience" && token && profile && (
