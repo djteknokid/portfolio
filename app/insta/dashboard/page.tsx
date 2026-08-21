@@ -282,7 +282,6 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<string | null>(null);
   const [sent, setSent] = useState<Set<string>>(new Set());
@@ -428,35 +427,24 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
                 <p className="text-emerald-500 text-xs mt-2">Reply sent</p>
               )}
 
-              {/* Reply input — always visible */}
-              {replyingTo === comment.id ? (
-                <div className="mt-2 flex items-center gap-2">
-                  <input
-                    autoFocus
-                    type="text"
-                    placeholder="Write a reply..."
-                    value={replyText[comment.id] || ""}
-                    onChange={(e) => setReplyText((prev) => ({ ...prev, [comment.id]: e.target.value }))}
-                    onKeyDown={(e) => { if (e.key === "Enter") sendReply(comment.id); if (e.key === "Escape") setReplyingTo(null); }}
-                    className="flex-1 bg-zinc-800 text-white text-sm rounded-full px-4 py-1.5 outline-none placeholder-zinc-600 focus:ring-1 focus:ring-zinc-600"
-                  />
-                  <button
-                    onClick={() => sendReply(comment.id)}
-                    disabled={!replyText[comment.id]?.trim() || sending === comment.id}
-                    className="text-xs font-medium text-white bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 px-3 py-1.5 rounded-full transition-colors"
-                  >
-                    {sending === comment.id ? "..." : "Send"}
-                  </button>
-                  <button onClick={() => setReplyingTo(null)} className="text-zinc-500 hover:text-zinc-300 text-xs transition-colors">Cancel</button>
-                </div>
-              ) : (
+              {/* Reply input — always expanded */}
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Reply..."
+                  value={replyText[comment.id] || ""}
+                  onChange={(e) => setReplyText((prev) => ({ ...prev, [comment.id]: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === "Enter") sendReply(comment.id); }}
+                  className="flex-1 bg-zinc-800 text-white text-sm rounded-full px-4 py-1.5 outline-none placeholder-zinc-600 focus:ring-1 focus:ring-zinc-600"
+                />
                 <button
-                  onClick={() => setReplyingTo(comment.id)}
-                  className="mt-1.5 text-zinc-500 hover:text-zinc-300 text-xs transition-colors"
+                  onClick={() => sendReply(comment.id)}
+                  disabled={!replyText[comment.id]?.trim() || sending === comment.id}
+                  className="text-xs font-medium text-white bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 px-3 py-1.5 rounded-full transition-colors"
                 >
-                  Reply
+                  {sending === comment.id ? "..." : "Send"}
                 </button>
-              )}
+              </div>
             </div>
           </div>
         </div>
