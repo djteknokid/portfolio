@@ -393,7 +393,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
             ) : (
               <div className="w-7 h-7 rounded-lg bg-zinc-800 flex-shrink-0" />
             )}
-            <p className="text-zinc-600 text-xs truncate max-w-sm group-hover:text-zinc-400 transition-colors">
+            <p className="text-zinc-400 text-xs truncate max-w-sm group-hover:text-zinc-200 transition-colors">
               {comment.postCaption || "No caption"}
             </p>
           </a>
@@ -401,16 +401,16 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
           {/* Comment */}
           <div className="flex items-start gap-3">
             <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-zinc-500 text-xs">{comment.username?.[0]?.toUpperCase() ?? "?"}</span>
+              <span className="text-zinc-300 text-xs">{comment.username?.[0]?.toUpperCase() ?? "?"}</span>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2">
                 <span className="text-white text-sm font-medium">@{comment.username}</span>
-                <span className="text-zinc-600 text-xs">{timeAgo(comment.timestamp)}</span>
+                <span className="text-zinc-500 text-xs">{timeAgo(comment.timestamp)}</span>
               </div>
-              <p className="text-zinc-300 text-sm mt-0.5 leading-snug">{comment.text}</p>
+              <p className="text-white text-sm mt-0.5 leading-snug">{comment.text}</p>
 
-              {/* Existing replies */}
+              {/* Existing replies — always expanded */}
               {comment.replies?.data && comment.replies.data.length > 0 && (
                 <div className="mt-2 space-y-1.5 pl-3 border-l border-zinc-800">
                   {comment.replies.data.map((reply) => (
@@ -428,7 +428,7 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
                 <p className="text-emerald-500 text-xs mt-2">Reply sent</p>
               )}
 
-              {/* Reply input */}
+              {/* Reply input — always visible */}
               {replyingTo === comment.id ? (
                 <div className="mt-2 flex items-center gap-2">
                   <input
@@ -445,14 +445,14 @@ function CommentsTab({ token, media }: { token: string; media: MediaItem[] }) {
                     disabled={!replyText[comment.id]?.trim() || sending === comment.id}
                     className="text-xs font-medium text-white bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 px-3 py-1.5 rounded-full transition-colors"
                   >
-                    {sending === comment.id ? "..." : "Reply"}
+                    {sending === comment.id ? "..." : "Send"}
                   </button>
-                  <button onClick={() => setReplyingTo(null)} className="text-zinc-600 hover:text-zinc-400 text-xs transition-colors">Cancel</button>
+                  <button onClick={() => setReplyingTo(null)} className="text-zinc-500 hover:text-zinc-300 text-xs transition-colors">Cancel</button>
                 </div>
               ) : (
                 <button
                   onClick={() => setReplyingTo(comment.id)}
-                  className="mt-1.5 text-zinc-600 hover:text-zinc-400 text-xs transition-colors"
+                  className="mt-1.5 text-zinc-500 hover:text-zinc-300 text-xs transition-colors"
                 >
                   Reply
                 </button>
