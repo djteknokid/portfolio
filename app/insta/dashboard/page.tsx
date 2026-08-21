@@ -56,6 +56,7 @@ interface Comment {
   id: string;
   text: string;
   username: string;
+  from?: { id: string; username: string };
   timestamp: string;
   like_count: number;
   replies?: { data: CommentReply[] };
@@ -305,7 +306,7 @@ function CommentsTab({ token, media, profile }: { token: string; media: MediaIte
     async function fetchComments(postId: string): Promise<Comment[]> {
       const url =
         `https://graph.instagram.com/v21.0/${postId}/comments` +
-        `?fields=id,text,username,timestamp,replies{id,text,username,timestamp}` +
+        `?fields=id,text,username,from,timestamp,replies{id,text,username,from,timestamp}` +
         `&limit=50` +
         `&access_token=${token}`;
       const json = await fetch(url).then(r => r.json());
@@ -369,7 +370,7 @@ function CommentsTab({ token, media, profile }: { token: string; media: MediaIte
 
 Creator bio: "${profile.biography || "No bio"}"
 Post caption: "${comment.postCaption || "No caption"}"
-Comment by @${comment.username}: "${comment.text}"
+Comment by @${comment.username || comment.from?.username || "someone"}: "${comment.text}"
 
 Write ONE short, natural reply (1-2 sentences max). Match the tone of the caption. Be warm and genuine. No hashtags. No emojis unless the caption uses them. Return only the reply text, nothing else.`,
           username: profile.username,
@@ -429,11 +430,11 @@ Write ONE short, natural reply (1-2 sentences max). Match the tone of the captio
           {/* Comment */}
           <div className="flex items-start gap-3">
             <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-zinc-300 text-xs">{comment.username?.[0]?.toUpperCase() ?? "?"}</span>
+              <span className="text-zinc-300 text-xs">{(comment.username || comment.from?.username || "?")?.[0]?.toUpperCase()}</span>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2">
-                <span className="text-white text-sm font-medium">@{comment.username}</span>
+                <span className="text-white text-sm font-medium">@{comment.username || comment.from?.username || "unknown"}</span>
                 <span className="text-zinc-500 text-xs">{timeAgo(comment.timestamp)}</span>
               </div>
               <p className="text-white text-sm mt-0.5 leading-snug">{comment.text}</p>
