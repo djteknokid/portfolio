@@ -329,7 +329,13 @@ function CommentsTab({ token, media, profile }: { token: string; media: MediaIte
       })
     ).then((results) => {
       const flat: Comment[] = results.flat();
-      flat.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      flat.sort((a, b) => {
+        const aIsOwner = (a.username || a.from?.username) === profile.username;
+        const bIsOwner = (b.username || b.from?.username) === profile.username;
+        if (aIsOwner && !bIsOwner) return 1;
+        if (!aIsOwner && bIsOwner) return -1;
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      });
       setComments(flat);
       if (flat.length === 0 && postsWithComments.length > 0) {
         setError(`No comments returned by Instagram API. This can happen if comments are disabled on your posts, or if the token needs to be refreshed. Try disconnecting and reconnecting your account.`);
