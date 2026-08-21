@@ -378,14 +378,14 @@ Bio: "${profile.biography || ""}"
 Post: "${comment.postCaption?.slice(0, 100) || ""}"
 Comment: "${comment.text}"
 
-Write a reply. Max 8 words. Sound like a real person, not AI. Match the vibe of the post. No hashtags. No "Great comment!" or generic praise. Just reply naturally. Return only the reply, nothing else.`,
+Write a reply. Max 8 words. Sound like a real person, not AI. Match the vibe of the post. No hashtags. No "Great comment!" or generic praise. No quotation marks. Just the reply text, nothing else.`,
           username: profile.username,
           stats: {},
           noHistory: true,
         }),
       });
       const data = await res.json();
-      const suggestion = data.reply?.trim() || "";
+      const suggestion = data.reply?.trim().replace(/^["']|["']$/g, "") || "";
       if (suggestion) {
         setReplyText((prev) => ({ ...prev, [comment.id]: suggestion }));
       }
