@@ -982,6 +982,14 @@ Return ONLY the JSON array, no other text.`;
 
 // ─── SimulateTab ──────────────────────────────────────────────────────────────
 
+interface PersonaReview {
+  name: string;
+  role: string;
+  score: number;
+  verdict: string;
+  critique: string;
+}
+
 interface SimulationResult {
   reach: string;
   likes: string;
@@ -991,6 +999,7 @@ interface SimulationResult {
   verdict: string;
   reasoning: string;
   tips: string[];
+  personas: PersonaReview[];
 }
 
 function SimulateTab({ username, media, token, igUserId, profile }: {
@@ -1003,7 +1012,18 @@ function SimulateTab({ username, media, token, igUserId, profile }: {
   const [input, setInput] = useState("");
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  async function callAI(message: string): Promise<string> {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, username, stats: {}, noHistory: true }),
+    });
+    const data = await res.json();
+    return data.reply || "";
+  }
 
   async function simulate() {
     if (!input.trim()) return;
@@ -1011,10 +1031,8 @@ function SimulateTab({ username, media, token, igUserId, profile }: {
     setError(null);
     setResult(null);
 
-    // Build stats summary from real data
     const reels = media.filter(p => p.media_type === "VIDEO" || p.media_type === "REELS");
     const images = media.filter(p => p.media_type === "IMAGE" || p.media_type === "CAROUSEL_ALBUM");
-
     const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
 
     const reelStats = {
@@ -1044,74 +1062,148 @@ function SimulateTab({ username, media, token, igUserId, profile }: {
         saves: p.saved,
       }));
 
-    // Fetch audience
+    const bottom5 = [...media]
+      .filter(p => (p.reach ?? 0) > 0)
+      .sort((a, b) => (a.reach ?? 0) - (b.reach ?? 0))
+      .slice(0, 5)
+      .map(p => ({
+        caption: p.caption?.slice(0, 80),
+        type: p.media_type,
+        reach: p.reach,
+        likes: p.like_count,
+      }));
+
     let audienceSummary = "";
+    let audienceDetail = "";
     try {
-      const [gRes, cRes] = await Promise.all([
+      const [gRes, cRes, aRes] = await Promise.all([
         fetch(`https://graph.instagram.com/v21.0/${igUserId}/insights?metric=follower_demographics&breakdown=gender&period=lifetime&timeframe=last_30_days&metric_type=total_value&access_token=${token}`).then(r => r.json()),
         fetch(`https://graph.instagram.com/v21.0/${igUserId}/insights?metric=follower_demographics&breakdown=country&period=lifetime&timeframe=last_30_days&metric_type=total_value&access_token=${token}`).then(r => r.json()),
+        fetch(`https://graph.instagram.com/v21.0/${igUserId}/insights?metric=follower_demographics&breakdown=age&period=lifetime&timeframe=last_30_days&metric_type=total_value&access_token=${token}`).then(r => r.json()),
       ]);
       const gBreakdown = gRes?.data?.[0]?.total_value?.breakdowns?.[0]?.results || [];
       const cBreakdown = cRes?.data?.[0]?.total_value?.breakdowns?.[0]?.results || [];
-      const topCountries = cBreakdown.sort((a: {value:number}, b: {value:number}) => b.value - a.value).slice(0, 3).map((c: {dimension_values: string[]; value: number}) => `${c.dimension_values[0]}`).join(", ");
+      const aBreakdown = aRes?.data?.[0]?.total_value?.breakdowns?.[0]?.results || [];
+      const topCountries = [...cBreakdown].sort((a: {value:number}, b: {value:number}) => b.value - a.value).slice(0, 5).map((c: {dimension_values: string[]; value: number}) => `${c.dimension_values[0]} (${c.value})`).join(", ");
       const genderStr = gBreakdown.map((g: {dimension_values: string[]; value: number}) => `${g.dimension_values[0]}: ${g.value}`).join(", ");
-      audienceSummary = `Gender: ${genderStr}. Top countries: ${topCountries}.`;
+      const ageStr = [...aBreakdown].sort((a: {value:number}, b: {value:number}) => b.value - a.value).slice(0, 4).map((a: {dimension_values: string[]; value: number}) => `${a.dimension_values[0]}: ${a.value}`).join(", ");
+      audienceSummary = `Gender: ${genderStr}. Ages: ${ageStr}. Top countries: ${topCountries}.`;
+      audienceDetail = `Top countries: ${topCountries}. Age groups: ${ageStr}. Gender: ${genderStr}.`;
     } catch { /* skip */ }
 
-    const prompt = `You are an Instagram performance analyst. Predict how a post will perform based on this account's real historical data.
-
-ACCOUNT: @${username}
-FOLLOWERS: ${profile.followers_count.toLocaleString()}
+    const context = `
+ACCOUNT: @${username} | ${profile.followers_count.toLocaleString()} followers
 BIO: "${profile.biography || ""}"
-
-HISTORICAL AVERAGES (Reels):
-- Avg reach: ${reelStats.avgReach.toLocaleString()}
-- Avg views: ${reelStats.avgViews.toLocaleString()}
-- Avg likes: ${reelStats.avgLikes.toLocaleString()}
-- Avg comments: ${reelStats.avgComments.toLocaleString()}
-- Avg shares: ${reelStats.avgShares.toLocaleString()}
-- Avg saves: ${reelStats.avgSaves.toLocaleString()}
-
-HISTORICAL AVERAGES (Images/Carousels):
-- Avg reach: ${imageStats.avgReach.toLocaleString()}
-- Avg likes: ${imageStats.avgLikes.toLocaleString()}
-- Avg comments: ${imageStats.avgComments.toLocaleString()}
-
-TOP 5 PERFORMING POSTS:
-${top5.map(p => `- [${p.type}] reach:${p.reach} likes:${p.likes} shares:${p.shares} saves:${p.saves} — "${p.caption}"`).join("\n")}
-
 AUDIENCE: ${audienceSummary}
 
-PROPOSED CONTENT: "${input}"
+REEL AVERAGES: reach ${reelStats.avgReach.toLocaleString()}, views ${reelStats.avgViews.toLocaleString()}, likes ${reelStats.avgLikes.toLocaleString()}, comments ${reelStats.avgComments.toLocaleString()}, shares ${reelStats.avgShares.toLocaleString()}, saves ${reelStats.avgSaves.toLocaleString()}
+IMAGE AVERAGES: reach ${imageStats.avgReach.toLocaleString()}, likes ${imageStats.avgLikes.toLocaleString()}, comments ${imageStats.avgComments.toLocaleString()}
 
-Based on all of the above, predict performance. Be specific and realistic — use the actual numbers above as your baseline. Don't be optimistic or pessimistic without reason.
+TOP 5 POSTS (highest reach):
+${top5.map(p => `- [${p.type}] reach:${p.reach} likes:${p.likes} shares:${p.shares} saves:${p.saves} — "${p.caption}"`).join("\n")}
 
-Return a JSON object with exactly these fields:
-- reach: predicted reach range (e.g. "12,000–18,000")
+BOTTOM 5 POSTS (lowest reach):
+${bottom5.map(p => `- [${p.type}] reach:${p.reach} likes:${p.likes} — "${p.caption}"`).join("\n")}
+
+PROPOSED POST: "${input}"`;
+
+    try {
+      // Run 3 personas in parallel
+      setLoadingStep("Consulting experts...");
+      const [skepticRaw, strategistRaw, audienceRaw] = await Promise.all([
+        callAI(`You are The Skeptic — a blunt Instagram analyst whose job is to find reasons a post will underperform.
+
+${context}
+
+Look at the bottom 5 posts. Find patterns in what flopped. Then assess the proposed post ruthlessly.
+
+Return a JSON object:
+- score: integer 1-10 (1=will flop, 10=will crush)
+- verdict: one short sentence — your overall call
+- critique: 2-3 sentences of specific reasons this might underperform, referencing actual flop patterns from the data
+
+Return ONLY the JSON, no other text.`),
+
+        callAI(`You are The Strategist — an Instagram growth expert who evaluates content strategy.
+
+${context}
+
+Assess the proposed post against what drives shares and saves in this niche. Consider: is this share-worthy? Does it create an emotional reaction? Is the concept differentiated from existing posts?
+
+Return a JSON object:
+- score: integer 1-10
+- verdict: one short sentence — your strategic call
+- critique: 2-3 sentences on the strategic strengths and weaknesses of this concept
+
+Return ONLY the JSON, no other text.`),
+
+        callAI(`You are The Audience Proxy — you reason as a real follower of this account based on their demographics.
+
+${context}
+AUDIENCE DETAIL: ${audienceDetail}
+
+Put yourself in the shoes of this account's typical follower. Would you stop scrolling for this? Would you share it? Would you comment?
+
+Return a JSON object:
+- score: integer 1-10
+- verdict: one short sentence — as the audience, your gut reaction
+- critique: 2-3 sentences of honest audience perspective — what resonates, what doesn't
+
+Return ONLY the JSON, no other text.`),
+      ]);
+
+      // Parse personas
+      const parsePersona = (raw: string, name: string, role: string): PersonaReview => {
+        try {
+          const match = raw.match(/\{[\s\S]*\}/);
+          const parsed = JSON.parse(match![0]);
+          return { name, role, score: parsed.score, verdict: parsed.verdict, critique: parsed.critique };
+        } catch {
+          return { name, role, score: 5, verdict: "Could not parse response", critique: raw.slice(0, 200) };
+        }
+      };
+
+      const personas: PersonaReview[] = [
+        parsePersona(skepticRaw, "The Skeptic", "Finds reasons it will flop"),
+        parsePersona(strategistRaw, "The Strategist", "Evaluates content strategy"),
+        parsePersona(audienceRaw, "The Audience", "Speaks as your followers"),
+      ];
+
+      // Synthesis pass
+      setLoadingStep("Synthesizing final verdict...");
+      const synthesisRaw = await callAI(`You are synthesizing a final performance prediction after three expert reviews.
+
+${context}
+
+EXPERT REVIEWS:
+- The Skeptic (score ${personas[0].score}/10): "${personas[0].verdict}" — ${personas[0].critique}
+- The Strategist (score ${personas[1].score}/10): "${personas[1].verdict}" — ${personas[1].critique}
+- The Audience (score ${personas[2].score}/10): "${personas[2].verdict}" — ${personas[2].critique}
+
+Now produce the final prediction. Anchor your numbers to the lowest credible estimate — be realistic, not optimistic. If the skeptic found real flop patterns, weight them heavily.
+
+Return a JSON object:
+- reach: predicted reach range as a string (e.g. "8,000–14,000") — use real historical averages as baseline
 - likes: predicted likes range
 - comments: predicted comments range
 - shares: predicted shares range
 - saves: predicted saves range
-- verdict: one of "Below average", "Average", "Above average", "Viral potential"
-- reasoning: 2-3 sentences explaining WHY based on patterns in their top posts
-- tips: array of exactly 3 short strings — specific things to do to maximize performance
+- verdict: one of exactly: "Below average", "Average", "Above average", "Viral potential"
+- reasoning: 2-3 sentences synthesizing all three expert views into a final call
+- tips: array of exactly 3 short, specific action items to maximize performance
 
-Return ONLY the JSON object, no other text.`;
+Return ONLY the JSON object, no other text.`);
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: prompt, username, stats: {}, noHistory: true }),
-      });
-      const data = await res.json();
-      const match = data.reply?.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("Invalid response");
-      setResult(JSON.parse(match[0]));
+      const synthMatch = synthesisRaw.match(/\{[\s\S]*\}/);
+      if (!synthMatch) throw new Error("Invalid synthesis response");
+      const synth = JSON.parse(synthMatch[0]);
+
+      setResult({ ...synth, personas });
     } catch {
-      setError("Failed to simulate. Please try again.");
+      setError("Simulation failed. Please try again.");
     } finally {
       setLoading(false);
+      setLoadingStep("");
     }
   }
 
@@ -1122,20 +1214,21 @@ Return ONLY the JSON object, no other text.`;
     "Viral potential": "text-purple-400",
   };
 
+  const scoreColor = (s: number) => s >= 7 ? "text-emerald-400" : s >= 4 ? "text-amber-400" : "text-red-400";
+
   return (
     <div className="space-y-6 py-6">
       <div className="space-y-1">
         <h2 className="text-white text-lg font-semibold">Simulate a Post</h2>
-        <p className="text-zinc-500 text-sm">Describe what you want to post and get a performance prediction based on your real stats and audience.</p>
+        <p className="text-zinc-500 text-sm">3 expert perspectives stress-test your idea before you post it.</p>
       </div>
 
-      {/* Input */}
       <div className="space-y-3">
         <textarea
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) simulate(); }}
-          placeholder="e.g. A Reel about 90s Korean dramas with nostalgic music clips, targeting my Korean audience..."
+          placeholder="e.g. A Reel about 90s Korean dramas with nostalgic music clips..."
           rows={4}
           className="w-full bg-zinc-900 text-white text-sm rounded-2xl px-4 py-3 outline-none placeholder-zinc-600 focus:ring-1 focus:ring-zinc-700 resize-none leading-relaxed"
         />
@@ -1145,36 +1238,58 @@ Return ONLY the JSON object, no other text.`;
           className="flex items-center gap-2 bg-white text-black text-sm font-medium px-5 py-2.5 rounded-full hover:bg-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
-            <><span className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />Simulating...</>
+            <><span className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />{loadingStep || "Simulating..."}</>
           ) : "Simulate"}
         </button>
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
 
-      {/* Loading skeleton */}
       {loading && (
         <div className="space-y-3 animate-pulse">
+          <div className="grid grid-cols-3 gap-3">
+            {["The Skeptic", "The Strategist", "The Audience"].map(name => (
+              <div key={name} className="bg-zinc-900 rounded-2xl p-4 space-y-2">
+                <div className="h-3 bg-zinc-800 rounded w-24" />
+                <div className="h-8 bg-zinc-800 rounded w-12" />
+                <div className="h-3 bg-zinc-800 rounded w-full" />
+                <div className="h-3 bg-zinc-800 rounded w-3/4" />
+              </div>
+            ))}
+          </div>
           <div className="bg-zinc-900 rounded-2xl p-5 space-y-3">
             <div className="h-5 bg-zinc-800 rounded w-32" />
             <div className="grid grid-cols-5 gap-3">
               {[...Array(5)].map((_, i) => <div key={i} className="h-14 bg-zinc-800 rounded-xl" />)}
             </div>
           </div>
-          <div className="bg-zinc-900 rounded-2xl p-5 space-y-2">
-            <div className="h-4 bg-zinc-800 rounded w-full" />
-            <div className="h-4 bg-zinc-800 rounded w-3/4" />
-          </div>
         </div>
       )}
 
-      {/* Result */}
       {result && !loading && (
         <div className="space-y-3">
-          {/* Verdict */}
+          {/* Expert reviews */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {result.personas.map(p => (
+              <div key={p.name} className="bg-zinc-900 rounded-2xl p-4 space-y-3">
+                <div>
+                  <p className="text-white text-sm font-medium">{p.name}</p>
+                  <p className="text-zinc-600 text-xs">{p.role}</p>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-3xl font-bold ${scoreColor(p.score)}`}>{p.score}</span>
+                  <span className="text-zinc-600 text-sm">/10</span>
+                </div>
+                <p className="text-zinc-400 text-xs font-medium">{p.verdict}</p>
+                <p className="text-zinc-500 text-xs leading-relaxed">{p.critique}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Final verdict */}
           <div className="bg-zinc-900 rounded-2xl p-5 flex items-center justify-between">
             <div>
-              <p className="text-zinc-500 text-xs mb-1">Predicted performance</p>
+              <p className="text-zinc-500 text-xs mb-1">Final verdict</p>
               <p className={`text-xl font-semibold ${verdictColor[result.verdict] || "text-white"}`}>{result.verdict}</p>
             </div>
             <div className={`text-3xl font-bold opacity-20 ${verdictColor[result.verdict] || ""}`}>
@@ -1182,7 +1297,7 @@ Return ONLY the JSON object, no other text.`;
             </div>
           </div>
 
-          {/* Metrics grid */}
+          {/* Metrics */}
           <div className="bg-zinc-900 rounded-2xl p-5 space-y-3">
             <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Predicted Metrics</p>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -1203,7 +1318,7 @@ Return ONLY the JSON object, no other text.`;
 
           {/* Reasoning */}
           <div className="bg-zinc-900 rounded-2xl p-5 space-y-2">
-            <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Why</p>
+            <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Synthesis</p>
             <p className="text-zinc-300 text-sm leading-relaxed">{result.reasoning}</p>
           </div>
 
@@ -1219,6 +1334,12 @@ Return ONLY the JSON object, no other text.`;
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {!loading && !result && (
+        <div className="flex flex-col items-center justify-center py-24 gap-2 text-center">
+          <p className="text-zinc-600 text-sm">Describe your post idea above and hit Simulate.<br />3 expert perspectives will stress-test it.</p>
         </div>
       )}
     </div>
