@@ -75,7 +75,7 @@ interface StoredAccount {
 
 type SortKey = "timestamp" | "like_count" | "comments_count" | "reach" | "views" | "shares" | "reposts" | "saved" | "follows";
 type SortDir = "asc" | "desc";
-type Tab = "stats" | "comments" | "audience" | "ideas";
+type Tab = "stats" | "comments" | "audience" | "ideas" | "simulate";
 
 const ACCOUNTS_KEY = "ig_accounts";
 const ACTIVE_KEY = "ig_active_username";
@@ -980,6 +980,251 @@ Return ONLY the JSON array, no other text.`;
   );
 }
 
+// ─── SimulateTab ──────────────────────────────────────────────────────────────
+
+interface SimulationResult {
+  reach: string;
+  likes: string;
+  comments: string;
+  shares: string;
+  saves: string;
+  verdict: string;
+  reasoning: string;
+  tips: string[];
+}
+
+function SimulateTab({ username, media, token, igUserId, profile }: {
+  username: string;
+  media: MediaItem[];
+  token: string;
+  igUserId: string;
+  profile: Profile;
+}) {
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState<SimulationResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function simulate() {
+    if (!input.trim()) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    // Build stats summary from real data
+    const reels = media.filter(p => p.media_type === "VIDEO" || p.media_type === "REELS");
+    const images = media.filter(p => p.media_type === "IMAGE" || p.media_type === "CAROUSEL_ALBUM");
+
+    const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+
+    const reelStats = {
+      avgReach: avg(reels.map(p => p.reach ?? 0).filter(Boolean)),
+      avgViews: avg(reels.map(p => p.views ?? 0).filter(Boolean)),
+      avgLikes: avg(reels.map(p => p.like_count)),
+      avgComments: avg(reels.map(p => p.comments_count)),
+      avgShares: avg(reels.map(p => p.shares ?? 0).filter(Boolean)),
+      avgSaves: avg(reels.map(p => p.saved ?? 0).filter(Boolean)),
+    };
+
+    const imageStats = {
+      avgReach: avg(images.map(p => p.reach ?? 0).filter(Boolean)),
+      avgLikes: avg(images.map(p => p.like_count)),
+      avgComments: avg(images.map(p => p.comments_count)),
+    };
+
+    const top5 = [...media]
+      .sort((a, b) => (b.reach ?? 0) - (a.reach ?? 0))
+      .slice(0, 5)
+      .map(p => ({
+        caption: p.caption?.slice(0, 80),
+        type: p.media_type,
+        reach: p.reach,
+        likes: p.like_count,
+        shares: p.shares,
+        saves: p.saved,
+      }));
+
+    // Fetch audience
+    let audienceSummary = "";
+    try {
+      const [gRes, cRes] = await Promise.all([
+        fetch(`https://graph.instagram.com/v21.0/${igUserId}/insights?metric=follower_demographics&breakdown=gender&period=lifetime&timeframe=last_30_days&metric_type=total_value&access_token=${token}`).then(r => r.json()),
+        fetch(`https://graph.instagram.com/v21.0/${igUserId}/insights?metric=follower_demographics&breakdown=country&period=lifetime&timeframe=last_30_days&metric_type=total_value&access_token=${token}`).then(r => r.json()),
+      ]);
+      const gBreakdown = gRes?.data?.[0]?.total_value?.breakdowns?.[0]?.results || [];
+      const cBreakdown = cRes?.data?.[0]?.total_value?.breakdowns?.[0]?.results || [];
+      const topCountries = cBreakdown.sort((a: {value:number}, b: {value:number}) => b.value - a.value).slice(0, 3).map((c: {dimension_values: string[]; value: number}) => `${c.dimension_values[0]}`).join(", ");
+      const genderStr = gBreakdown.map((g: {dimension_values: string[]; value: number}) => `${g.dimension_values[0]}: ${g.value}`).join(", ");
+      audienceSummary = `Gender: ${genderStr}. Top countries: ${topCountries}.`;
+    } catch { /* skip */ }
+
+    const prompt = `You are an Instagram performance analyst. Predict how a post will perform based on this account's real historical data.
+
+ACCOUNT: @${username}
+FOLLOWERS: ${profile.followers_count.toLocaleString()}
+BIO: "${profile.biography || ""}"
+
+HISTORICAL AVERAGES (Reels):
+- Avg reach: ${reelStats.avgReach.toLocaleString()}
+- Avg views: ${reelStats.avgViews.toLocaleString()}
+- Avg likes: ${reelStats.avgLikes.toLocaleString()}
+- Avg comments: ${reelStats.avgComments.toLocaleString()}
+- Avg shares: ${reelStats.avgShares.toLocaleString()}
+- Avg saves: ${reelStats.avgSaves.toLocaleString()}
+
+HISTORICAL AVERAGES (Images/Carousels):
+- Avg reach: ${imageStats.avgReach.toLocaleString()}
+- Avg likes: ${imageStats.avgLikes.toLocaleString()}
+- Avg comments: ${imageStats.avgComments.toLocaleString()}
+
+TOP 5 PERFORMING POSTS:
+${top5.map(p => `- [${p.type}] reach:${p.reach} likes:${p.likes} shares:${p.shares} saves:${p.saves} — "${p.caption}"`).join("\n")}
+
+AUDIENCE: ${audienceSummary}
+
+PROPOSED CONTENT: "${input}"
+
+Based on all of the above, predict performance. Be specific and realistic — use the actual numbers above as your baseline. Don't be optimistic or pessimistic without reason.
+
+Return a JSON object with exactly these fields:
+- reach: predicted reach range (e.g. "12,000–18,000")
+- likes: predicted likes range
+- comments: predicted comments range
+- shares: predicted shares range
+- saves: predicted saves range
+- verdict: one of "Below average", "Average", "Above average", "Viral potential"
+- reasoning: 2-3 sentences explaining WHY based on patterns in their top posts
+- tips: array of exactly 3 short strings — specific things to do to maximize performance
+
+Return ONLY the JSON object, no other text.`;
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: prompt, username, stats: {}, noHistory: true }),
+      });
+      const data = await res.json();
+      const match = data.reply?.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("Invalid response");
+      setResult(JSON.parse(match[0]));
+    } catch {
+      setError("Failed to simulate. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const verdictColor: Record<string, string> = {
+    "Below average": "text-red-400",
+    "Average": "text-zinc-400",
+    "Above average": "text-emerald-400",
+    "Viral potential": "text-purple-400",
+  };
+
+  return (
+    <div className="space-y-6 py-6">
+      <div className="space-y-1">
+        <h2 className="text-white text-lg font-semibold">Simulate a Post</h2>
+        <p className="text-zinc-500 text-sm">Describe what you want to post and get a performance prediction based on your real stats and audience.</p>
+      </div>
+
+      {/* Input */}
+      <div className="space-y-3">
+        <textarea
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) simulate(); }}
+          placeholder="e.g. A Reel about 90s Korean dramas with nostalgic music clips, targeting my Korean audience..."
+          rows={4}
+          className="w-full bg-zinc-900 text-white text-sm rounded-2xl px-4 py-3 outline-none placeholder-zinc-600 focus:ring-1 focus:ring-zinc-700 resize-none leading-relaxed"
+        />
+        <button
+          onClick={simulate}
+          disabled={!input.trim() || loading}
+          className="flex items-center gap-2 bg-white text-black text-sm font-medium px-5 py-2.5 rounded-full hover:bg-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <><span className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />Simulating...</>
+          ) : "Simulate"}
+        </button>
+      </div>
+
+      {error && <p className="text-red-400 text-sm">{error}</p>}
+
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="space-y-3 animate-pulse">
+          <div className="bg-zinc-900 rounded-2xl p-5 space-y-3">
+            <div className="h-5 bg-zinc-800 rounded w-32" />
+            <div className="grid grid-cols-5 gap-3">
+              {[...Array(5)].map((_, i) => <div key={i} className="h-14 bg-zinc-800 rounded-xl" />)}
+            </div>
+          </div>
+          <div className="bg-zinc-900 rounded-2xl p-5 space-y-2">
+            <div className="h-4 bg-zinc-800 rounded w-full" />
+            <div className="h-4 bg-zinc-800 rounded w-3/4" />
+          </div>
+        </div>
+      )}
+
+      {/* Result */}
+      {result && !loading && (
+        <div className="space-y-3">
+          {/* Verdict */}
+          <div className="bg-zinc-900 rounded-2xl p-5 flex items-center justify-between">
+            <div>
+              <p className="text-zinc-500 text-xs mb-1">Predicted performance</p>
+              <p className={`text-xl font-semibold ${verdictColor[result.verdict] || "text-white"}`}>{result.verdict}</p>
+            </div>
+            <div className={`text-3xl font-bold opacity-20 ${verdictColor[result.verdict] || ""}`}>
+              {result.verdict === "Viral potential" ? "↑↑" : result.verdict === "Above average" ? "↑" : result.verdict === "Below average" ? "↓" : "→"}
+            </div>
+          </div>
+
+          {/* Metrics grid */}
+          <div className="bg-zinc-900 rounded-2xl p-5 space-y-3">
+            <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Predicted Metrics</p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              {[
+                { label: "Reach", value: result.reach },
+                { label: "Likes", value: result.likes },
+                { label: "Comments", value: result.comments },
+                { label: "Shares", value: result.shares },
+                { label: "Saves", value: result.saves },
+              ].map(m => (
+                <div key={m.label} className="bg-zinc-800 rounded-xl p-3 space-y-1">
+                  <p className="text-zinc-500 text-xs">{m.label}</p>
+                  <p className="text-white text-sm font-medium">{m.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Reasoning */}
+          <div className="bg-zinc-900 rounded-2xl p-5 space-y-2">
+            <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Why</p>
+            <p className="text-zinc-300 text-sm leading-relaxed">{result.reasoning}</p>
+          </div>
+
+          {/* Tips */}
+          <div className="bg-zinc-900 rounded-2xl p-5 space-y-3">
+            <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">To Maximize Performance</p>
+            <div className="space-y-2">
+              {result.tips.map((tip, i) => (
+                <div key={i} className="flex gap-3">
+                  <span className="text-zinc-600 text-xs font-mono mt-0.5 shrink-0">{i + 1}.</span>
+                  <p className="text-zinc-300 text-sm leading-relaxed">{tip}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── ChatBot ──────────────────────────────────────────────────────────────────
 
 interface ChatMessage { role: "user" | "assistant"; content: string; }
@@ -1358,6 +1603,12 @@ function Dashboard() {
           >
             Ideas
           </button>
+          <button
+            onClick={() => setActiveTab("simulate")}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === "simulate" ? "text-white border-white" : "text-zinc-500 border-transparent hover:text-zinc-300"}`}
+          >
+            Simulate
+          </button>
           <div className="flex-1" />
           <button
             onClick={() => setChatOpen(o => !o)}
@@ -1461,6 +1712,10 @@ function Dashboard() {
 
         {activeTab === "ideas" && profile && (
           <IdeasTab username={activeUsername!} media={media} token={token!} igUserId={profile.id} />
+        )}
+
+        {activeTab === "simulate" && profile && (
+          <SimulateTab username={activeUsername!} media={media} token={token!} igUserId={profile.id} profile={profile} />
         )}
 
       </div>
