@@ -15,20 +15,12 @@ type Entry = {
 
 const entries: Entry[] = [
   {
-    title: "Why most AI agents don't make money",
+    title: "I Went From UX to PM. Now I See Where the Conflict Begins.",
     date: "Sep 2026",
     tag: "Blog",
-    description: "The gap between demo and product is wider than most teams think.",
-    href: "#",
-    body: `Most AI agents are built to impress, not to earn. They get demoed in controlled settings, receive applause, and then quietly never make it into production.
-
-The reason isn't the technology. It's the missing link between what the agent can do and what a business actually needs to happen every day.
-
-I've been working on this gap at SAP — building agents that slot into real workflows, handle edge cases, and get measured against actual business outcomes. Not impressiveness. Revenue.
-
-The shift that makes it work: stop designing for the demo scenario. Design for the 10th use on a Tuesday afternoon, when the user is tired and the data is messy and they just need it to work.
-
-That's where agents either earn their place or get turned off.`,
+    description: "It comes down to 3 things — and #1 is that no one is clear about what UX owns vs. what Product owns.",
+    href: "/blog/ux-to-pm-conflict",
+    body: "",
   },
   {
     title: "From UX to PM: what I had to unlearn",
@@ -262,7 +254,13 @@ export default function Home() {
                 {filtered.map((e) => (
                   <button
                     key={e.title}
-                    onClick={() => setSelected(e)}
+                    onClick={() => {
+                      if (e.href && e.href !== "#") {
+                        window.location.href = e.href;
+                      } else {
+                        setSelected(e);
+                      }
+                    }}
                     className="group w-full text-left block py-6 hover:bg-[#1a2235]/[0.03] -mx-3 px-3 transition-colors cursor-pointer"
                   >
                     <div className="flex items-start justify-between gap-4">
