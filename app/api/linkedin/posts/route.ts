@@ -18,14 +18,15 @@ export async function GET(req: NextRequest) {
     {
       headers: {
         Authorization: `Bearer ${token}`,
-        "LinkedIn-Version": "202401",
+        "LinkedIn-Version": "202501",
         "X-Restli-Protocol-Version": "2.0.0",
       },
     }
   );
 
   if (!postsRes.ok) {
-    return NextResponse.json({ error: "Failed to fetch posts", posts: [] }, { status: postsRes.status });
+    const errText = await postsRes.text();
+    return NextResponse.json({ error: "Failed to fetch posts", detail: errText, posts: [] }, { status: postsRes.status });
   }
 
   const postsData = await postsRes.json();
