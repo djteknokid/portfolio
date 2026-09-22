@@ -804,6 +804,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [postsError, setPostsError] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [chatOpen, setChatOpen] = useState(false);
@@ -854,6 +855,7 @@ function Dashboard() {
     if (!token) return;
     setLoading(true);
     setError(null);
+    setPostsError(null);
 
     async function fetchData() {
       try {
@@ -862,10 +864,15 @@ function Dashboard() {
           fetch(`/api/linkedin/posts?token=${token}`),
         ]);
         if (!profileRes.ok) throw new Error("Failed to fetch profile");
-        if (!postsRes.ok) throw new Error("Failed to fetch posts");
         setProfile(await profileRes.json());
-        const postsData = await postsRes.json();
-        setPosts(postsData.posts || []);
+        if (postsRes.ok) {
+          const postsData = await postsRes.json();
+          setPosts(postsData.posts || []);
+        } else if (postsRes.status === 403) {
+          setPostsError("posts_permission");
+        } else {
+          setPostsError("posts_failed");
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Something went wrong");
       } finally {
@@ -1044,6 +1051,30 @@ function Dashboard() {
 
               <div className="space-y-4">
                 <h2 className="text-sm font-medium text-zinc-400">Post performance</h2>
+                {postsError === "posts_permission" ? (
+                  <div className="bg-zinc-900 rounded-2xl p-8 flex flex-col items-center text-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                      </svg>
+                    </div>
+                    <div className="space-y-1 max-w-sm">
+                      <p className="text-white text-sm font-medium">Posts require additional API access</p>
+                      <p className="text-zinc-500 text-xs leading-relaxed">
+                        LinkedIn restricts reading your own posts to apps approved for the Marketing Developer Platform.
+                        Your profile, connections, and AI features are fully available.
+                      </p>
+                    </div>
+                    <a
+                      href="https://www.linkedin.com/developers/apps"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-zinc-400 underline underline-offset-2 hover:text-white transition-colors"
+                    >
+                      Apply for Marketing Developer Platform access →
+                    </a>
+                  </div>
+                ) : (
                 <div className="bg-zinc-900 rounded-2xl overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
@@ -1079,6 +1110,7 @@ function Dashboard() {
                     </tbody>
                   </table>
                 </div>
+                )}
               </div>
             </div>
           )}
