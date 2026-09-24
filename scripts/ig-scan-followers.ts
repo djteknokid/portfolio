@@ -200,7 +200,7 @@ async function main() {
     // Load existing data (resume support)
     const existing = readExisting();
     const alreadyScanned = new Set(existing.map(f => f.username));
-    const toScan = followerUsernames.filter(u => !alreadyScanned.has(u)).slice(0, MAX_PROFILES);
+    const toScan = followerUsernames.filter((u: string) => !alreadyScanned.has(u)).slice(0, MAX_PROFILES);
 
     writeStatus({ running: true, total: followerUsernames.length, scanned: existing.length });
     console.log(`Will scan ${toScan.length} new profiles (${existing.length} already done)`);
@@ -208,7 +208,7 @@ async function main() {
     const results = [...existing];
 
     for (let i = 0; i < toScan.length; i++) {
-      const followerUsername = toScan[i];
+      const followerUsername = toScan[i] as string;
       writeStatus({ running: true, currentUsername: followerUsername, scanned: results.length });
       console.log(`[${i + 1}/${toScan.length}] Visiting @${followerUsername}...`);
 
@@ -255,7 +255,7 @@ async function main() {
 
         const follower: FollowerData = {
           username: followerUsername,
-          fullName: profileData.fullName,
+          fullName: profileData.fullName as string,
           bio: profileData.bio,
           followersCount: parseCount(profileData.followersRaw),
           followingCount: parseCount(profileData.followingRaw),
