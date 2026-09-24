@@ -20,9 +20,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { username, password } = await req.json();
-  if (!username || !password) {
-    return NextResponse.json({ error: "Missing username or password" }, { status: 400 });
+  const { username } = await req.json();
+  if (!username) {
+    return NextResponse.json({ error: "Missing username" }, { status: 400 });
   }
 
   // Check if already running
@@ -45,7 +45,6 @@ export async function POST(req: NextRequest) {
       env: {
         ...process.env,
         IG_USERNAME: username,
-        IG_PASSWORD: password,
         IG_MAX_PROFILES: "30",
       },
       cwd: process.cwd(),

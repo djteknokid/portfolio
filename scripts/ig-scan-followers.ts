@@ -101,43 +101,19 @@ async function main() {
 
   writeStatus({ running: true, scanned: 0, total: 0, currentUsername: "", startedAt: new Date().toISOString(), error: undefined });
 
-  // Use real installed Chrome — Instagram blocks Playwright's bundled Chromium
-  let browser;
-  try {
-    browser = await chromium.launch({
-      headless: false,
-      executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-      args: [
-        "--no-sandbox",
-        "--disable-blink-features=AutomationControlled",
-        "--disable-infobars",
-        "--start-maximized",
-      ],
-    });
-  } catch {
-    // Fall back to channel-based lookup
-    browser = await chromium.launch({
-      headless: false,
-      channel: "chrome",
-      args: ["--no-sandbox", "--disable-blink-features=AutomationControlled"],
-    });
-  }
+  // Use real Chrome with your existing profile — already logged into Instagram
+  const userDataDir = "/Users/I765211/Library/Application Support/Google/Chrome";
+  const browser = await chromium.launchPersistentContext(userDataDir, {
+    headless: false,
+    executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    args: [
+      "--no-sandbox",
+      "--disable-blink-features=AutomationControlled",
+      "--profile-directory=Default",
+    ],
+  });
 
-  // Load saved session if exists
-  let context;
-  if (fs.existsSync(SESSION_FILE)) {
-    try {
-      const cookies = JSON.parse(fs.readFileSync(SESSION_FILE, "utf-8"));
-      context = await browser.newContext({ storageState: cookies });
-      console.log("Loaded saved session.");
-    } catch {
-      context = await browser.newContext();
-    }
-  } else {
-    context = await browser.newContext();
-  }
-
-  const page = await context.newPage();
+  const page = await browser.newPage();
 
   // Remove automation hints
   await page.addInitScript(() => {
@@ -145,45 +121,13 @@ async function main() {
   });
 
   try {
-    // --- Login ---
-    await page.goto("https://www.instagram.com/accounts/login/", { waitUntil: "domcontentloaded" });
+    // --- Go straight to profile (already logged in via Chrome profile) ---
+    await page.goto(`https://www.instagram.com/${username}/`, { waitUntil: "domcontentloaded" });
     await randomDelay(3000, 5000);
 
-    // Check if already logged in
-    const isLoggedIn = await page.locator('svg[aria-label="Home"]').isVisible({ timeout: 3000 }).catch(() => false);
-
-    if (!isLoggedIn) {
-      console.log("Logging in...");
-      await page.locator('input[name="username"]').waitFor({ timeout: 15000 });
-      await page.fill('input[name="username"]', username);
-      await randomDelay(800, 1500);
-      await page.fill('input[name="password"]', password);
-      await randomDelay(800, 1200);
-      await page.click('button[type="submit"]');
-      await page.waitForURL(/instagram\.com\/(accounts\/onetap\/|$)/, { timeout: 30000 }).catch(() => {});
-      await randomDelay(3000, 5000);
-
-      // Save not now on "Save Login Info"
-      const saveNotNow = page.locator('button:has-text("Not Now"), a:has-text("Not Now")');
-      if (await saveNotNow.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await saveNotNow.click();
-        await randomDelay(1000, 2000);
-      }
-
-      // Save session cookies
-      await context.storageState({ path: SESSION_FILE });
-      console.log("Session saved.");
-    } else {
-      console.log("Already logged in via saved session.");
-    }
-
     // --- Navigate to followers list ---
-    await page.goto(`https://www.instagram.com/${username}/followers/`, { waitUntil: "networkidle" });
-    await randomDelay(2000, 4000);
-
-    // Open followers modal via profile link
-    await page.goto(`https://www.instagram.com/${username}/`, { waitUntil: "networkidle" });
-    await randomDelay(2000, 3000);
+    await page.goto(`https://www.instagram.com/${username}/`, { waitUntil: "domcontentloaded" });
+    await randomDelay(3000, 5000);
 
     const followersLink = page.locator('a[href*="/followers/"]').first();
     await followersLink.click();
@@ -191,7 +135,7 @@ async function main() {
 
     // Scroll to load followers in the modal
     const modal = page.locator('div[role="dialog"]');
-    await modal.waitFor({ timeout: 10000 });
+    await modal.waitFor({ timeout: 15000 });
 
     console.log("Loading followers list...");
     // Scroll the modal to load more followers
@@ -313,7 +257,6 @@ async function main() {
     writeStatus({ running: false, error: String(err) });
     console.error("Fatal error:", err);
   } finally {
-    await context.storageState({ path: SESSION_FILE }).catch(() => {});
     await browser.close();
   }
 }
