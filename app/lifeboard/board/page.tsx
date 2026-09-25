@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 type CardStatus = "todo" | "inprogress" | "done";
 type CardCategory = "health" | "work" | "relationships" | "finance" | "personal" | "learning" | "home";
@@ -317,10 +318,13 @@ export default function BoardPage() {
   const [memorySummary, setMemorySummary] = useState<string>("");
   const [showBoard, setShowBoard] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [calendarSyncing, setCalendarSyncing] = useState(false);
+  const [calendarStatus, setCalendarStatus] = useState<string | null>(null);
   const prevDoneCount = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { data: session } = useSession();
 
   const points = cards.filter(c => c.status === "done").reduce((sum, c) => sum + (c.points ?? 1), 0);
 
@@ -366,8 +370,13 @@ export default function BoardPage() {
       const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
       if (refreshed.cards) setCards(refreshed.cards);
 
-      const assistantReply = data.reply ?? (data.mode === "create"
-        ? `Added ${data.cards?.length ?? 0} card${(data.cards?.length ?? 0) !== 1 ? "s" : ""}.`
+      const assistantReply = data.reply ?? (data.mode === "create" && data.cards?.length
+        ? (() => {
+            const lines = data.cards.map((c: { title: string; description?: string; points?: number }) =>
+              `• ${c.title} (${c.points ?? 1} pt${(c.points ?? 1) !== 1 ? "s" : ""})${c.description ? ` — ${c.description}` : ""}`
+            );
+            return `Added ${data.cards.length} card${data.cards.length !== 1 ? "s" : ""}:\n\n${lines.join("\n")}\n\nAnything else you'd like to update?`;
+          })()
         : "Done.");
 
       setChatMessages(prev => [...prev, { role: "assistant", text: assistantReply }]);
@@ -450,7 +459,37 @@ export default function BoardPage() {
 
   function logout() {
     localStorage.removeItem("lifeboard_user_id");
+    signOut({ redirect: false });
     router.push("/lifeboard");
+  }
+
+  async function syncCalendar() {
+    if (!session || !userId) {
+      signIn("google");
+      return;
+    }
+    setCalendarSyncing(true);
+    setCalendarStatus(null);
+    try {
+      const res = await fetch("/api/lifeboard/calendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accessToken: (session as typeof session & { accessToken?: string }).accessToken,
+          user_id: userId,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setCalendarStatus("Error syncing. Try reconnecting.");
+      } else {
+        setCalendarStatus(`Imported ${data.imported} event${data.imported !== 1 ? "s" : ""}.`);
+        const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+        if (refreshed.cards) setCards(refreshed.cards);
+      }
+    } finally {
+      setCalendarSyncing(false);
+    }
   }
 
   if (!userId) return null;
@@ -552,25 +591,32 @@ export default function BoardPage() {
             </div>
 
             {/* Connect Google Calendar */}
-            <button style={{
+            <button onClick={syncCalendar} disabled={calendarSyncing} style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
               width: "100%", padding: "16px 20px",
-              background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+              background: "none", border: "none", cursor: calendarSyncing ? "default" : "pointer", fontFamily: "inherit",
               borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <div style={{
                   width: "32px", height: "32px", borderRadius: "8px",
-                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
+                  background: session ? "rgba(34,197,94,0.1)" : "rgba(255,255,255,0.05)",
+                  border: `1px solid ${session ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.08)"}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: "16px",
                 }}>📅</div>
                 <div style={{ textAlign: "left" }}>
-                  <p style={{ fontSize: "14px", fontWeight: 500, color: "#ffffff" }}>Connect Google Calendar</p>
-                  <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "1px" }}>Sync tasks as calendar events</p>
+                  <p style={{ fontSize: "14px", fontWeight: 500, color: "#ffffff" }}>
+                    {session ? "Sync Google Calendar" : "Connect Google Calendar"}
+                  </p>
+                  <p style={{ fontSize: "11px", color: session ? "rgba(34,197,94,0.7)" : "rgba(255,255,255,0.3)", marginTop: "1px" }}>
+                    {calendarStatus ?? (session ? `Connected as ${session.user?.email}` : "Import tasks from your calendar")}
+                  </p>
                 </div>
               </div>
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.15)" }}>›</span>
+              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.15)" }}>
+                {calendarSyncing ? "⟳" : "›"}
+              </span>
             </button>
 
             {/* Sign out */}
@@ -662,7 +708,9 @@ export default function BoardPage() {
               {msg.role === "assistant" && (
                 <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "4px", fontWeight: 600, letterSpacing: "0.08em" }}>LIFEBOARD</span>
               )}
-              {msg.text}
+              {msg.text.split("\n").map((line, i) => (
+                <span key={i} style={{ display: "block" }}>{line || " "}</span>
+              ))}
             </div>
           </div>
         ))}
