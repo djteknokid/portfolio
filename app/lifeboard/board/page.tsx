@@ -65,6 +65,7 @@ function EditModal({ card, onSave, onClose, onDelete }: {
       <div onClick={e => e.stopPropagation()} style={{
         background: "#141414", border: "1px solid rgba(255,255,255,0.12)",
         borderRadius: "16px", padding: "32px", width: "480px", maxWidth: "90vw",
+        maxHeight: "90vh", overflowY: "auto",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
           <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: CATEGORY_COLOR[category] }} />
@@ -75,11 +76,13 @@ function EditModal({ card, onSave, onClose, onDelete }: {
           borderBottom: "1px solid rgba(255,255,255,0.1)", outline: "none",
           fontSize: "20px", fontWeight: 700, color: "#ffffff",
           padding: "0 0 12px", marginBottom: "16px", fontFamily: "inherit",
+          boxSizing: "border-box",
         }} />
         <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{
           width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
           borderRadius: "8px", outline: "none", fontSize: "14px", color: "rgba(255,255,255,0.7)",
           padding: "12px", marginBottom: "20px", fontFamily: "inherit", lineHeight: 1.6, resize: "none",
+          boxSizing: "border-box",
         }} />
         <div style={{ marginBottom: "16px" }}>
           <p style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: "8px" }}>Status</p>
@@ -151,6 +154,156 @@ function EditModal({ card, onSave, onClose, onDelete }: {
   );
 }
 
+function BoardSheet({ cards, onEditCard, onDrop, onDragStart, onClose }: {
+  cards: Card[];
+  onEditCard: (card: Card) => void;
+  onDrop: (status: CardStatus) => void;
+  onDragStart: (id: string) => void;
+  onClose: () => void;
+}) {
+  const [activeCol, setActiveCol] = useState<CardStatus>("todo");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleClick() { setOpenMenuId(null); }
+    if (openMenuId) document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [openMenuId]);
+
+  const colCards = cards.filter(c => c.status === activeCol);
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 50,
+      display: "flex", flexDirection: "column",
+      background: "#0a0a0a",
+    }}>
+      {/* Sheet header */}
+      <div style={{
+        height: "52px", flexShrink: 0,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 16px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <span style={{ fontSize: "14px", fontWeight: 700 }}>Board</span>
+        <button onClick={onClose} style={{
+          background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: "8px", padding: "6px 14px",
+          fontSize: "12px", color: "rgba(255,255,255,0.6)", cursor: "pointer", fontFamily: "inherit",
+        }}>Done</button>
+      </div>
+
+      {/* Column tabs */}
+      <div style={{
+        display: "flex", borderBottom: "1px solid rgba(255,255,255,0.06)",
+        padding: "0 16px", gap: "0", flexShrink: 0,
+      }}>
+        {COLUMNS.map(col => {
+          const count = cards.filter(c => c.status === col.key).length;
+          const active = activeCol === col.key;
+          return (
+            <button key={col.key} onClick={() => setActiveCol(col.key)} style={{
+              flex: 1, padding: "12px 0", background: "none", border: "none",
+              borderBottom: `2px solid ${active ? "#ffffff" : "transparent"}`,
+              fontSize: "12px", fontWeight: active ? 700 : 400,
+              color: active ? "#ffffff" : "rgba(255,255,255,0.35)",
+              cursor: "pointer", fontFamily: "inherit",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+              transition: "color 0.15s",
+            }}>
+              <span>{col.label}</span>
+              {count > 0 && (
+                <span style={{
+                  fontSize: "10px", fontWeight: 700,
+                  background: active ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.06)",
+                  borderRadius: "10px", padding: "1px 6px",
+                  color: active ? "#ffffff" : "rgba(255,255,255,0.3)",
+                }}>{count}</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Cards */}
+      <div
+        onDragOver={e => e.preventDefault()}
+        onDrop={() => onDrop(activeCol)}
+        style={{ flex: 1, overflowY: "auto", padding: "16px" }}
+      >
+        {colCards.length === 0 ? (
+          <div style={{
+            padding: "48px 16px", textAlign: "center",
+            color: "rgba(255,255,255,0.15)", fontSize: "13px",
+          }}>Nothing here yet</div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {colCards.map(card => (
+              <div key={card.id} draggable
+                onDragStart={() => onDragStart(card.id)}
+                onClick={() => { if (openMenuId !== card.id) onEditCard(card); }}
+                style={{
+                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px", padding: "14px", cursor: "pointer", position: "relative",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                    <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: CATEGORY_COLOR[card.category] ?? "#888", flexShrink: 0 }} />
+                    <span style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: CATEGORY_COLOR[card.category] ?? "#888" }}>{card.category}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.2)" }}>⚡{card.points ?? 1}</span>
+                    <button
+                      onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === card.id ? null : card.id); }}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        color: "rgba(255,255,255,0.3)", fontSize: "16px", padding: "0 2px",
+                        lineHeight: 1, fontFamily: "inherit",
+                      }}
+                    >⋯</button>
+                    {openMenuId === card.id && (
+                      <div onClick={e => e.stopPropagation()} style={{
+                        position: "absolute", top: "36px", right: "12px",
+                        background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: "8px", overflow: "hidden", zIndex: 10,
+                        minWidth: "140px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                      }}>
+                        <button
+                          onClick={() => { onEditCard(card); setOpenMenuId(null); }}
+                          style={{
+                            display: "block", width: "100%", padding: "12px 14px",
+                            background: "none", border: "none", textAlign: "left",
+                            fontSize: "13px", color: "rgba(255,255,255,0.7)",
+                            cursor: "pointer", fontFamily: "inherit",
+                          }}
+                        >Edit</button>
+                        <button
+                          onClick={() => { setOpenMenuId(null); }}
+                          style={{
+                            display: "block", width: "100%", padding: "12px 14px",
+                            background: "none", border: "none", textAlign: "left",
+                            fontSize: "13px", color: "rgba(239,68,68,0.8)",
+                            cursor: "pointer", fontFamily: "inherit",
+                            borderTop: "1px solid rgba(255,255,255,0.06)",
+                          }}
+                        >Delete</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p style={{ fontSize: "14px", fontWeight: 600, color: "#ffffff", marginBottom: "4px", lineHeight: 1.35 }}>{card.title}</p>
+                {card.description && (
+                  <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>{card.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function BoardPage() {
   const [cards, setCards] = useState<Card[]>([]);
   const [input, setInput] = useState("");
@@ -162,17 +315,11 @@ export default function BoardPage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [history, setHistory] = useState<{ user: string; assistant: string }[]>([]);
   const [memorySummary, setMemorySummary] = useState<string>("");
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showBoard, setShowBoard] = useState(false);
   const prevDoneCount = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    function handleClickOutside() { setOpenMenuId(null); }
-    if (openMenuId) document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [openMenuId]);
 
   const points = cards.filter(c => c.status === "done").reduce((sum, c) => sum + (c.points ?? 1), 0);
 
@@ -197,7 +344,6 @@ export default function BoardPage() {
     prevDoneCount.current = points;
   }, [points]);
 
-  // Auto-scroll chat to bottom
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages, loading]);
@@ -228,7 +374,6 @@ export default function BoardPage() {
       const newHistory = [...history.slice(-199), { user: userText, assistant: assistantReply }];
       setHistory(newHistory);
 
-      // When history hits 20 turns, summarize oldest 15 and keep 5 recent
       if (newHistory.length >= 20) {
         const toSummarize = newHistory.slice(0, 15);
         const keep = newHistory.slice(15);
@@ -309,9 +454,12 @@ export default function BoardPage() {
 
   if (!userId) return null;
 
+  const todoCount = cards.filter(c => c.status === "todo").length;
+  const inProgressCount = cards.filter(c => c.status === "inprogress").length;
+
   return (
     <div style={{
-      height: "100vh", background: "#0a0a0a", color: "#ffffff",
+      height: "100dvh", background: "#0a0a0a", color: "#ffffff",
       fontFamily: "'Inter', system-ui, sans-serif",
       display: "flex", flexDirection: "column", overflow: "hidden",
     }}>
@@ -319,259 +467,197 @@ export default function BoardPage() {
         <EditModal card={editingCard} onSave={saveCard} onClose={() => setEditingCard(null)} onDelete={deleteCard} />
       )}
 
+      {showBoard && (
+        <BoardSheet
+          cards={cards}
+          onEditCard={setEditingCard}
+          onDrop={onDrop}
+          onDragStart={onDragStart}
+          onClose={() => setShowBoard(false)}
+        />
+      )}
+
       {/* Header */}
       <div style={{
-        height: "56px", flexShrink: 0,
+        height: "52px", flexShrink: 0,
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 24px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+        padding: "0 16px", borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}>
-        <h1 style={{ fontSize: "16px", fontWeight: 700, letterSpacing: "-0.3px" }}>Lifeboard</h1>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <h1 style={{ fontSize: "15px", fontWeight: 700, letterSpacing: "-0.3px" }}>Lifeboard</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* Points badge */}
           <div style={{
-            display: "flex", alignItems: "center", gap: "6px",
-            padding: "5px 12px",
+            display: "flex", alignItems: "center", gap: "5px",
+            padding: "4px 10px",
             background: scoreFlash ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.05)",
             border: `1px solid ${scoreFlash ? "rgba(34,197,94,0.4)" : "rgba(255,255,255,0.08)"}`,
             borderRadius: "20px", transition: "all 0.3s",
           }}>
-            <span style={{ fontSize: "12px" }}>⚡</span>
+            <span style={{ fontSize: "11px" }}>⚡</span>
             <span style={{ fontSize: "13px", fontWeight: 700, color: scoreFlash ? "#22c55e" : "#ffffff", transition: "color 0.3s" }}>{points}</span>
-            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>pts</span>
           </div>
-          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", fontFamily: "monospace" }}>{userId}</span>
+
+          {/* Board button */}
+          <button onClick={() => setShowBoard(true)} style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: "8px", padding: "5px 12px",
+            fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.7)",
+            cursor: "pointer", fontFamily: "inherit",
+          }}>
+            <span>Board</span>
+            {cards.length > 0 && (
+              <span style={{
+                fontSize: "10px", fontWeight: 700,
+                background: "rgba(255,255,255,0.1)", borderRadius: "8px",
+                padding: "1px 5px", color: "rgba(255,255,255,0.5)",
+              }}>{cards.length}</span>
+            )}
+          </button>
+
+          {/* User + logout */}
           <button onClick={logout} style={{
-            background: "none", border: "none", fontSize: "12px",
-            color: "rgba(255,255,255,0.25)", cursor: "pointer", fontFamily: "inherit",
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
-          onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.25)")}
-          >sign out</button>
+            background: "none", border: "none", fontSize: "11px",
+            color: "rgba(255,255,255,0.2)", cursor: "pointer", fontFamily: "monospace",
+          }}>{userId}</button>
         </div>
       </div>
 
-      {/* Body — chat left, board right */}
-      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-
-        {/* LEFT — Chat panel */}
+      {/* Card summary strip — only when cards exist */}
+      {cards.length > 0 && (
         <div style={{
-          width: "320px", flexShrink: 0,
-          borderRight: "1px solid rgba(255,255,255,0.06)",
-          display: "flex", flexDirection: "column",
+          flexShrink: 0, padding: "10px 16px",
+          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          display: "flex", gap: "8px", overflowX: "auto",
         }}>
-          {/* Messages */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: "12px" }}>
-            {chatMessages.length === 0 && (
-              <div style={{ padding: "24px 0", textAlign: "center" }}>
-                <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.25)", lineHeight: 1.6 }}>
-                  What&apos;s on your mind?<br />
-                  <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>Dump tasks, give commands,<br />or say &quot;I&apos;m done with X&quot;</span>
-                </p>
-              </div>
-            )}
-            {chatMessages.map((msg, i) => (
-              <div key={i} style={{
-                display: "flex",
-                justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-              }}>
-                <div style={{
-                  maxWidth: "85%",
-                  padding: "10px 14px",
-                  borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                  background: msg.role === "user" ? "#ffffff" : "rgba(255,255,255,0.07)",
-                  color: msg.role === "user" ? "#000000" : "rgba(255,255,255,0.85)",
-                  fontSize: "13px",
-                  lineHeight: 1.5,
-                  fontWeight: msg.role === "user" ? 500 : 400,
-                }}>
-                  {msg.role === "assistant" && (
-                    <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "4px", fontWeight: 600, letterSpacing: "0.08em" }}>LIFEBOARD</span>
-                  )}
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            {loading && (
-              <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                <div style={{
-                  padding: "10px 14px", borderRadius: "14px 14px 14px 4px",
-                  background: "rgba(255,255,255,0.07)",
-                }}>
-                  <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                    {[0,1,2].map(i => (
-                      <div key={i} style={{
-                        width: "5px", height: "5px", borderRadius: "50%",
-                        background: "rgba(255,255,255,0.3)",
-                        animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
-                      }} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={chatBottomRef} />
-          </div>
+          {todoCount > 0 && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: "5px",
+              padding: "4px 10px", borderRadius: "20px",
+              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)",
+              flexShrink: 0,
+            }}>
+              <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "rgba(255,255,255,0.2)" }} />
+              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>{todoCount} to do</span>
+            </div>
+          )}
+          {inProgressCount > 0 && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: "5px",
+              padding: "4px 10px", borderRadius: "20px",
+              background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)",
+              flexShrink: 0,
+            }}>
+              <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#f59e0b" }} />
+              <span style={{ fontSize: "11px", color: "rgba(245,158,11,0.8)" }}>{inProgressCount} in progress</span>
+            </div>
+          )}
+          {points > 0 && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: "5px",
+              padding: "4px 10px", borderRadius: "20px",
+              background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)",
+              flexShrink: 0,
+            }}>
+              <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#22c55e" }} />
+              <span style={{ fontSize: "11px", color: "rgba(34,197,94,0.8)"}}>{points} pts done</span>
+            </div>
+          )}
+        </div>
+      )}
 
-          {/* Input */}
-          <div style={{
-            padding: "12px",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
+      {/* Chat messages */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+        {chatMessages.length === 0 && (
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
+            <p style={{ fontSize: "22px", fontWeight: 700, color: "#ffffff", marginBottom: "8px", letterSpacing: "-0.5px" }}>What&apos;s on your mind?</p>
+            <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
+              Dump tasks, give commands,<br />or say &quot;I&apos;m done with X&quot;
+            </p>
+          </div>
+        )}
+        {chatMessages.map((msg, i) => (
+          <div key={i} style={{
+            display: "flex",
+            justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
           }}>
             <div style={{
-              display: "flex", alignItems: "flex-end", gap: "8px",
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "12px", padding: "10px 12px",
+              maxWidth: "82%",
+              padding: "10px 14px",
+              borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+              background: msg.role === "user" ? "#ffffff" : "rgba(255,255,255,0.07)",
+              color: msg.role === "user" ? "#000000" : "rgba(255,255,255,0.85)",
+              fontSize: "14px",
+              lineHeight: 1.5,
+              fontWeight: msg.role === "user" ? 500 : 400,
             }}>
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type anything…"
-                rows={1}
-                style={{
-                  flex: 1, background: "transparent", border: "none", outline: "none",
-                  fontSize: "13px", lineHeight: 1.5, color: "#ffffff", resize: "none",
-                  fontFamily: "inherit", maxHeight: "100px", overflowY: "auto",
-                }}
-                onInput={e => {
-                  const el = e.currentTarget;
-                  el.style.height = "auto";
-                  el.style.height = Math.min(el.scrollHeight, 100) + "px";
-                }}
-              />
-              <button onClick={handleSubmit} disabled={!input.trim() || loading} style={{
-                flexShrink: 0, width: "30px", height: "30px", borderRadius: "8px",
-                background: !input.trim() || loading ? "rgba(255,255,255,0.06)" : "#ffffff",
-                border: "none", cursor: !input.trim() || loading ? "default" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s",
-              }}>
-                <span style={{ color: "#000", fontWeight: 700, fontSize: "13px", lineHeight: 1 }}>↑</span>
-              </button>
+              {msg.role === "assistant" && (
+                <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "4px", fontWeight: 600, letterSpacing: "0.08em" }}>LIFEBOARD</span>
+              )}
+              {msg.text}
             </div>
-            <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.15)", marginTop: "6px", textAlign: "center" }}>Enter to send · Shift+Enter for new line</p>
           </div>
-        </div>
-
-        {/* RIGHT — Kanban board */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "24px 24px 48px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", alignItems: "start" }}>
-            {COLUMNS.map(col => {
-              const colCards = cards.filter(c => c.status === col.key);
-              return (
-                <div key={col.key}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={() => onDrop(col.key)}
-                  style={{
-                    background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
-                    borderRadius: "12px", padding: "16px", minHeight: "200px",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <div style={{
-                        width: "7px", height: "7px", borderRadius: "50%",
-                        background: col.key === "todo" ? "rgba(255,255,255,0.2)" : col.key === "inprogress" ? "#f59e0b" : "#22c55e",
-                      }} />
-                      <span style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)" }}>{col.label}</span>
-                    </div>
-                    <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.06)", borderRadius: "4px", padding: "2px 6px" }}>{colCards.length}</span>
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {colCards.map(card => (
-                      <div key={card.id} draggable
-                        onDragStart={() => onDragStart(card.id)}
-                        onClick={() => { if (openMenuId !== card.id) setEditingCard(card); }}
-                        style={{
-                          background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
-                          borderRadius: "10px", padding: "14px", cursor: "pointer",
-                          transition: "border-color 0.15s, background 0.15s",
-                          position: "relative",
-                        }}
-                        onMouseEnter={e => {
-                          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.18)";
-                          (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.07)";
-                        }}
-                        onMouseLeave={e => {
-                          (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)";
-                          (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.05)";
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-                          <div style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                            <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: CATEGORY_COLOR[card.category] ?? "#888", flexShrink: 0 }} />
-                            <span style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: CATEGORY_COLOR[card.category] ?? "#888" }}>{card.category}</span>
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <span style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.2)" }}>⚡{card.points ?? 1}</span>
-
-                            {/* Options button */}
-                            <button
-                              onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === card.id ? null : card.id); }}
-                              style={{
-                                background: "none", border: "none", cursor: "pointer",
-                                color: "rgba(255,255,255,0.3)", fontSize: "14px", padding: "0 2px",
-                                lineHeight: 1, fontFamily: "inherit",
-                              }}
-                              onMouseEnter={e => (e.currentTarget.style.color = "#ffffff")}
-                              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
-                            >⋯</button>
-
-                            {/* Dropdown menu */}
-                            {openMenuId === card.id && (
-                              <div
-                                onClick={e => e.stopPropagation()}
-                                style={{
-                                  position: "absolute", top: "36px", right: "12px",
-                                  background: "#1e1e1e", border: "1px solid rgba(255,255,255,0.12)",
-                                  borderRadius: "8px", overflow: "hidden", zIndex: 10,
-                                  minWidth: "140px",
-                                  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-                                }}
-                              >
-                                <button
-                                  onClick={() => { duplicateCard(card); setOpenMenuId(null); }}
-                                  style={{
-                                    display: "block", width: "100%", padding: "10px 14px",
-                                    background: "none", border: "none", textAlign: "left",
-                                    fontSize: "12px", color: "rgba(255,255,255,0.7)",
-                                    cursor: "pointer", fontFamily: "inherit",
-                                  }}
-                                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
-                                  onMouseLeave={e => (e.currentTarget.style.background = "none")}
-                                >Duplicate</button>
-                                <button
-                                  onClick={() => { deleteCard(card.id); setOpenMenuId(null); }}
-                                  style={{
-                                    display: "block", width: "100%", padding: "10px 14px",
-                                    background: "none", border: "none", textAlign: "left",
-                                    fontSize: "12px", color: "rgba(239,68,68,0.8)",
-                                    cursor: "pointer", fontFamily: "inherit",
-                                    borderTop: "1px solid rgba(255,255,255,0.06)",
-                                  }}
-                                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(239,68,68,0.08)")}
-                                  onMouseLeave={e => (e.currentTarget.style.background = "none")}
-                                >Delete</button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <p style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff", marginBottom: "4px", lineHeight: 1.35 }}>{card.title}</p>
-                        <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>{card.description}</p>
-                      </div>
-                    ))}
-                    {colCards.length === 0 && (
-                      <div style={{
-                        padding: "32px 16px", textAlign: "center",
-                        color: "rgba(255,255,255,0.1)", fontSize: "12px",
-                        borderRadius: "8px", border: "1px dashed rgba(255,255,255,0.05)",
-                      }}>Drop here</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+        ))}
+        {loading && (
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <div style={{
+              padding: "10px 14px", borderRadius: "18px 18px 18px 4px",
+              background: "rgba(255,255,255,0.07)",
+            }}>
+              <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{
+                    width: "5px", height: "5px", borderRadius: "50%",
+                    background: "rgba(255,255,255,0.3)",
+                    animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+                  }} />
+                ))}
+              </div>
+            </div>
           </div>
+        )}
+        <div ref={chatBottomRef} />
+      </div>
+
+      {/* Input bar */}
+      <div style={{
+        flexShrink: 0,
+        padding: "12px 16px",
+        paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
+        background: "#0a0a0a",
+      }}>
+        <div style={{
+          display: "flex", alignItems: "flex-end", gap: "8px",
+          background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: "16px", padding: "10px 12px",
+        }}>
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type anything…"
+            rows={1}
+            style={{
+              flex: 1, background: "transparent", border: "none", outline: "none",
+              fontSize: "15px", lineHeight: 1.5, color: "#ffffff", resize: "none",
+              fontFamily: "inherit", maxHeight: "120px", overflowY: "auto",
+            }}
+            onInput={e => {
+              const el = e.currentTarget;
+              el.style.height = "auto";
+              el.style.height = Math.min(el.scrollHeight, 120) + "px";
+            }}
+          />
+          <button onClick={handleSubmit} disabled={!input.trim() || loading} style={{
+            flexShrink: 0, width: "34px", height: "34px", borderRadius: "10px",
+            background: !input.trim() || loading ? "rgba(255,255,255,0.06)" : "#ffffff",
+            border: "none", cursor: !input.trim() || loading ? "default" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s",
+          }}>
+            <span style={{ color: "#000", fontWeight: 700, fontSize: "14px", lineHeight: 1 }}>↑</span>
+          </button>
         </div>
       </div>
 
@@ -580,6 +666,7 @@ export default function BoardPage() {
           0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
           40% { transform: scale(1); opacity: 1; }
         }
+        * { -webkit-tap-highlight-color: transparent; }
       `}</style>
     </div>
   );
