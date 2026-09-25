@@ -3,15 +3,19 @@ import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
+}
 
 export async function GET(req: NextRequest) {
   const user_id = req.nextUrl.searchParams.get("user_id");
   if (!user_id) return NextResponse.json({ cards: [] });
 
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from("lifeboard_cards")
     .select("*")
@@ -25,6 +29,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const { text, existingCards, history, memorySummary, user_id } = await req.json();
   if (!text || !user_id) return NextResponse.json({ error: "Missing input" }, { status: 400 });
+
+  const supabase = getSupabase();
 
   // Build conversation history messages
   const historyMessages: OpenAI.Chat.ChatCompletionMessageParam[] = (history ?? []).flatMap(
@@ -179,6 +185,7 @@ Rules:
 export async function PATCH(req: NextRequest) {
   const { id, status, title, description, category, points } = await req.json();
 
+  const supabase = getSupabase();
   const updates: Record<string, string | number> = {};
   if (status !== undefined) updates.status = status;
   if (title !== undefined) updates.title = title;
@@ -193,6 +200,7 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
+  const supabase = getSupabase();
   const { error } = await supabase.from("lifeboard_cards").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
