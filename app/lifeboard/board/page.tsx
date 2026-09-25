@@ -339,7 +339,33 @@ export default function BoardPage() {
     fetch(`/api/lifeboard?user_id=${userId}`)
       .then(r => r.json())
       .then(d => { if (d.cards) setCards(d.cards); });
+
+    const saved = localStorage.getItem(`lifeboard_chat_${userId}`);
+    if (saved) {
+      try { setChatMessages(JSON.parse(saved)); } catch {}
+    }
+    const savedHistory = localStorage.getItem(`lifeboard_history_${userId}`);
+    if (savedHistory) {
+      try { setHistory(JSON.parse(savedHistory)); } catch {}
+    }
+    const savedSummary = localStorage.getItem(`lifeboard_summary_${userId}`);
+    if (savedSummary) setMemorySummary(savedSummary);
   }, [userId]);
+
+  useEffect(() => {
+    if (!userId || chatMessages.length === 0) return;
+    localStorage.setItem(`lifeboard_chat_${userId}`, JSON.stringify(chatMessages));
+  }, [chatMessages, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    localStorage.setItem(`lifeboard_history_${userId}`, JSON.stringify(history));
+  }, [history, userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    localStorage.setItem(`lifeboard_summary_${userId}`, memorySummary);
+  }, [memorySummary, userId]);
 
   useEffect(() => {
     if (points > prevDoneCount.current) {
@@ -359,6 +385,93 @@ export default function BoardPage() {
     setInput("");
     setChatMessages(prev => [...prev, { role: "user", text: userText }]);
     setLoading(true);
+
+    // Check if user is confirming/skipping calendar candidates
+    const calCandidatesRaw = sessionStorage.getItem("cal_candidates");
+    if (calCandidatesRaw) {
+      const candidates: { id: string; title: string; label: string; description: string; status: string; category: string; points: number; user_id: string }[] = JSON.parse(calCandidatesRaw);
+      const lower = userText.toLowerCase();
+      const isAddAll = /add all|yes|all of them|sure|sounds good|ok|yep|go ahead/.test(lower);
+      const skipAll = /skip all|none|no thanks|don't add|forget it/.test(lower);
+
+      if (isAddAll || skipAll) {
+        sessionStorage.removeItem("cal_candidates");
+        if (skipAll) {
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: "No problem — skipped all of them." }]);
+          return;
+        }
+        // Add all
+        await fetch("/api/lifeboard/duplicate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(candidates.map(c => ({ ...c, label: undefined }))),
+        });
+        const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+        if (refreshed.cards) setCards(refreshed.cards);
+        setLoading(false);
+        setChatMessages(prev => [...prev, { role: "assistant", text: `Added ${candidates.length} calendar event${candidates.length !== 1 ? "s" : ""} to your board.` }]);
+        return;
+      }
+
+      // Parse "skip X, Y" or "add X" — fall through to AI for natural language
+      const skipMatches = lower.match(/skip\s+(.+)/);
+      if (skipMatches) {
+        const skipText = skipMatches[1];
+        const toAdd = candidates.filter(c => !skipText.includes(c.title.toLowerCase().slice(0, 6)));
+        sessionStorage.removeItem("cal_candidates");
+        if (toAdd.length) {
+          await fetch("/api/lifeboard/duplicate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(toAdd.map(c => ({ ...c, label: undefined }))),
+          });
+          const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+          if (refreshed.cards) setCards(refreshed.cards);
+        }
+        setLoading(false);
+        setChatMessages(prev => [...prev, { role: "assistant", text: toAdd.length ? `Added ${toAdd.length} event${toAdd.length !== 1 ? "s" : ""} to your board.` : "Skipped all — nothing added." }]);
+        return;
+      }
+    }
+
+    // Detect "check my calendar" intent
+    const calendarIntent = /check.*calendar|sync.*calendar|what.*calendar|calendar.*events|my calendar/.test(userText.toLowerCase());
+    if (calendarIntent) {
+      if (!session) {
+        setLoading(false);
+        setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings → Connect Google Calendar." }]);
+        return;
+      }
+      try {
+        const res = await fetch("/api/lifeboard/calendar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accessToken: (session as typeof session & { accessToken?: string }).accessToken,
+            user_id: userId,
+          }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't reach your calendar. Try reconnecting in Settings." }]);
+        } else {
+          const candidates = data.candidates ?? [];
+          if (candidates.length === 0) {
+            setChatMessages(prev => [...prev, { role: "assistant", text: "Your calendar is up to date — no new tasks to add." }]);
+          } else {
+            const list = candidates.map((c: { title: string; label: string }, i: number) => `${i + 1}. **${c.title}**${c.label ? ` — ${c.label}` : ""}`).join("\n");
+            const msg = `I found ${candidates.length} event${candidates.length !== 1 ? "s" : ""} that look like tasks:\n\n${list}\n\nAdd all of them, or tell me which ones to skip.`;
+            setChatMessages(prev => [...prev, { role: "assistant", text: msg }]);
+            sessionStorage.setItem("cal_candidates", JSON.stringify(candidates));
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const res = await fetch("/api/lifeboard", {
         method: "POST",
@@ -458,6 +571,11 @@ export default function BoardPage() {
   }
 
   function logout() {
+    if (userId) {
+      localStorage.removeItem(`lifeboard_chat_${userId}`);
+      localStorage.removeItem(`lifeboard_history_${userId}`);
+      localStorage.removeItem(`lifeboard_summary_${userId}`);
+    }
     localStorage.removeItem("lifeboard_user_id");
     signOut({ redirect: false });
     router.push("/lifeboard");
@@ -483,9 +601,18 @@ export default function BoardPage() {
       if (data.error) {
         setCalendarStatus("Error syncing. Try reconnecting.");
       } else {
-        setCalendarStatus(`Imported ${data.imported} event${data.imported !== 1 ? "s" : ""}.`);
-        const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
-        if (refreshed.cards) setCards(refreshed.cards);
+        const candidates: { id: string; title: string; label: string }[] = data.candidates ?? [];
+        setCalendarStatus(`Found ${candidates.length} new event${candidates.length !== 1 ? "s" : ""}.`);
+        setShowSettings(false);
+        if (candidates.length === 0) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Your calendar is up to date — no new tasks to add." }]);
+        } else {
+          const list = candidates.map((c, i) => `${i + 1}. **${c.title}**${c.label ? ` — ${c.label}` : ""}`).join("\n");
+          const msg = `I found ${candidates.length} event${candidates.length !== 1 ? "s" : ""} on your calendar that look like tasks:\n\n${list}\n\nShould I add all of them, or tell me which ones to skip.`;
+          setChatMessages(prev => [...prev, { role: "assistant", text: msg }]);
+          // Store candidates in session for confirmation
+          sessionStorage.setItem("cal_candidates", JSON.stringify(candidates));
+        }
       }
     } finally {
       setCalendarSyncing(false);

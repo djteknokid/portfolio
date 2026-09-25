@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing accessToken or user_id" }, { status: 400 });
   }
 
-  // Fetch events for today + next 7 days
   const now = new Date();
   const weekOut = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -43,14 +42,12 @@ export async function POST(req: NextRequest) {
     end?: { dateTime?: string; date?: string };
   }[] = calData.items ?? [];
 
-  // Filter to task-like events: no external attendees, not all-day meetings
+  // Filter to task-like events: no external attendees
   const taskEvents = events.filter(e => {
     const attendees = e.attendees ?? [];
     const hasOthers = (attendees as { self?: boolean }[]).some(a => !a.self);
     return !hasOthers && e.summary;
   });
-
-  if (!taskEvents.length) return NextResponse.json({ imported: 0 });
 
   // Fetch existing card titles to avoid duplicates
   const supabase = getSupabase();
@@ -61,23 +58,29 @@ export async function POST(req: NextRequest) {
 
   const existingTitles = new Set((existing ?? []).map((c: { title: string }) => c.title.toLowerCase()));
 
-  const newCards = taskEvents
+  // Return candidates — don't insert yet, let user confirm via chat
+  const candidates = taskEvents
     .filter(e => !existingTitles.has((e.summary ?? "").toLowerCase()))
-    .map(e => ({
-      id: `cal-${Math.random().toString(36).slice(2, 10)}`,
-      title: e.summary ?? "Untitled",
-      description: e.description
-        ? e.description.replace(/<[^>]*>/g, "").slice(0, 150)
-        : `Synced from Google Calendar`,
-      status: "todo",
-      category: "personal",
-      points: 2,
-      user_id,
-    }));
+    .map(e => {
+      const start = e.start?.dateTime ?? e.start?.date ?? "";
+      const date = start ? new Date(start) : null;
+      const label = date
+        ? date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) +
+          (e.start?.dateTime ? " " + date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "")
+        : "";
+      return {
+        id: `cal-${Math.random().toString(36).slice(2, 10)}`,
+        title: e.summary ?? "Untitled",
+        description: e.description
+          ? e.description.replace(/<[^>]*>/g, "").slice(0, 150)
+          : "Synced from Google Calendar",
+        status: "todo",
+        category: "personal",
+        points: 2,
+        label,
+        user_id,
+      };
+    });
 
-  if (newCards.length) {
-    await supabase.from("lifeboard_cards").insert(newCards);
-  }
-
-  return NextResponse.json({ imported: newCards.length });
+  return NextResponse.json({ candidates });
 }
