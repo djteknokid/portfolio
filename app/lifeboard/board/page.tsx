@@ -316,6 +316,7 @@ export default function BoardPage() {
   const [history, setHistory] = useState<{ user: string; assistant: string }[]>([]);
   const [memorySummary, setMemorySummary] = useState<string>("");
   const [showBoard, setShowBoard] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const prevDoneCount = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
@@ -515,13 +516,80 @@ export default function BoardPage() {
             )}
           </button>
 
-          {/* User + logout */}
-          <button onClick={logout} style={{
+          {/* User — opens settings */}
+          <button onClick={() => setShowSettings(true)} style={{
             background: "none", border: "none", fontSize: "11px",
             color: "rgba(255,255,255,0.2)", cursor: "pointer", fontFamily: "monospace",
           }}>{userId}</button>
         </div>
       </div>
+
+      {/* Settings drawer */}
+      {showSettings && (
+        <>
+          <div onClick={() => setShowSettings(false)} style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+            zIndex: 60, backdropFilter: "blur(2px)",
+          }} />
+          <div style={{
+            position: "fixed", bottom: 0, left: 0, right: 0,
+            background: "#141414", borderTop: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: "20px 20px 0 0",
+            zIndex: 61, padding: "8px 0",
+            paddingBottom: "calc(8px + env(safe-area-inset-bottom))",
+            animation: "slideUp 0.22s ease-out",
+          }}>
+            {/* Handle */}
+            <div style={{ display: "flex", justifyContent: "center", padding: "8px 0 16px" }}>
+              <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.12)" }} />
+            </div>
+
+            {/* User ID */}
+            <div style={{ padding: "0 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <p style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginBottom: "4px" }}>Your ID</p>
+              <p style={{ fontSize: "14px", fontWeight: 600, color: "#ffffff", fontFamily: "monospace" }}>{userId}</p>
+              <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", marginTop: "2px" }}>Use this to log in on any device</p>
+            </div>
+
+            {/* Connect Google Calendar */}
+            <button style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              width: "100%", padding: "16px 20px",
+              background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{
+                  width: "32px", height: "32px", borderRadius: "8px",
+                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "16px",
+                }}>📅</div>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ fontSize: "14px", fontWeight: 500, color: "#ffffff" }}>Connect Google Calendar</p>
+                  <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "1px" }}>Sync tasks as calendar events</p>
+                </div>
+              </div>
+              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.15)" }}>›</span>
+            </button>
+
+            {/* Sign out */}
+            <button onClick={() => { setShowSettings(false); logout(); }} style={{
+              display: "flex", alignItems: "center", gap: "12px",
+              width: "100%", padding: "16px 20px",
+              background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+            }}>
+              <div style={{
+                width: "32px", height: "32px", borderRadius: "8px",
+                background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.12)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "16px",
+              }}>↩</div>
+              <p style={{ fontSize: "14px", fontWeight: 500, color: "rgba(239,68,68,0.8)" }}>Sign out</p>
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Card summary strip — only when cards exist */}
       {cards.length > 0 && (
@@ -665,6 +733,10 @@ export default function BoardPage() {
         @keyframes bounce {
           0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
           40% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
         * { -webkit-tap-highlight-color: transparent; }
       `}</style>
