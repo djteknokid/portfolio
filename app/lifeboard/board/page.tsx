@@ -432,6 +432,39 @@ export default function BoardPage() {
       }
     }
 
+    // Handle calendar add confirmation (yes/no after "Want me to add X to your calendar?")
+    const calPendingRaw = sessionStorage.getItem("cal_pending_add");
+    if (calPendingRaw) {
+      const lower = userText.toLowerCase().trim();
+      const isYes = /^(yes|yeah|yep|sure|yes please|add it|add them|go ahead|do it)$/.test(lower);
+      const isNo = /^(no|nope|no thanks|skip|don't|not now)$/.test(lower);
+      if (isYes || isNo) {
+        sessionStorage.removeItem("cal_pending_add");
+        if (isNo) {
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: "No problem, skipped the calendar." }]);
+          return;
+        }
+        const pending: { title: string; description?: string }[] = JSON.parse(calPendingRaw);
+        const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
+        if (accessToken) {
+          await Promise.all(pending.map(c =>
+            fetch("/api/lifeboard/calendar/create", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ accessToken, title: c.title, description: c.description }),
+            })
+          ));
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: `Added ${pending.length === 1 ? `**${pending[0].title}**` : `${pending.length} events`} to your Google Calendar.` }]);
+        } else {
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't add to calendar — try reconnecting Google in Settings." }]);
+        }
+        return;
+      }
+    }
+
     // Detect "check my calendar" intent
     const calendarIntent = /check.*calendar|sync.*calendar|what.*calendar|calendar.*events|my calendar/.test(userText.toLowerCase());
     if (calendarIntent) {
@@ -490,6 +523,19 @@ export default function BoardPage() {
         : "Done.");
 
       setChatMessages(prev => [...prev, { role: "assistant", text: assistantReply }]);
+
+      // Check for calendar-worthy new cards
+      const newCards: { title: string; description?: string; calendar_worthy?: boolean }[] =
+        data.mode === "create" || data.mode === "mixed" ? (data.cards ?? []) : [];
+      const calWorthy = newCards.filter(c => c.calendar_worthy);
+      if (calWorthy.length && session) {
+        const names = calWorthy.map(c => `**${c.title}**`).join(", ");
+        const prompt = calWorthy.length === 1
+          ? `Want me to add ${names} to your Google Calendar?`
+          : `Want me to add these to your Google Calendar? ${names}`;
+        setChatMessages(prev => [...prev, { role: "assistant", text: prompt }]);
+        sessionStorage.setItem("cal_pending_add", JSON.stringify(calWorthy));
+      }
 
       const newHistory = [...history.slice(-199), { user: userText, assistant: assistantReply }];
       setHistory(newHistory);

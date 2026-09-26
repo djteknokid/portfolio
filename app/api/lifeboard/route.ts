@@ -96,11 +96,17 @@ Return:
       "description": "One sentence.",
       "status": "todo" | "inprogress" | "done",
       "category": "health" | "work" | "relationships" | "finance" | "personal" | "learning" | "home",
-      "points": <integer 1-5>
+      "points": <integer 1-5>,
+      "calendar_worthy": true | false
     }
   ],
   "reply": "Friendly confirmation, e.g. 'Added! Looks like a busy week ahead.' or 'On the board — let me know if you want to adjust anything.'"
 }
+
+calendar_worthy rules — set to true ONLY if the task is:
+- Time-sensitive or has a specific date/time (e.g. "dentist appointment Friday", "call at 3pm", "meeting tomorrow")
+- A scheduled event or deadline (e.g. "soccer game Saturday", "flight on Monday", "project due next week")
+Set to false for: chores, habits, general todos, vague tasks, anything without a clear time anchor (e.g. "take trash out", "post on LinkedIn", "read book", "go to gym")
 
 Scoring rubric for "points":
 1 — Trivial (<15 min, e.g. "reply to email", "buy milk")
@@ -116,7 +122,7 @@ MODE 3 — "mixed": Some new cards to create AND some existing cards to edit.
 Return:
 {
   "mode": "mixed",
-  "cards": [...],
+  "cards": [...],  // new cards only — same shape as MODE 2, include calendar_worthy
   "actions": [...],
   "reply": "Conversational summary of what changed."
 }
