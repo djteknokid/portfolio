@@ -503,7 +503,7 @@ export default function BoardPage() {
     }
 
     // Detect Gmail/email intent
-    const emailIntent = /check.*email|my email|in my (inbox|email|gmail)|what.*email|any email|email.*about|from.*email/.test(userText.toLowerCase());
+    const emailIntent = /check.*email|check.*gmail|my email|my gmail|in my (inbox|email|gmail)|what.*email|any email|email.*about|from.*email|search.*email|look.*inbox|gmail/.test(userText.toLowerCase());
     if (emailIntent) {
       if (!session) {
         setLoading(false);
