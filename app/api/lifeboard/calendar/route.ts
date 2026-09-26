@@ -42,12 +42,8 @@ export async function POST(req: NextRequest) {
     end?: { dateTime?: string; date?: string };
   }[] = calData.items ?? [];
 
-  // Filter to task-like events: no external attendees
-  const taskEvents = events.filter(e => {
-    const attendees = e.attendees ?? [];
-    const hasOthers = (attendees as { self?: boolean }[]).some(a => !a.self);
-    return !hasOthers && e.summary;
-  });
+  // All events with a title — let user decide
+  const taskEvents = events.filter(e => e.summary);
 
   // Fetch existing card titles to avoid duplicates
   const supabase = getSupabase();
