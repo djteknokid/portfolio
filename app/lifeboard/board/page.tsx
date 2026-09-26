@@ -465,22 +465,26 @@ export default function BoardPage() {
       }
     }
 
-    // Detect "check my calendar" intent — read/sync only, not "add to calendar"
-    const calendarIntent = /^(?:check|sync|show|what(?:'s| is)(?: on)?).*calendar|calendar.*events/.test(userText.toLowerCase());
-    if (calendarIntent) {
-      if (!session) {
-        setLoading(false);
-        setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings → Connect Google Calendar." }]);
-        return;
-      }
-      try {
+    // — ORCHESTRATOR —
+    try {
+      const orchRes = await fetch("/api/lifeboard/orchestrate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: userText }),
+      });
+      const { intent } = await orchRes.json();
+      const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
+
+      // CALENDAR
+      if (intent === "calendar") {
+        if (!session) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
+          return;
+        }
         const res = await fetch("/api/lifeboard/calendar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            accessToken: (session as typeof session & { accessToken?: string }).accessToken,
-            user_id: userId,
-          }),
+          body: JSON.stringify({ accessToken, user_id: userId }),
         });
         const data = await res.json();
         if (data.error) {
@@ -488,50 +492,54 @@ export default function BoardPage() {
         } else {
           const candidates = data.candidates ?? [];
           if (candidates.length === 0) {
-            setChatMessages(prev => [...prev, { role: "assistant", text: "Your calendar is up to date — no new tasks to add." }]);
+            setChatMessages(prev => [...prev, { role: "assistant", text: "Your calendar is up to date — no new events to add." }]);
           } else {
             const list = candidates.map((c: { title: string; label: string }, i: number) => `${i + 1}. **${c.title}**${c.label ? ` — ${c.label}` : ""}`).join("\n");
-            const msg = `I found ${candidates.length} event${candidates.length !== 1 ? "s" : ""} that look like tasks:\n\n${list}\n\nAdd all of them, or tell me which ones to skip.`;
-            setChatMessages(prev => [...prev, { role: "assistant", text: msg }]);
+            setChatMessages(prev => [...prev, { role: "assistant", text: `Found ${candidates.length} event${candidates.length !== 1 ? "s" : ""} on your calendar:\n\n${list}\n\nAdd all of them, or tell me which ones to skip.` }]);
             sessionStorage.setItem("cal_candidates", JSON.stringify(candidates));
           }
         }
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
-    // Detect Gmail/email intent
-    const emailIntent = /check.*(?:email|gmail|mail|inbox)|my (?:email|gmail|mail|inbox)|in my (?:inbox|email|gmail)|what.*(?:email|mail)|any (?:email|mail)|(?:email|mail).*about|from.*(?:email|mail)|search.*(?:email|mail)|look.*inbox|gmail/.test(userText.toLowerCase());
-    if (emailIntent) {
-      if (!session) {
-        setLoading(false);
-        setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google account first — tap the profile icon → Settings → Connect Google Calendar." }]);
         return;
       }
-      try {
+
+      // GMAIL
+      if (intent === "gmail") {
+        if (!session) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google account first — tap the profile icon → Settings." }]);
+          return;
+        }
         const res = await fetch("/api/lifeboard/gmail", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            accessToken: (session as typeof session & { accessToken?: string }).accessToken,
-            query: userText,
-          }),
+          body: JSON.stringify({ accessToken, query: userText }),
         });
         const data = await res.json();
         if (data.error) {
           setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't reach your Gmail. Make sure Gmail access is granted in Settings." }]);
         } else {
           setChatMessages(prev => [...prev, { role: "assistant", text: data.answer }]);
+          const newHistory = [...history.slice(-199), { user: userText, assistant: data.answer }];
+          setHistory(newHistory);
         }
-      } finally {
-        setLoading(false);
+        return;
       }
-      return;
-    }
 
-    try {
+      // CHAT
+      if (intent === "chat") {
+        const res = await fetch("/api/lifeboard/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: userText, history, memorySummary, cards }),
+        });
+        const data = await res.json();
+        const reply = data.reply ?? "I'm here — what's on your mind?";
+        setChatMessages(prev => [...prev, { role: "assistant", text: reply }]);
+        const newHistory = [...history.slice(-199), { user: userText, assistant: reply }];
+        setHistory(newHistory);
+        return;
+      }
+
+      // CARD ACTION (default)
       const res = await fetch("/api/lifeboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
