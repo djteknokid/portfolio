@@ -4,6 +4,7 @@ import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
+  try {
   const { text, history, memorySummary, cards } = await req.json();
 
   const memoryBlock = memorySummary
@@ -37,4 +38,8 @@ You know about the user's board and life context. Respond conversationally — l
 
   const reply = completion.choices[0].message.content ?? "I'm here — what's on your mind?";
   return NextResponse.json({ reply });
+  } catch (err) {
+    console.error("chat error:", err);
+    return NextResponse.json({ reply: "I'm here — what's on your mind?" });
+  }
 }

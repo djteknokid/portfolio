@@ -462,7 +462,26 @@ export default function BoardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: userText }),
       });
-      const { intent } = await orchRes.json();
+
+      if (!orchRes.ok) {
+        // Orchestrator failed — fall back to card action handler
+        const res = await fetch("/api/lifeboard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: userText, existingCards: cards, history, memorySummary, user_id: userId }),
+        });
+        const data = await res.json();
+        const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+        if (refreshed.cards) setCards(refreshed.cards);
+        const assistantReply = data.reply ?? "Done.";
+        setChatMessages(prev => [...prev, { role: "assistant", text: assistantReply }]);
+        setHistory(prev => [...prev.slice(-199), { user: userText, assistant: assistantReply }]);
+        return;
+      }
+
+      const orchText = await orchRes.text();
+      let intent = "chat";
+      try { intent = JSON.parse(orchText).intent ?? "chat"; } catch { intent = "chat"; }
 
       // CALENDAR
       if (intent === "calendar") {

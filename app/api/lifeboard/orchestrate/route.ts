@@ -4,6 +4,7 @@ import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
+  try {
   const { text } = await req.json();
   if (!text) return NextResponse.json({ intent: "chat" });
 
@@ -45,4 +46,8 @@ Return: { "intent": "<one of the four intents>" }`,
   const raw = completion.choices[0].message.content ?? '{"intent":"chat"}';
   const parsed = JSON.parse(raw);
   return NextResponse.json({ intent: parsed.intent ?? "chat" });
+  } catch (err) {
+    console.error("orchestrate error:", err);
+    return NextResponse.json({ intent: "chat" });
+  }
 }
