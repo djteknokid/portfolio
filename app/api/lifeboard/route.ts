@@ -162,16 +162,20 @@ Rules:
     ],
   });
 
-  const raw = completion.choices[0].message.content ?? "{}";
-  const parsed = JSON.parse(raw);
+  const raw = completion.choices[0].message.content ?? '{"mode":"chat","reply":"I\'m here — what\'s on your mind?"}';
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    parsed = { mode: "chat", reply: raw };
+  }
+  if (!parsed.mode) parsed = { mode: "chat", reply: (parsed.reply as string) ?? raw };
 
   // Handle creates
-  const newCards = parsed.mode === "create" ? parsed.cards
-                 : parsed.mode === "mixed"  ? parsed.cards
-                 : [];
+  const newCards = (parsed.mode === "create" || parsed.mode === "mixed") ? parsed.cards as Record<string, string | number>[] : [];
 
   if (newCards?.length) {
-    const cardsWithUser = newCards.map((c: Record<string, string | number>) => ({
+    const cardsWithUser = newCards.map((c) => ({
       ...c,
       points: c.points ?? 1,
       user_id,
@@ -182,9 +186,7 @@ Rules:
   }
 
   // Handle edits/moves/deletes
-  const actions = parsed.mode === "command" ? parsed.actions
-                : parsed.mode === "mixed"   ? parsed.actions
-                : [];
+  const actions = (parsed.mode === "command" || parsed.mode === "mixed") ? parsed.actions as Record<string, string>[] : [];
 
   if (actions?.length) {
     for (const action of actions) {
