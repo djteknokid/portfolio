@@ -332,7 +332,7 @@ export default function BoardPage() {
     const stored = localStorage.getItem("lifeboard_user_id");
     if (!stored) { router.replace("/lifeboard"); return; }
     setUserId(stored);
-  }, [router]);
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!userId) return;
