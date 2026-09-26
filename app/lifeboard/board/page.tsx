@@ -818,6 +818,35 @@ export default function BoardPage() {
               </span>
             </button>
 
+            {/* Connect Gmail */}
+            <button onClick={() => session ? null : signIn("google")} style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              width: "100%", padding: "16px 20px",
+              background: "none", border: "none", cursor: session ? "default" : "pointer", fontFamily: "inherit",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{
+                  width: "32px", height: "32px", borderRadius: "8px",
+                  background: session ? "rgba(34,197,94,0.1)" : "rgba(255,255,255,0.05)",
+                  border: `1px solid ${session ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.08)"}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "16px",
+                }}>✉️</div>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ fontSize: "14px", fontWeight: 500, color: "#ffffff" }}>
+                    {session ? "Gmail Connected" : "Connect Gmail"}
+                  </p>
+                  <p style={{ fontSize: "11px", color: session ? "rgba(34,197,94,0.7)" : "rgba(255,255,255,0.3)", marginTop: "1px" }}>
+                    {session ? `Ask questions about your inbox` : "Answer questions from your emails"}
+                  </p>
+                </div>
+              </div>
+              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.15)" }}>
+                {session ? "✓" : "›"}
+              </span>
+            </button>
+
             {/* Sign out */}
             <button onClick={() => { setShowSettings(false); logout(); }} style={{
               display: "flex", alignItems: "center", gap: "12px",
