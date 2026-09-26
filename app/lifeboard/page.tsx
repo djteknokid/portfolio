@@ -18,7 +18,7 @@ export default function LifeboardLogin() {
   useEffect(() => {
     const stored = localStorage.getItem("lifeboard_user_id");
     if (stored) router.replace("/lifeboard/board");
-  }, [router]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setNewId(generateId());
