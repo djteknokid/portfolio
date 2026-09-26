@@ -176,13 +176,17 @@ Rules:
 
   if (newCards?.length) {
     const cardsWithUser = newCards.map((c) => ({
-      ...c,
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      status: c.status,
+      category: c.category,
       points: c.points ?? 1,
       user_id,
     }));
     const { error } = await supabase.from("lifeboard_cards").insert(cardsWithUser);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    parsed.cards = cardsWithUser;
+    parsed.cards = newCards.map((c) => ({ ...c, user_id }));
   }
 
   // Handle edits/moves/deletes
