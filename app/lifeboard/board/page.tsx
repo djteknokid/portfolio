@@ -436,8 +436,8 @@ export default function BoardPage() {
     const calPendingRaw = sessionStorage.getItem("cal_pending_add");
     if (calPendingRaw) {
       const lower = userText.toLowerCase().trim();
-      const isYes = /^(yes|yeah|yep|sure|yes please|add it|add them|go ahead|do it)$/.test(lower);
-      const isNo = /^(no|nope|no thanks|skip|don't|not now)$/.test(lower);
+      const isYes = /\b(yes|yeah|yep|sure|ok|okay|add it|add them|go ahead|do it|add that|please add|add this)\b/.test(lower);
+      const isNo = /^(no|nope|no thanks|skip|don't|not now|skip it)$/.test(lower);
       if (isYes || isNo) {
         sessionStorage.removeItem("cal_pending_add");
         if (isNo) {
