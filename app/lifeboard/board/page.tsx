@@ -502,6 +502,35 @@ export default function BoardPage() {
       return;
     }
 
+    // Detect Gmail/email intent
+    const emailIntent = /check.*email|my email|in my (inbox|email|gmail)|what.*email|any email|email.*about|from.*email/.test(userText.toLowerCase());
+    if (emailIntent) {
+      if (!session) {
+        setLoading(false);
+        setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google account first — tap the profile icon → Settings → Connect Google Calendar." }]);
+        return;
+      }
+      try {
+        const res = await fetch("/api/lifeboard/gmail", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accessToken: (session as typeof session & { accessToken?: string }).accessToken,
+            query: userText,
+          }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't reach your Gmail. Make sure Gmail access is granted in Settings." }]);
+        } else {
+          setChatMessages(prev => [...prev, { role: "assistant", text: data.answer }]);
+        }
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const res = await fetch("/api/lifeboard", {
         method: "POST",
