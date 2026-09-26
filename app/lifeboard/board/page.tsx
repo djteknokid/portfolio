@@ -386,18 +386,15 @@ export default function BoardPage() {
     setChatMessages(prev => [...prev, { role: "user", text: userText }]);
     setLoading(true);
 
-    const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
-
-    // — PENDING CONFIRMATIONS (bypass orchestrator) —
-
-    // Calendar import HITL
+    // Check if user is confirming/skipping calendar candidates
     const calCandidatesRaw = sessionStorage.getItem("cal_candidates");
     if (calCandidatesRaw) {
       const candidates: { id: string; title: string; label: string; description: string; status: string; category: string; points: number; user_id: string }[] = JSON.parse(calCandidatesRaw);
       const lower = userText.toLowerCase().trim();
-      const isAddAll = /^(add all|yes add all|add them all|all of them|add all of them|yes please|yep add all|yes|sure|ok|yep|yeah)$/.test(lower);
-      const skipAll = /^(skip all|none|no thanks|don't add any|forget it|skip them all|no|nope)$/.test(lower);
+      const isAddAll = /^(add all|yes add all|add them all|all of them|add all of them|yes please|yep add all)$/.test(lower);
+      const skipAll = /^(skip all|none|no thanks|don't add any|forget it|skip them all|no)$/.test(lower);
       const isSkipSome = /^skip\s+.+/.test(lower);
+
       if (isAddAll || skipAll || isSkipSome) {
         sessionStorage.removeItem("cal_candidates");
         if (skipAll) {
@@ -405,25 +402,37 @@ export default function BoardPage() {
           setChatMessages(prev => [...prev, { role: "assistant", text: "No problem — skipped all of them." }]);
           return;
         }
-        const toAdd = isSkipSome
-          ? candidates.filter(c => !lower.replace(/^skip\s+/, "").includes(c.title.toLowerCase().slice(0, 6)))
-          : candidates;
-        if (toAdd.length) {
-          await fetch("/api/lifeboard/duplicate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(toAdd.map(c => ({ ...c, label: undefined }))),
-          });
-          const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
-          if (refreshed.cards) setCards(refreshed.cards);
+        if (isSkipSome) {
+          const skipText = lower.replace(/^skip\s+/, "");
+          const toAdd = candidates.filter(c => !skipText.includes(c.title.toLowerCase().slice(0, 6)));
+          if (toAdd.length) {
+            await fetch("/api/lifeboard/duplicate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(toAdd.map(c => ({ ...c, label: undefined }))),
+            });
+            const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+            if (refreshed.cards) setCards(refreshed.cards);
+          }
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: toAdd.length ? `Added ${toAdd.length} event${toAdd.length !== 1 ? "s" : ""} to your board.` : "Skipped all — nothing added." }]);
+          return;
         }
+        // Add all
+        await fetch("/api/lifeboard/duplicate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(candidates.map(c => ({ ...c, label: undefined }))),
+        });
+        const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+        if (refreshed.cards) setCards(refreshed.cards);
         setLoading(false);
-        setChatMessages(prev => [...prev, { role: "assistant", text: toAdd.length ? `Added ${toAdd.length} event${toAdd.length !== 1 ? "s" : ""} to your board.` : "Skipped all — nothing added." }]);
+        setChatMessages(prev => [...prev, { role: "assistant", text: `Added ${candidates.length} calendar event${candidates.length !== 1 ? "s" : ""} to your board.` }]);
         return;
       }
     }
 
-    // Calendar write-back HITL
+    // Handle calendar add confirmation (yes/no after "Want me to add X to your calendar?")
     const calPendingRaw = sessionStorage.getItem("cal_pending_add");
     if (calPendingRaw) {
       const lower = userText.toLowerCase().trim();
@@ -437,6 +446,7 @@ export default function BoardPage() {
           return;
         }
         const pending: { title: string; description?: string }[] = JSON.parse(calPendingRaw);
+        const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
         if (accessToken) {
           await Promise.all(pending.map(c =>
             fetch("/api/lifeboard/calendar/create", {
@@ -455,44 +465,22 @@ export default function BoardPage() {
       }
     }
 
-    // — ORCHESTRATOR —
-    try {
-      const orchRes = await fetch("/api/lifeboard/orchestrate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: userText }),
-      });
-
-      if (!orchRes.ok) {
-        // Orchestrator failed — fall back to card action handler
-        const res = await fetch("/api/lifeboard", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: userText, existingCards: cards, history, memorySummary, user_id: userId }),
-        });
-        const data = await res.json();
-        const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
-        if (refreshed.cards) setCards(refreshed.cards);
-        const assistantReply = data.reply ?? "Done.";
-        setChatMessages(prev => [...prev, { role: "assistant", text: assistantReply }]);
-        setHistory(prev => [...prev.slice(-199), { user: userText, assistant: assistantReply }]);
+    // Detect "check my calendar" intent
+    const calendarIntent = /check.*calendar|sync.*calendar|what.*calendar|calendar.*events|my calendar/.test(userText.toLowerCase());
+    if (calendarIntent) {
+      if (!session) {
+        setLoading(false);
+        setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings → Connect Google Calendar." }]);
         return;
       }
-
-      const orchText = await orchRes.text();
-      let intent = "chat";
-      try { intent = JSON.parse(orchText).intent ?? "chat"; } catch { intent = "chat"; }
-
-      // CALENDAR
-      if (intent === "calendar") {
-        if (!session) {
-          setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
-          return;
-        }
+      try {
         const res = await fetch("/api/lifeboard/calendar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken, user_id: userId }),
+          body: JSON.stringify({
+            accessToken: (session as typeof session & { accessToken?: string }).accessToken,
+            user_id: userId,
+          }),
         });
         const data = await res.json();
         if (data.error) {
@@ -503,23 +491,33 @@ export default function BoardPage() {
             setChatMessages(prev => [...prev, { role: "assistant", text: "Your calendar is up to date — no new tasks to add." }]);
           } else {
             const list = candidates.map((c: { title: string; label: string }, i: number) => `${i + 1}. **${c.title}**${c.label ? ` — ${c.label}` : ""}`).join("\n");
-            setChatMessages(prev => [...prev, { role: "assistant", text: `Found ${candidates.length} event${candidates.length !== 1 ? "s" : ""} on your calendar:\n\n${list}\n\nAdd all of them, or tell me which ones to skip.` }]);
+            const msg = `I found ${candidates.length} event${candidates.length !== 1 ? "s" : ""} that look like tasks:\n\n${list}\n\nAdd all of them, or tell me which ones to skip.`;
+            setChatMessages(prev => [...prev, { role: "assistant", text: msg }]);
             sessionStorage.setItem("cal_candidates", JSON.stringify(candidates));
           }
         }
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Detect Gmail/email intent
+    const emailIntent = /check.*email|check.*gmail|my email|my gmail|in my (inbox|email|gmail)|what.*email|any email|email.*about|from.*email|search.*email|look.*inbox|gmail/.test(userText.toLowerCase());
+    if (emailIntent) {
+      if (!session) {
+        setLoading(false);
+        setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google account first — tap the profile icon → Settings → Connect Google Calendar." }]);
         return;
       }
-
-      // GMAIL
-      if (intent === "gmail") {
-        if (!session) {
-          setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google account first — tap the profile icon → Settings." }]);
-          return;
-        }
+      try {
         const res = await fetch("/api/lifeboard/gmail", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken, query: userText }),
+          body: JSON.stringify({
+            accessToken: (session as typeof session & { accessToken?: string }).accessToken,
+            query: userText,
+          }),
         });
         const data = await res.json();
         if (data.error) {
@@ -527,25 +525,13 @@ export default function BoardPage() {
         } else {
           setChatMessages(prev => [...prev, { role: "assistant", text: data.answer }]);
         }
-        return;
+      } finally {
+        setLoading(false);
       }
+      return;
+    }
 
-      // CHAT
-      if (intent === "chat") {
-        const res = await fetch("/api/lifeboard/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: userText, history, memorySummary, cards }),
-        });
-        const data = await res.json();
-        const reply = data.reply ?? "I'm here — what's on your mind?";
-        setChatMessages(prev => [...prev, { role: "assistant", text: reply }]);
-        const newHistory = [...history.slice(-199), { user: userText, assistant: reply }];
-        setHistory(newHistory);
-        return;
-      }
-
-      // CARD ACTION
+    try {
       const res = await fetch("/api/lifeboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -557,18 +543,26 @@ export default function BoardPage() {
       if (refreshed.cards) setCards(refreshed.cards);
 
       const assistantReply = data.reply ?? (data.mode === "create" && data.cards?.length
-        ? `Added ${data.cards.length} card${data.cards.length !== 1 ? "s" : ""} to your board.`
+        ? (() => {
+            const lines = data.cards.map((c: { title: string; description?: string; points?: number }) =>
+              `• ${c.title} (${c.points ?? 1} pt${(c.points ?? 1) !== 1 ? "s" : ""})${c.description ? ` — ${c.description}` : ""}`
+            );
+            return `Added ${data.cards.length} card${data.cards.length !== 1 ? "s" : ""}:\n\n${lines.join("\n")}\n\nAnything else you'd like to update?`;
+          })()
         : "Done.");
 
       setChatMessages(prev => [...prev, { role: "assistant", text: assistantReply }]);
 
-      // Calendar-worthy prompt
+      // Check for calendar-worthy new cards
       const newCards: { title: string; description?: string; calendar_worthy?: boolean }[] =
         data.mode === "create" || data.mode === "mixed" ? (data.cards ?? []) : [];
       const calWorthy = newCards.filter(c => c.calendar_worthy);
       if (calWorthy.length && session) {
         const names = calWorthy.map(c => `**${c.title}**`).join(", ");
-        setChatMessages(prev => [...prev, { role: "assistant", text: calWorthy.length === 1 ? `Want me to add ${names} to your Google Calendar?` : `Want me to add these to your Google Calendar? ${names}` }]);
+        const prompt = calWorthy.length === 1
+          ? `Want me to add ${names} to your Google Calendar?`
+          : `Want me to add these to your Google Calendar? ${names}`;
+        setChatMessages(prev => [...prev, { role: "assistant", text: prompt }]);
         sessionStorage.setItem("cal_pending_add", JSON.stringify(calWorthy));
       }
 
