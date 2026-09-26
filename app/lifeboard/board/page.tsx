@@ -390,15 +390,32 @@ export default function BoardPage() {
     const calCandidatesRaw = sessionStorage.getItem("cal_candidates");
     if (calCandidatesRaw) {
       const candidates: { id: string; title: string; label: string; description: string; status: string; category: string; points: number; user_id: string }[] = JSON.parse(calCandidatesRaw);
-      const lower = userText.toLowerCase();
-      const isAddAll = /add all|yes|all of them|sure|sounds good|ok|yep|go ahead/.test(lower);
-      const skipAll = /skip all|none|no thanks|don't add|forget it/.test(lower);
+      const lower = userText.toLowerCase().trim();
+      const isAddAll = /^(add all|yes add all|add them all|all of them|add all of them|yes please|yep add all)$/.test(lower);
+      const skipAll = /^(skip all|none|no thanks|don't add any|forget it|skip them all|no)$/.test(lower);
+      const isSkipSome = /^skip\s+.+/.test(lower);
 
-      if (isAddAll || skipAll) {
+      if (isAddAll || skipAll || isSkipSome) {
         sessionStorage.removeItem("cal_candidates");
         if (skipAll) {
           setLoading(false);
           setChatMessages(prev => [...prev, { role: "assistant", text: "No problem — skipped all of them." }]);
+          return;
+        }
+        if (isSkipSome) {
+          const skipText = lower.replace(/^skip\s+/, "");
+          const toAdd = candidates.filter(c => !skipText.includes(c.title.toLowerCase().slice(0, 6)));
+          if (toAdd.length) {
+            await fetch("/api/lifeboard/duplicate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(toAdd.map(c => ({ ...c, label: undefined }))),
+            });
+            const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+            if (refreshed.cards) setCards(refreshed.cards);
+          }
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: toAdd.length ? `Added ${toAdd.length} event${toAdd.length !== 1 ? "s" : ""} to your board.` : "Skipped all — nothing added." }]);
           return;
         }
         // Add all
@@ -411,26 +428,6 @@ export default function BoardPage() {
         if (refreshed.cards) setCards(refreshed.cards);
         setLoading(false);
         setChatMessages(prev => [...prev, { role: "assistant", text: `Added ${candidates.length} calendar event${candidates.length !== 1 ? "s" : ""} to your board.` }]);
-        return;
-      }
-
-      // Parse "skip X, Y" or "add X" — fall through to AI for natural language
-      const skipMatches = lower.match(/skip\s+(.+)/);
-      if (skipMatches) {
-        const skipText = skipMatches[1];
-        const toAdd = candidates.filter(c => !skipText.includes(c.title.toLowerCase().slice(0, 6)));
-        sessionStorage.removeItem("cal_candidates");
-        if (toAdd.length) {
-          await fetch("/api/lifeboard/duplicate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(toAdd.map(c => ({ ...c, label: undefined }))),
-          });
-          const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
-          if (refreshed.cards) setCards(refreshed.cards);
-        }
-        setLoading(false);
-        setChatMessages(prev => [...prev, { role: "assistant", text: toAdd.length ? `Added ${toAdd.length} event${toAdd.length !== 1 ? "s" : ""} to your board.` : "Skipped all — nothing added." }]);
         return;
       }
     }
@@ -835,9 +832,19 @@ export default function BoardPage() {
               {msg.role === "assistant" && (
                 <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "4px", fontWeight: 600, letterSpacing: "0.08em" }}>LIFEBOARD</span>
               )}
-              {msg.text.split("\n").map((line, i) => (
-                <span key={i} style={{ display: "block" }}>{line || " "}</span>
-              ))}
+              {msg.text.split("\n").map((line, i) => {
+                if (!line.trim()) return <span key={i} style={{ display: "block", height: "6px" }} />;
+                const parts = line.split(/(\*\*[^*]+\*\*)/g);
+                return (
+                  <span key={i} style={{ display: "block" }}>
+                    {parts.map((part, j) =>
+                      part.startsWith("**") && part.endsWith("**")
+                        ? <strong key={j}>{part.slice(2, -2)}</strong>
+                        : part
+                    )}
+                  </span>
+                );
+              })}
             </div>
           </div>
         ))}
