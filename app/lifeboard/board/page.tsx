@@ -465,8 +465,8 @@ export default function BoardPage() {
       }
     }
 
-    // Detect "check my calendar" intent
-    const calendarIntent = /check.*calendar|sync.*calendar|what.*calendar|calendar.*events|my calendar/.test(userText.toLowerCase());
+    // Detect "check my calendar" intent — read/sync only, not "add to calendar"
+    const calendarIntent = /^(?:check|sync|show|what(?:'s| is)(?: on)?).*calendar|calendar.*events/.test(userText.toLowerCase());
     if (calendarIntent) {
       if (!session) {
         setLoading(false);
