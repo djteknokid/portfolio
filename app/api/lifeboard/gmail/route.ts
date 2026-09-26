@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       const subject = headers.find((h) => h.name === "Subject")?.value ?? "(no subject)";
       const from = headers.find((h) => h.name === "From")?.value ?? "";
       const date = headers.find((h) => h.name === "Date")?.value ?? "";
-      const body = extractText(msg.payload ?? {}).slice(0, 500);
+      const body = extractText(msg.payload ?? {}).slice(0, 2000);
 
       return { subject, from, date, body };
     })
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
     messages: [
       {
         role: "system",
-        content: `You are a helpful assistant. The user has asked a question about their emails. Answer based only on the emails provided. Be concise and direct. If the answer isn't in the emails, say so honestly.`,
+        content: `You are a helpful assistant answering questions about the user's emails. Be specific and direct — extract exact dates, times, names, and details from the emails. If the information is there, state it clearly. Only say you can't find it if it's genuinely not in any of the emails.`,
       },
       {
         role: "user",
