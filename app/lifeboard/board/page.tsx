@@ -390,44 +390,45 @@ export default function BoardPage() {
     const calCandidatesRaw = sessionStorage.getItem("cal_candidates");
     if (calCandidatesRaw) {
       const candidates: { id: string; title: string; label: string; description: string; status: string; category: string; points: number; user_id: string }[] = JSON.parse(calCandidatesRaw);
-      const lower = userText.toLowerCase().trim();
-      const isAddAll = /^(add all|yes add all|add them all|all of them|add all of them|yes please|yep add all)$/.test(lower);
-      const skipAll = /^(skip all|none|no thanks|don't add any|forget it|skip them all|no)$/.test(lower);
-      const isSkipSome = /^skip\s+.+/.test(lower);
-
-      if (isAddAll || skipAll || isSkipSome) {
+      // Use AI to interpret the user's response in context of the candidate list
+      const candidateList = candidates.map((c, i) => `${i + 1}. ${c.title}`).join(", ");
+      const hitlRes = await fetch("/api/lifeboard/calendar/hitl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: userText, candidates: candidates.map((c, i) => ({ index: i + 1, title: c.title })) }),
+      });
+      const hitl = await hitlRes.json();
+      // hitl.action: "add_all" | "skip_all" | "add_some" | "skip_some" | "not_relevant"
+      // hitl.indices: number[] (1-based, for add_some/skip_some)
+      if (hitl.action !== "not_relevant") {
         sessionStorage.removeItem("cal_candidates");
-        if (skipAll) {
+        if (hitl.action === "skip_all") {
           setLoading(false);
           setChatMessages(prev => [...prev, { role: "assistant", text: "No problem — skipped all of them." }]);
           return;
         }
-        if (isSkipSome) {
-          const skipText = lower.replace(/^skip\s+/, "");
-          const toAdd = candidates.filter(c => !skipText.includes(c.title.toLowerCase().slice(0, 6)));
-          if (toAdd.length) {
-            await fetch("/api/lifeboard/duplicate", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(toAdd.map(c => ({ ...c, label: undefined }))),
-            });
-            const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
-            if (refreshed.cards) setCards(refreshed.cards);
-          }
-          setLoading(false);
-          setChatMessages(prev => [...prev, { role: "assistant", text: toAdd.length ? `Added ${toAdd.length} event${toAdd.length !== 1 ? "s" : ""} to your board.` : "Skipped all — nothing added." }]);
-          return;
+        let toAdd = candidates;
+        if (hitl.action === "skip_some" && hitl.indices?.length) {
+          const skipSet = new Set(hitl.indices.map((n: number) => n - 1));
+          toAdd = candidates.filter((_, i) => !skipSet.has(i));
+        } else if (hitl.action === "add_some" && hitl.indices?.length) {
+          const addSet = new Set(hitl.indices.map((n: number) => n - 1));
+          toAdd = candidates.filter((_, i) => addSet.has(i));
         }
-        // Add all
-        await fetch("/api/lifeboard/duplicate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(candidates.map(c => ({ ...c, label: undefined }))),
-        });
-        const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
-        if (refreshed.cards) setCards(refreshed.cards);
-        setLoading(false);
-        setChatMessages(prev => [...prev, { role: "assistant", text: `Added ${candidates.length} calendar event${candidates.length !== 1 ? "s" : ""} to your board.` }]);
+        if (toAdd.length) {
+          await fetch("/api/lifeboard/duplicate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(toAdd.map(c => ({ ...c, label: undefined }))),
+          });
+          const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+          if (refreshed.cards) setCards(refreshed.cards);
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: `Added ${toAdd.length} event${toAdd.length !== 1 ? "s" : ""} to your board.` }]);
+        } else {
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: `Skipped — nothing added. (List: ${candidateList})` }]);
+        }
         return;
       }
     }
