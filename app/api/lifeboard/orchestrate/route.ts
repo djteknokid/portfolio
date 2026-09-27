@@ -16,14 +16,16 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `Classify the user message into exactly one intent. Use the previous assistant message for context when the user's message is vague (e.g. "please check" after an email response → gmail). Return JSON: { "intent": "<value>" }
+          content: `Classify the user message into exactly one intent. Use the previous assistant message for context when the user's message is vague. Return JSON: { "intent": "<value>" }
 
 Intents:
 - "gmail" — anything about email, mail, inbox, gmail
-- "calendar" — checking or syncing their calendar (NOT adding to calendar)
-- "calendar_add" — adding/putting something ON the calendar (write to Google Calendar, no card needed)
+- "calendar" — ONLY explicit requests to CHECK or SYNC the calendar (must include words like check/sync/show/see/what's on)
+- "calendar_add" — explicitly adding/putting a specific event ON the calendar
 - "card_action" — creating, editing, moving, deleting a task/card on the board
-- "chat" — everything else: questions, conversation, advice
+- "chat" — everything else: questions, follow-ups, confusion, conversation, vague messages, anything ambiguous
+
+IMPORTANT: When in doubt → "chat". Only use calendar/gmail/card_action when the intent is unambiguous.
 
 Examples:
 "check my mail" → gmail
@@ -32,12 +34,16 @@ Examples:
 "please check" (after gmail response) → gmail
 "check my calendar" → calendar
 "what's on my schedule" → calendar
+"sync my calendar" → calendar
 "i need to take out the trash" → card_action
 "mark workout as done" → card_action
-"put this on my calendar" → calendar_add
 "put this on my calendar for 8:30am" → calendar_add
 "add hangeul contest to my calendar" → calendar_add
 "add this to google calendar" → calendar_add
+"what?" → chat
+"did you put that on the right date?" → chat
+"you said you put that on my calendar did you" → chat
+"what do you mean?" → chat
 "what should I focus on today" → chat
 "how are you" → chat${context}`,
         },

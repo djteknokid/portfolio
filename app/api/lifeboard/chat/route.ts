@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, history, memorySummary, cards } = await req.json();
+    const { text, history, memorySummary, cards, recentMessages } = await req.json();
 
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -14,6 +14,14 @@ export async function POST(req: NextRequest) {
         { role: "user" as const, content: h.user },
         { role: "assistant" as const, content: h.assistant },
       ]
+    );
+
+    // Recent chat messages give the AI direct context of the last few exchanges
+    const recentBlock: OpenAI.Chat.ChatCompletionMessageParam[] = (recentMessages ?? []).map(
+      (m: { role: string; text: string }) => ({
+        role: m.role as "user" | "assistant",
+        content: m.text,
+      })
     );
 
     const boardSummary = cards?.length
@@ -27,9 +35,12 @@ export async function POST(req: NextRequest) {
           role: "system",
           content: `You are Lifeboard, a warm and intelligent personal life assistant for a busy parent with a full-time job. You help manage life — work, family, health, finances — through conversation.${memoryBlock}${boardSummary}
 
-Respond like a smart friend, not a bot. Be concise and direct. If they ask about their board, summarize it. If they ask for advice, give it. You do NOT create tasks — just have a conversation.`,
+You have full context of the recent conversation. When the user asks a follow-up question like "did you do that?" or "what?" or "is that right?" — answer based on what you actually said in the recent messages above. Be honest and direct. Respond like a smart friend, not a bot. Be concise.
+
+IMPORTANT: You CAN add to Google Calendar, you CAN read Gmail, you CAN create tasks — these are real capabilities. Never tell the user you can't do something you already did.`,
         },
         ...historyMessages,
+        ...recentBlock,
         { role: "user", content: text },
       ],
     });

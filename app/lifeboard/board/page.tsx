@@ -554,7 +554,7 @@ export default function BoardPage() {
         const res = await fetch("/api/lifeboard/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: userText, history, memorySummary, cards }),
+          body: JSON.stringify({ text: userText, history, memorySummary, cards, recentMessages: chatMessages.slice(-6) }),
         });
         const data = await res.json();
         const reply = data.reply ?? "I'm here — what's on your mind?";
