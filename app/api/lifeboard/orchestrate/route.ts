@@ -3,8 +3,10 @@ import OpenAI from "openai";
 
 export async function POST(req: NextRequest) {
   try {
-    const { text } = await req.json();
+    const { text, lastAssistant } = await req.json();
     if (!text) return NextResponse.json({ intent: "chat" });
+
+    const context = lastAssistant ? `\n\nPrevious assistant message: "${lastAssistant}"` : "";
 
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -14,7 +16,7 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `Classify the user message into exactly one intent. Return JSON: { "intent": "<value>" }
+          content: `Classify the user message into exactly one intent. Use the previous assistant message for context when the user's message is vague (e.g. "please check" after an email response → gmail). Return JSON: { "intent": "<value>" }
 
 Intents:
 - "gmail" — anything about email, mail, inbox, gmail
@@ -26,6 +28,7 @@ Examples:
 "check my mail" → gmail
 "any email from school" → gmail
 "what time is the RSM competition" → gmail
+"please check" (after gmail response) → gmail
 "check my calendar" → calendar
 "what's on my schedule" → calendar
 "i need to take out the trash" → card_action
@@ -33,7 +36,7 @@ Examples:
 "put this on my calendar" → card_action
 "add hangeul contest to my calendar" → card_action
 "what should I focus on today" → chat
-"how are you" → chat`,
+"how are you" → chat${context}`,
         },
         { role: "user", content: text },
       ],

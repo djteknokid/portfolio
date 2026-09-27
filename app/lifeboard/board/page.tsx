@@ -467,10 +467,12 @@ export default function BoardPage() {
 
     // — ORCHESTRATOR —
     try {
+      // Pass last assistant message as context so "please check" follows up correctly
+      const lastAssistant = chatMessages.filter(m => m.role === "assistant").slice(-1)[0]?.text ?? "";
       const orchRes = await fetch("/api/lifeboard/orchestrate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: userText }),
+        body: JSON.stringify({ text: userText, lastAssistant }),
       });
       const { intent } = await orchRes.json();
       const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
