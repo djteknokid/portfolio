@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
 Intents:
 - "gmail" — anything about email, mail, inbox, gmail
 - "calendar" — checking or syncing their calendar (NOT adding to calendar)
-- "card_action" — creating, editing, moving, deleting a task/card
+- "calendar_add" — adding/putting something ON the calendar (write to Google Calendar, no card needed)
+- "card_action" — creating, editing, moving, deleting a task/card on the board
 - "chat" — everything else: questions, conversation, advice
 
 Examples:
@@ -33,8 +34,10 @@ Examples:
 "what's on my schedule" → calendar
 "i need to take out the trash" → card_action
 "mark workout as done" → card_action
-"put this on my calendar" → card_action
-"add hangeul contest to my calendar" → card_action
+"put this on my calendar" → calendar_add
+"put this on my calendar for 8:30am" → calendar_add
+"add hangeul contest to my calendar" → calendar_add
+"add this to google calendar" → calendar_add
 "what should I focus on today" → chat
 "how are you" → chat${context}`,
         },

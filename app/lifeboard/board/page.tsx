@@ -477,6 +477,29 @@ export default function BoardPage() {
       const { intent } = await orchRes.json();
       const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
 
+      // CALENDAR ADD (write directly, no card)
+      if (intent === "calendar_add") {
+        if (!session) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
+          return;
+        }
+        // Build context from last assistant message + user's instruction
+        const calContext = lastAssistant ? `${lastAssistant}\n\nUser instruction: ${userText}` : userText;
+        const res = await fetch("/api/lifeboard/calendar/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken, title: userText, description: calContext }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          const addedTitle = data.title ?? "the event";
+          setChatMessages(prev => [...prev, { role: "assistant", text: `Added **${addedTitle}** to your Google Calendar.` }]);
+        } else {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't add to calendar — try reconnecting Google in Settings." }]);
+        }
+        return;
+      }
+
       // CALENDAR
       if (intent === "calendar") {
         if (!session) {

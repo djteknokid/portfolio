@@ -7,13 +7,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing accessToken or title" }, { status: 400 });
   }
 
-  // Use OpenAI to extract date/time from title+description
   let startDateTime: string | null = null;
   let endDateTime: string | null = null;
   let isAllDay = true;
+  let eventTitle = title;
 
   const textHint = `${title} ${description ?? ""}`;
   const hasTimeHint = /\d{1,2}:\d{2}|\d{1,2}(am|pm)/i.test(textHint);
+
+  // Detect vague titles that need context-based extraction
+  const isVague = /^(put this|add this|this|put it|add it)/i.test(title.trim());
 
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -24,14 +27,15 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `Today is ${today}. Extract date and time from the event info. Return JSON:
-{ "start": "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS", "end": "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS", "allDay": true/false }
+          content: `Today is ${today}. Extract event info from the context. Return JSON:
+{ "title": "short event name (if original title is vague like 'put this', extract from context)", "start": "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS", "end": "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS", "allDay": true/false }
 If no date found, use tomorrow. If time found, use it and set allDay false, duration 1 hour. Use 24h format.`,
         },
-        { role: "user", content: `Event: ${textHint}` },
+        { role: "user", content: `Original title: ${title}\nContext: ${textHint}` },
       ],
     });
     const parsed = JSON.parse(completion.choices[0].message.content ?? "{}");
+    if (isVague && parsed.title) eventTitle = parsed.title;
     startDateTime = parsed.start ?? null;
     endDateTime = parsed.end ?? null;
     isAllDay = parsed.allDay ?? !hasTimeHint;
@@ -49,8 +53,8 @@ If no date found, use tomorrow. If time found, use it and set allDay false, dura
   if (!endDateTime) endDateTime = startDateTime;
 
   const event = isAllDay
-    ? { summary: title, description: description ?? "", start: { date: startDateTime.split("T")[0] }, end: { date: endDateTime.split("T")[0] } }
-    : { summary: title, description: description ?? "", start: { dateTime: startDateTime, timeZone: "America/Los_Angeles" }, end: { dateTime: endDateTime, timeZone: "America/Los_Angeles" } };
+    ? { summary: eventTitle, description: description ?? "", start: { date: startDateTime.split("T")[0] }, end: { date: endDateTime.split("T")[0] } }
+    : { summary: eventTitle, description: description ?? "", start: { dateTime: startDateTime, timeZone: "America/Los_Angeles" }, end: { dateTime: endDateTime, timeZone: "America/Los_Angeles" } };
 
   const res = await fetch(
     "https://www.googleapis.com/calendar/v3/calendars/primary/events",
@@ -70,5 +74,5 @@ If no date found, use tomorrow. If time found, use it and set allDay false, dura
   }
 
   const created = await res.json();
-  return NextResponse.json({ ok: true, eventId: created.id });
+  return NextResponse.json({ ok: true, eventId: created.id, title: eventTitle });
 }
