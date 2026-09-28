@@ -16,10 +16,23 @@ type Card = {
   points: number;
 };
 
-type ChatMessage = {
-  role: "user" | "assistant";
-  text: string;
+type HitlCalendarPayload = {
+  id: string;
+  title: string;
+  date: string;       // YYYY-MM-DD
+  time: string;       // HH:MM or ""
+  endTime: string;    // HH:MM or ""
+  location: string;
+  recurrence: string; // RRULE string or ""
+  label: string;      // display string
+  // for sync-to-board events
+  boardCard?: { description: string; status: string; category: string; points: number; user_id: string };
 };
+
+type ChatMessage =
+  | { role: "user" | "assistant"; text: string; type?: undefined }
+  | { role: "assistant"; type: "hitl_calendar"; payload: HitlCalendarPayload; resolved?: "added" | "skipped" }
+  | { role: "assistant"; type: "hitl_header"; text: string };
 
 const CATEGORY_COLOR: Record<string, string> = {
   health:        "#22c55e",
@@ -305,6 +318,101 @@ function BoardSheet({ cards, onEditCard, onDrop, onDragStart, onClose }: {
   );
 }
 
+function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
+  payload: HitlCalendarPayload;
+  resolved?: "added" | "skipped";
+  onAdd: (p: HitlCalendarPayload) => void;
+  onSkip: (id: string) => void;
+  mode: "calendar_add" | "sync";
+}) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(payload.title);
+  const [date, setDate] = useState(payload.date);
+  const [time, setTime] = useState(payload.time);
+  const [endTime, setEndTime] = useState(payload.endTime);
+  const [location, setLocation] = useState(payload.location);
+  const [recurrence, setRecurrence] = useState(payload.recurrence);
+
+  const isDone = !!resolved;
+  const addLabel = mode === "sync" ? "Add to Board" : "Add to Calendar";
+
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: "18px 18px 18px 4px", padding: "14px 16px",
+      maxWidth: "82%", opacity: isDone ? 0.5 : 1, transition: "opacity 0.2s",
+    }}>
+      <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "8px", fontWeight: 600, letterSpacing: "0.08em" }}>
+        {mode === "sync" ? "CALENDAR EVENT" : "NEW CALENDAR EVENT"}
+      </span>
+
+      {editing ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {[
+            { label: "Title", value: title, set: setTitle, type: "text" },
+            { label: "Date", value: date, set: setDate, type: "date" },
+            { label: "Start time", value: time, set: setTime, type: "time" },
+            { label: "End time", value: endTime, set: setEndTime, type: "time" },
+            { label: "Location", value: location, set: setLocation, type: "text" },
+            { label: "Recurrence (RRULE)", value: recurrence, set: setRecurrence, type: "text" },
+          ].map(({ label, value, set, type }) => (
+            <div key={label}>
+              <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</p>
+              <input type={type} value={value} onChange={e => set(e.target.value)} style={{
+                width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: "6px", padding: "6px 10px", fontSize: "13px", color: "#ffffff",
+                outline: "none", fontFamily: "inherit", boxSizing: "border-box",
+              }} />
+            </div>
+          ))}
+          <button onClick={() => setEditing(false)} style={{
+            marginTop: "4px", padding: "7px 0", background: "rgba(255,255,255,0.1)",
+            border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px",
+            fontSize: "12px", fontWeight: 600, color: "#ffffff", cursor: "pointer", fontFamily: "inherit",
+          }}>Done editing</button>
+        </div>
+      ) : (
+        <>
+          <p style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", marginBottom: "4px" }}>{title}</p>
+          {(date || payload.label) && (
+            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", marginBottom: "2px" }}>
+              {date}{time ? ` · ${time}${endTime ? `–${endTime}` : ""}` : ""}
+            </p>
+          )}
+          {location && <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "2px" }}>{location}</p>}
+          {recurrence && <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginBottom: "2px" }}>↻ {recurrence.replace("RRULE:", "")}</p>}
+        </>
+      )}
+
+      {!isDone && !editing && (
+        <div style={{ display: "flex", gap: "6px", marginTop: "12px" }}>
+          <button onClick={() => setEditing(true)} style={{
+            padding: "6px 12px", background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px",
+            fontSize: "12px", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "inherit",
+          }}>Edit</button>
+          <button onClick={() => onSkip(payload.id)} style={{
+            padding: "6px 12px", background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px",
+            fontSize: "12px", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontFamily: "inherit",
+          }}>Skip</button>
+          <button onClick={() => onAdd({ ...payload, title, date, time, endTime, location, recurrence })} style={{
+            flex: 1, padding: "6px 12px", background: "#ffffff",
+            border: "none", borderRadius: "8px",
+            fontSize: "12px", fontWeight: 700, color: "#000000", cursor: "pointer", fontFamily: "inherit",
+          }}>{addLabel}</button>
+        </div>
+      )}
+
+      {isDone && (
+        <p style={{ fontSize: "11px", color: resolved === "added" ? "rgba(34,197,94,0.7)" : "rgba(255,255,255,0.25)", marginTop: "8px", fontWeight: 600 }}>
+          {resolved === "added" ? (mode === "sync" ? "✓ Added to board" : "✓ Added to calendar") : "Skipped"}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function BoardPage() {
   const [cards, setCards] = useState<Card[]>([]);
   const [input, setInput] = useState("");
@@ -379,6 +487,52 @@ export default function BoardPage() {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages, loading]);
 
+  async function handleHitlAdd(payload: HitlCalendarPayload) {
+    const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
+    if (payload.boardCard) {
+      // Sync mode: add to board
+      await fetch("/api/lifeboard/duplicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify([{ id: payload.id, title: payload.title, ...payload.boardCard }]),
+      });
+      const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+      if (refreshed.cards) setCards(refreshed.cards);
+    } else {
+      // calendar_add mode: write to Google Calendar
+      if (!accessToken) return;
+      const start = payload.time ? `${payload.date}T${payload.time}:00` : payload.date;
+      const end = payload.endTime ? `${payload.date}T${payload.endTime}:00` : start;
+      await fetch("/api/lifeboard/calendar/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accessToken,
+          title: payload.title,
+          description: "",
+          start,
+          end,
+          location: payload.location,
+          recurrence: payload.recurrence,
+          allDay: !payload.time,
+        }),
+      });
+    }
+    setChatMessages(prev => prev.map(m =>
+      m.type === "hitl_calendar" && m.payload.id === payload.id
+        ? { ...m, resolved: "added" as const }
+        : m
+    ));
+  }
+
+  function handleHitlSkip(id: string) {
+    setChatMessages(prev => prev.map(m =>
+      m.type === "hitl_calendar" && m.payload.id === id
+        ? { ...m, resolved: "skipped" as const }
+        : m
+    ));
+  }
+
   async function handleSubmit() {
     if (!input.trim() || loading || !userId) return;
     const userText = input;
@@ -391,15 +545,12 @@ export default function BoardPage() {
     if (calCandidatesRaw) {
       const candidates: { id: string; title: string; label: string; description: string; status: string; category: string; points: number; user_id: string }[] = JSON.parse(calCandidatesRaw);
       // Use AI to interpret the user's response in context of the candidate list
-      const candidateList = candidates.map((c, i) => `${i + 1}. ${c.title}`).join(", ");
       const hitlRes = await fetch("/api/lifeboard/calendar/hitl", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: userText, candidates: candidates.map((c, i) => ({ index: i + 1, title: c.title })) }),
       });
       const hitl = await hitlRes.json();
-      // hitl.action: "add_all" | "skip_all" | "add_some" | "skip_some" | "not_relevant"
-      // hitl.indices: number[] (1-based, for add_some/skip_some)
       if (hitl.action !== "not_relevant") {
         sessionStorage.removeItem("cal_candidates");
         if (hitl.action === "skip_all") {
@@ -427,7 +578,7 @@ export default function BoardPage() {
           setChatMessages(prev => [...prev, { role: "assistant", text: `Added ${toAdd.length} event${toAdd.length !== 1 ? "s" : ""} to your board.` }]);
         } else {
           setLoading(false);
-          setChatMessages(prev => [...prev, { role: "assistant", text: `Skipped — nothing added. (List: ${candidateList})` }]);
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Skipped — nothing added." }]);
         }
         return;
       }
@@ -469,7 +620,7 @@ export default function BoardPage() {
     // — ORCHESTRATOR —
     try {
       // Pass last assistant message as context so "please check" follows up correctly
-      const lastAssistant = chatMessages.filter(m => m.role === "assistant").slice(-1)[0]?.text ?? "";
+      const lastAssistant = (chatMessages.filter(m => m.role === "assistant" && !m.type).slice(-1)[0] as { text: string } | undefined)?.text ?? "";
       const orchRes = await fetch("/api/lifeboard/orchestrate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -478,30 +629,34 @@ export default function BoardPage() {
       const { intent } = await orchRes.json();
       const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
 
-      // CALENDAR ADD (write directly, no card)
-      if (intent === "calendar_add") {        if (!session) {
+      // CALENDAR ADD — extract event details then show HITL card, don't write yet
+      if (intent === "calendar_add") {
+        if (!session) {
           setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
           return;
         }
-        // Build context from last assistant message + user's instruction
         const calContext = lastAssistant ? `${lastAssistant}\n\nUser instruction: ${userText}` : userText;
-        const res = await fetch("/api/lifeboard/calendar/create", {
+        const res = await fetch("/api/lifeboard/calendar/extract", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken, title: userText, description: calContext }),
+          body: JSON.stringify({ title: userText, description: calContext }),
         });
         const data = await res.json();
-        if (data.ok) {
-          const addedTitle = data.title ?? "the event";
-          const recurringNote = data.recurring ? " (recurring)" : "";
-          setChatMessages(prev => [...prev, { role: "assistant", text: `Added **${addedTitle}**${recurringNote} to your Google Calendar.` }]);
-        } else {
-          setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't add to calendar — try reconnecting Google in Settings." }]);
-        }
+        const hitlPayload: HitlCalendarPayload = {
+          id: `hitl-${Math.random().toString(36).slice(2, 10)}`,
+          title: data.title ?? userText,
+          date: data.date ?? "",
+          time: data.time ?? "",
+          endTime: data.endTime ?? "",
+          location: data.location ?? "",
+          recurrence: data.recurrence ?? "",
+          label: "",
+        };
+        setChatMessages(prev => [...prev, { role: "assistant", type: "hitl_calendar", payload: hitlPayload }]);
         return;
       }
 
-      // CALENDAR
+      // CALENDAR SYNC — show one HITL card per event
       if (intent === "calendar") {
         if (!session) {
           setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
@@ -516,13 +671,34 @@ export default function BoardPage() {
         if (data.error) {
           setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't reach your calendar. Try reconnecting in Settings." }]);
         } else {
-          const candidates = data.candidates ?? [];
+          const candidates: { id: string; title: string; label: string; description: string; status: string; category: string; points: number; user_id: string }[] = data.candidates ?? [];
           if (candidates.length === 0) {
             setChatMessages(prev => [...prev, { role: "assistant", text: "Your calendar is up to date — no new events to add." }]);
           } else {
-            const list = candidates.map((c: { title: string; label: string }, i: number) => `${i + 1}. **${c.title}**${c.label ? ` — ${c.label}` : ""}`).join("\n");
-            setChatMessages(prev => [...prev, { role: "assistant", text: `Found ${candidates.length} event${candidates.length !== 1 ? "s" : ""} on your calendar:\n\n${list}\n\nAdd all of them, or tell me which ones to skip.` }]);
-            sessionStorage.setItem("cal_candidates", JSON.stringify(candidates));
+            const header: ChatMessage = { role: "assistant", type: "hitl_header", text: `Found ${candidates.length} event${candidates.length !== 1 ? "s" : ""} on your calendar:` };
+            const cards: ChatMessage[] = candidates.map(c => {
+              const [datePart, timePart] = (c.label ?? "").split(" ").reduce<[string, string]>((acc, part, i, arr) => {
+                if (i <= 2) acc[0] += (acc[0] ? " " : "") + part;
+                else acc[1] += (acc[1] ? " " : "") + part;
+                return acc;
+              }, ["", ""]);
+              return {
+                role: "assistant" as const,
+                type: "hitl_calendar" as const,
+                payload: {
+                  id: c.id,
+                  title: c.title,
+                  date: datePart,
+                  time: timePart,
+                  endTime: "",
+                  location: "",
+                  recurrence: "",
+                  label: c.label,
+                  boardCard: { description: c.description, status: c.status, category: c.category, points: c.points, user_id: c.user_id },
+                },
+              };
+            });
+            setChatMessages(prev => [...prev, header, ...cards]);
           }
         }
         return;
@@ -555,7 +731,7 @@ export default function BoardPage() {
         const res = await fetch("/api/lifeboard/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: userText, history, memorySummary, cards, recentMessages: chatMessages.slice(-6) }),
+          body: JSON.stringify({ text: userText, history, memorySummary, cards, recentMessages: chatMessages.filter(m => !m.type).slice(-6) }),
         });
         const data = await res.json();
         const reply = data.reply ?? "I'm here — what's on your mind?";
@@ -958,6 +1134,24 @@ export default function BoardPage() {
             display: "flex",
             justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
           }}>
+            {msg.type === "hitl_calendar" ? (
+              <HitlCalendarCard
+                payload={msg.payload}
+                resolved={msg.resolved}
+                onAdd={handleHitlAdd}
+                onSkip={handleHitlSkip}
+                mode={msg.payload.boardCard ? "sync" : "calendar_add"}
+              />
+            ) : msg.type === "hitl_header" ? (
+              <div style={{
+                padding: "8px 14px", borderRadius: "18px 18px 18px 4px",
+                background: "rgba(255,255,255,0.07)",
+                fontSize: "13px", color: "rgba(255,255,255,0.5)",
+              }}>
+                <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "4px", fontWeight: 600, letterSpacing: "0.08em" }}>LIFEBOARD</span>
+                {msg.text}
+              </div>
+            ) : (
             <div style={{
               maxWidth: "82%",
               padding: "10px 14px",
@@ -985,6 +1179,7 @@ export default function BoardPage() {
                 );
               })}
             </div>
+            )}
           </div>
         ))}
         {loading && (
