@@ -934,6 +934,7 @@ export default function BoardPage() {
   function handleCalendarEdit(event: CalendarViewEvent) {
     const hitlPayload: HitlCalendarPayload = {
       id: `hitl-${Math.random().toString(36).slice(2, 10)}`,
+      eventId: event.id,
       title: event.title,
       date: event.date,
       time: event.time,
@@ -941,7 +942,7 @@ export default function BoardPage() {
       location: event.location,
       recurrence: "",
       guests: "",
-      label: "",
+      label: event.dateStr,
     };
     setChatMessages(prev => [...prev, { role: "assistant" as const, type: "hitl_calendar" as const, payload: hitlPayload }]);
   }
