@@ -38,6 +38,7 @@ type CalendarViewEvent = {
   time: string;
   endTime: string;
   location: string;
+  recurrence: string;
 };
 
 type HitlTargetPickerPayload = {
@@ -940,7 +941,7 @@ export default function BoardPage() {
       time: event.time,
       endTime: event.endTime,
       location: event.location,
-      recurrence: "",
+      recurrence: event.recurrence ?? "",
       guests: "",
       label: event.dateStr,
     };

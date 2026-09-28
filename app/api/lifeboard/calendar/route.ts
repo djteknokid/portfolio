@@ -103,11 +103,15 @@ export async function POST(req: NextRequest) {
 
   const calData = await calRes.json();
   const events: {
+    id?: string;
     summary?: string;
     description?: string;
     attendees?: unknown[];
     start?: { dateTime?: string; date?: string };
     end?: { dateTime?: string; date?: string };
+    recurrence?: string[];
+    recurringEventId?: string;
+    location?: string;
   }[] = calData.items ?? [];
 
   const taskEvents = events.filter(e => e.summary);
@@ -117,6 +121,23 @@ export async function POST(req: NextRequest) {
     if (taskEvents.length === 0) {
       return NextResponse.json({ events: [] });
     }
+
+    // For recurring event instances (singleEvents=true expands them), fetch parent rule
+    const parentIds = [...new Set(taskEvents.filter(e => e.recurringEventId && !e.recurrence).map(e => e.recurringEventId!))];
+    const parentRules: Record<string, string> = {};
+    await Promise.all(parentIds.map(async (pid) => {
+      try {
+        const pRes = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/primary/events/${pid}?fields=recurrence`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (pRes.ok) {
+          const pData = await pRes.json();
+          if (pData.recurrence?.[0]) parentRules[pid] = pData.recurrence[0];
+        }
+      } catch { /* ignore */ }
+    }));
+
     const events = taskEvents.map(e => {
       const start = e.start?.dateTime ?? e.start?.date ?? "";
       const end = e.end?.dateTime ?? e.end?.date ?? "";
@@ -134,13 +155,14 @@ export async function POST(req: NextRequest) {
         : "";
       const datePart = start ? start.split("T")[0] : "";
       return {
-        id: (e as { id?: string }).id ?? `cal-${Math.random().toString(36).slice(2, 10)}`,
+        id: e.id ?? `cal-${Math.random().toString(36).slice(2, 10)}`,
         title: e.summary ?? "Untitled",
         dateStr,
         date: datePart,
         time: timePart,
         endTime: endTimePart,
-        location: (e as { location?: string }).location ?? "",
+        location: e.location ?? "",
+        recurrence: e.recurrence?.[0] ?? (e.recurringEventId ? parentRules[e.recurringEventId] ?? "" : ""),
         start,
         end,
       };
