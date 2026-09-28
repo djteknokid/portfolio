@@ -326,7 +326,6 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
   onSkip: (id: string) => void;
   mode: "calendar_add" | "sync";
 }) {
-  const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(payload.title);
   const [date, setDate] = useState(payload.date);
   const [time, setTime] = useState(payload.time);
@@ -347,68 +346,47 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
         {mode === "sync" ? "CALENDAR EVENT" : "NEW CALENDAR EVENT"}
       </span>
 
-      {editing ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {[
-            { label: "Title", value: title, set: setTitle, type: "text" },
-            { label: "Date", value: date, set: setDate, type: "date" },
-            { label: "Start time", value: time, set: setTime, type: "time" },
-            { label: "End time", value: endTime, set: setEndTime, type: "time" },
-            { label: "Location", value: location, set: setLocation, type: "text" },
-            { label: "Recurrence (RRULE)", value: recurrence, set: setRecurrence, type: "text" },
-          ].map(({ label, value, set, type }) => (
-            <div key={label}>
-              <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</p>
-              <input type={type} value={value} onChange={e => set(e.target.value)} style={{
-                width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
-                borderRadius: "6px", padding: "6px 10px", fontSize: "13px", color: "#ffffff",
-                outline: "none", fontFamily: "inherit", boxSizing: "border-box",
-              }} />
-            </div>
-          ))}
-          <button onClick={() => setEditing(false)} style={{
-            marginTop: "4px", padding: "7px 0", background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px",
-            fontSize: "12px", fontWeight: 600, color: "#ffffff", cursor: "pointer", fontFamily: "inherit",
-          }}>Done editing</button>
-        </div>
-      ) : (
+      {isDone ? (
         <>
           <p style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", marginBottom: "4px" }}>{title}</p>
-          {(date || payload.label) && (
-            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", marginBottom: "2px" }}>
-              {date}{time ? ` · ${time}${endTime ? `–${endTime}` : ""}` : ""}
-            </p>
-          )}
-          {location && <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "2px" }}>{location}</p>}
-          {recurrence && <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginBottom: "2px" }}>↻ {recurrence.replace("RRULE:", "")}</p>}
+          <p style={{ fontSize: "11px", color: resolved === "added" ? "rgba(34,197,94,0.7)" : "rgba(255,255,255,0.25)", marginTop: "4px", fontWeight: 600 }}>
+            {resolved === "added" ? (mode === "sync" ? "✓ Added to board" : "✓ Added to calendar") : "Skipped"}
+          </p>
         </>
-      )}
-
-      {!isDone && !editing && (
-        <div style={{ display: "flex", gap: "6px", marginTop: "12px" }}>
-          <button onClick={() => setEditing(true)} style={{
-            padding: "6px 12px", background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px",
-            fontSize: "12px", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "inherit",
-          }}>Edit</button>
-          <button onClick={() => onSkip(payload.id)} style={{
-            padding: "6px 12px", background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px",
-            fontSize: "12px", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontFamily: "inherit",
-          }}>Skip</button>
-          <button onClick={() => onAdd({ ...payload, title, date, time, endTime, location, recurrence })} style={{
-            flex: 1, padding: "6px 12px", background: "#ffffff",
-            border: "none", borderRadius: "8px",
-            fontSize: "12px", fontWeight: 700, color: "#000000", cursor: "pointer", fontFamily: "inherit",
-          }}>{addLabel}</button>
-        </div>
-      )}
-
-      {isDone && (
-        <p style={{ fontSize: "11px", color: resolved === "added" ? "rgba(34,197,94,0.7)" : "rgba(255,255,255,0.25)", marginTop: "8px", fontWeight: 600 }}>
-          {resolved === "added" ? (mode === "sync" ? "✓ Added to board" : "✓ Added to calendar") : "Skipped"}
-        </p>
+      ) : (
+        <>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {[
+              { label: "Title", value: title, set: setTitle, type: "text" },
+              { label: "Date", value: date, set: setDate, type: "date" },
+              { label: "Start time", value: time, set: setTime, type: "time" },
+              { label: "End time", value: endTime, set: setEndTime, type: "time" },
+              { label: "Location", value: location, set: setLocation, type: "text" },
+              { label: "Recurrence (RRULE)", value: recurrence, set: setRecurrence, type: "text" },
+            ].map(({ label, value, set, type }) => (
+              <div key={label}>
+                <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</p>
+                <input type={type} value={value} onChange={e => set(e.target.value)} style={{
+                  width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: "6px", padding: "6px 10px", fontSize: "13px", color: "#ffffff",
+                  outline: "none", fontFamily: "inherit", boxSizing: "border-box",
+                }} />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "6px", marginTop: "12px" }}>
+            <button onClick={() => onSkip(payload.id)} style={{
+              padding: "6px 14px", background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px",
+              fontSize: "12px", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontFamily: "inherit",
+            }}>Skip</button>
+            <button onClick={() => onAdd({ ...payload, title, date, time, endTime, location, recurrence })} style={{
+              flex: 1, padding: "6px 12px", background: "#ffffff",
+              border: "none", borderRadius: "8px",
+              fontSize: "12px", fontWeight: 700, color: "#000000", cursor: "pointer", fontFamily: "inherit",
+            }}>{addLabel}</button>
+          </div>
+        </>
       )}
     </div>
   );
