@@ -96,18 +96,37 @@ export async function POST(req: NextRequest) {
   // VIEW ONLY — return plain text summary
   if (viewOnly) {
     if (taskEvents.length === 0) {
-      return NextResponse.json({ summary: "No events found for that period." });
+      return NextResponse.json({ events: [] });
     }
-    const lines = taskEvents.map(e => {
+    const events = taskEvents.map(e => {
       const start = e.start?.dateTime ?? e.start?.date ?? "";
+      const end = e.end?.dateTime ?? e.end?.date ?? "";
       const date = start ? new Date(start) : null;
       const dateStr = date
         ? date.toLocaleDateString("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" }) +
           (e.start?.dateTime ? ", " + date.toLocaleTimeString("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit" }) : "")
         : "";
-      return `• **${e.summary}**${dateStr ? ` — ${dateStr}` : ""}`;
+      // Extract HH:MM from dateTime for HITL pre-fill
+      const timePart = e.start?.dateTime
+        ? new Date(e.start.dateTime).toLocaleTimeString("en-US", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false })
+        : "";
+      const endTimePart = e.end?.dateTime
+        ? new Date(e.end.dateTime).toLocaleTimeString("en-US", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false })
+        : "";
+      const datePart = start ? start.split("T")[0] : "";
+      return {
+        id: (e as { id?: string }).id ?? `cal-${Math.random().toString(36).slice(2, 10)}`,
+        title: e.summary ?? "Untitled",
+        dateStr,
+        date: datePart,
+        time: timePart,
+        endTime: endTimePart,
+        location: (e as { location?: string }).location ?? "",
+        start,
+        end,
+      };
     });
-    return NextResponse.json({ summary: lines.join("\n") });
+    return NextResponse.json({ events });
   }
 
   // SYNC MODE — return candidates for HITL board cards

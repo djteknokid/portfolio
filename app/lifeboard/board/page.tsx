@@ -29,6 +29,16 @@ type HitlCalendarPayload = {
   boardCard?: { description: string; status: string; category: string; points: number; user_id: string };
 };
 
+type CalendarViewEvent = {
+  id: string;
+  title: string;
+  dateStr: string;
+  date: string;
+  time: string;
+  endTime: string;
+  location: string;
+};
+
 type HitlTargetPickerPayload = {
   id: string;
   userText: string;
@@ -38,6 +48,7 @@ type HitlTargetPickerPayload = {
 type ChatMessage =
   | { role: "user" | "assistant"; text: string; type?: undefined }
   | { role: "assistant"; type: "hitl_target_picker"; payload: HitlTargetPickerPayload; resolved?: "board" | "calendar" | "dismissed" }
+  | { role: "assistant"; type: "hitl_calendar_list"; events: CalendarViewEvent[] }
   | { role: "assistant"; type: "hitl_calendar"; payload: HitlCalendarPayload; resolved?: "added" | "skipped" }
   | { role: "assistant"; type: "hitl_calendar_delete"; event: { id: string; title: string; date: string }; resolved?: "deleted" | "kept" }
   | { role: "assistant"; type: "hitl_header"; text: string };
@@ -321,6 +332,60 @@ function BoardSheet({ cards, onEditCard, onDrop, onDragStart, onClose }: {
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function CalendarEventList({ events, onEdit, onRemove }: {
+  events: CalendarViewEvent[];
+  onEdit: (event: CalendarViewEvent) => void;
+  onRemove: (event: CalendarViewEvent) => void;
+}) {
+  if (events.length === 0) {
+    return (
+      <div style={{
+        background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: "18px 18px 18px 4px", padding: "14px 16px", maxWidth: "82%",
+      }}>
+        <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "6px", fontWeight: 600, letterSpacing: "0.08em" }}>CALENDAR</span>
+        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>No events found for that period.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: "18px 18px 18px 4px", padding: "14px 16px", maxWidth: "82%",
+    }}>
+      <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "10px", fontWeight: 600, letterSpacing: "0.08em" }}>CALENDAR</span>
+      <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+        {events.map((e, i) => (
+          <div key={e.id} style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "7px 0",
+            borderTop: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none",
+            gap: "10px",
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff", marginBottom: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</p>
+              {e.dateStr && <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>{e.dateStr}</p>}
+            </div>
+            <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+              <button onClick={() => onEdit(e)} style={{
+                padding: "3px 9px", background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px",
+                fontSize: "11px", color: "rgba(255,255,255,0.45)", cursor: "pointer", fontFamily: "inherit",
+              }}>Edit</button>
+              <button onClick={() => onRemove(e)} style={{
+                padding: "3px 9px", background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.2)", borderRadius: "6px",
+                fontSize: "11px", color: "rgba(239,68,68,0.6)", cursor: "pointer", fontFamily: "inherit",
+              }}>Remove</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -677,6 +742,29 @@ export default function BoardPage() {
     }
   }
 
+  function handleCalendarEdit(event: CalendarViewEvent) {
+    const hitlPayload: HitlCalendarPayload = {
+      id: `hitl-${Math.random().toString(36).slice(2, 10)}`,
+      title: event.title,
+      date: event.date,
+      time: event.time,
+      endTime: event.endTime,
+      location: event.location,
+      recurrence: "",
+      guests: "",
+      label: "",
+    };
+    setChatMessages(prev => [...prev, { role: "assistant" as const, type: "hitl_calendar" as const, payload: hitlPayload }]);
+  }
+
+  function handleCalendarRemove(event: CalendarViewEvent) {
+    setChatMessages(prev => [...prev, {
+      role: "assistant" as const,
+      type: "hitl_calendar_delete" as const,
+      event: { id: event.id, title: event.title, date: event.dateStr },
+    }]);
+  }
+
   async function handleSubmit() {
     if (!input.trim() || loading || !userId) return;
     const userText = input;
@@ -853,10 +941,8 @@ export default function BoardPage() {
         const data = await res.json();
         if (data.error) {
           setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't reach your calendar. Try reconnecting in Settings." }]);
-        } else if (data.summary) {
-          setChatMessages(prev => [...prev, { role: "assistant", text: data.summary }]);
         } else {
-          setChatMessages(prev => [...prev, { role: "assistant", text: "No events found for that period." }]);
+          setChatMessages(prev => [...prev, { role: "assistant" as const, type: "hitl_calendar_list" as const, events: data.events ?? [] }]);
         }
         return;
       }
@@ -1345,6 +1431,12 @@ export default function BoardPage() {
                 payload={msg.payload}
                 resolved={msg.resolved}
                 onPick={handleTargetPick}
+              />
+            ) : msg.type === "hitl_calendar_list" ? (
+              <CalendarEventList
+                events={msg.events}
+                onEdit={handleCalendarEdit}
+                onRemove={handleCalendarRemove}
               />
             ) : msg.type === "hitl_calendar" ? (
               <HitlCalendarCard
