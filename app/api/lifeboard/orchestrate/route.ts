@@ -20,34 +20,41 @@ export async function POST(req: NextRequest) {
 
 Intents:
 - "gmail" — anything about email, mail, inbox, gmail
-- "calendar" — ONLY explicit requests to CHECK or SYNC the calendar (must include words like check/sync/show/see/what's on)
-- "calendar_add" — explicitly adding/putting a specific event ON the calendar
-- "calendar_delete" — removing, deleting, or cancelling a specific event from the calendar
-- "card_action" — creating, editing, moving, deleting a task/card on the board
-- "chat" — everything else: questions, follow-ups, confusion, conversation, vague messages, anything ambiguous
+- "calendar_view" — user wants to SEE or READ their calendar events (what do I have, what's on, show me, any events today/this week)
+- "calendar_sync" — user explicitly wants to SYNC calendar events TO their board ("sync my calendar", "add calendar events to my board")
+- "calendar_add" — explicitly adding something to the CALENDAR ("put on my calendar", "add to google calendar", "schedule it")
+- "calendar_delete" — removing something from the CALENDAR specifically ("remove from calendar", "delete from google calendar")
+- "card_action" — explicitly adding/removing/editing a task or card on the BOARD ("add to board", "add a task", "mark as done")
+- "ambiguous_add" — user wants to add something but hasn't said board vs calendar ("add dentist appointment", "put swim class on", "add this")
+- "ambiguous_remove" — user wants to remove something but hasn't said board vs calendar ("remove dentist", "delete swim class", "cancel workout")
+- "chat" — everything else: questions, follow-ups, conversation, vague messages
 
-IMPORTANT: When in doubt → "chat". Only use calendar/gmail/card_action when the intent is unambiguous.
+IMPORTANT: Use "ambiguous_add" / "ambiguous_remove" when the target is unclear. When in doubt → "chat".
 
 Examples:
 "check my mail" → gmail
-"any email from school" → gmail
-"what time is the RSM competition" → gmail
-"please check" (after gmail response) → gmail
-"check my calendar" → calendar
-"what's on my schedule" → calendar
-"sync my calendar" → calendar
+"check my calendar" → calendar_view
+"what events do I have this week" → calendar_view
+"what's on my schedule" → calendar_view
+"what do I have today" → calendar_view
+"do I have anything tomorrow" → calendar_view
+"sync my calendar to my board" → calendar_sync
+"add calendar events to my board" → calendar_sync
 "i need to take out the trash" → card_action
+"add a task to workout" → card_action
 "mark workout as done" → card_action
 "put this on my calendar for 8:30am" → calendar_add
 "add hangeul contest to my calendar" → calendar_add
 "add this to google calendar" → calendar_add
 "remove the swimming event from the calendar" → calendar_delete
-"delete the basketball event" → calendar_delete
-"cancel my dentist appointment" → calendar_delete
+"delete from google calendar" → calendar_delete
+"add dentist appointment Tuesday" → ambiguous_add
+"add swim class 6pm" → ambiguous_add
+"schedule basketball practice" → ambiguous_add
+"delete my dentist appointment" → ambiguous_remove
+"remove swim class" → ambiguous_remove
+"cancel basketball" → ambiguous_remove
 "what?" → chat
-"did you put that on the right date?" → chat
-"you said you put that on my calendar did you" → chat
-"what do you mean?" → chat
 "what should I focus on today" → chat
 "how are you" → chat${context}`,
         },

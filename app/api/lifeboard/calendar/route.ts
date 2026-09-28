@@ -54,9 +54,12 @@ Rules:
 }
 
 export async function POST(req: NextRequest) {
-  const { accessToken, user_id, query, timezone } = await req.json();
-  if (!accessToken || !user_id) {
-    return NextResponse.json({ error: "Missing accessToken or user_id" }, { status: 400 });
+  const { accessToken, user_id, query, timezone, viewOnly } = await req.json();
+  if (!accessToken) {
+    return NextResponse.json({ error: "Missing accessToken" }, { status: 400 });
+  }
+  if (!viewOnly && !user_id) {
+    return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
   }
 
   const tz = timezone || "America/Los_Angeles";
@@ -90,6 +93,24 @@ export async function POST(req: NextRequest) {
 
   const taskEvents = events.filter(e => e.summary);
 
+  // VIEW ONLY — return plain text summary
+  if (viewOnly) {
+    if (taskEvents.length === 0) {
+      return NextResponse.json({ summary: "No events found for that period." });
+    }
+    const lines = taskEvents.map(e => {
+      const start = e.start?.dateTime ?? e.start?.date ?? "";
+      const date = start ? new Date(start) : null;
+      const dateStr = date
+        ? date.toLocaleDateString("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" }) +
+          (e.start?.dateTime ? ", " + date.toLocaleTimeString("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit" }) : "")
+        : "";
+      return `• **${e.summary}**${dateStr ? ` — ${dateStr}` : ""}`;
+    });
+    return NextResponse.json({ summary: lines.join("\n") });
+  }
+
+  // SYNC MODE — return candidates for HITL board cards
   const supabase = getSupabase();
   const { data: existing } = await supabase
     .from("lifeboard_cards")

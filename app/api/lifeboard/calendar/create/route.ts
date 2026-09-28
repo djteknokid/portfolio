@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
 export async function POST(req: NextRequest) {
-  const { accessToken, title, description, start: preStart, end: preEnd, location: preLocation, recurrence: preRecurrence, allDay: preAllDay } = await req.json();
+  const { accessToken, title, description, start: preStart, end: preEnd, location: preLocation, recurrence: preRecurrence, allDay: preAllDay, guests } = await req.json();
   if (!accessToken || !title) {
     return NextResponse.json({ error: "Missing accessToken or title" }, { status: 400 });
   }
@@ -70,6 +70,7 @@ If time found, set allDay false, use 24h format.`,
     description: description ?? "",
     ...(eventLocation ? { location: eventLocation } : {}),
     ...(recurrenceRule ? { recurrence: [recurrenceRule] } : {}),
+    ...(guests ? { attendees: guests.split(",").map((e: string) => ({ email: e.trim() })).filter((a: { email: string }) => a.email) } : {}),
   };
 
   const event = isAllDay

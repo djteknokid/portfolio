@@ -19,18 +19,25 @@ type Card = {
 type HitlCalendarPayload = {
   id: string;
   title: string;
-  date: string;       // YYYY-MM-DD
-  time: string;       // HH:MM or ""
-  endTime: string;    // HH:MM or ""
+  date: string;
+  time: string;
+  endTime: string;
   location: string;
-  recurrence: string; // RRULE string or ""
-  label: string;      // display string
-  // for sync-to-board events
+  recurrence: string;
+  guests: string;   // comma-separated emails
+  label: string;
   boardCard?: { description: string; status: string; category: string; points: number; user_id: string };
+};
+
+type HitlTargetPickerPayload = {
+  id: string;
+  userText: string;
+  intent: "add" | "remove" | "edit";
 };
 
 type ChatMessage =
   | { role: "user" | "assistant"; text: string; type?: undefined }
+  | { role: "assistant"; type: "hitl_target_picker"; payload: HitlTargetPickerPayload; resolved?: "board" | "calendar" | "dismissed" }
   | { role: "assistant"; type: "hitl_calendar"; payload: HitlCalendarPayload; resolved?: "added" | "skipped" }
   | { role: "assistant"; type: "hitl_calendar_delete"; event: { id: string; title: string; date: string }; resolved?: "deleted" | "kept" }
   | { role: "assistant"; type: "hitl_header"; text: string };
@@ -319,6 +326,62 @@ function BoardSheet({ cards, onEditCard, onDrop, onDragStart, onClose }: {
   );
 }
 
+function HitlTargetPicker({ payload, resolved, onPick }: {
+  payload: HitlTargetPickerPayload;
+  resolved?: "board" | "calendar" | "dismissed";
+  onPick: (id: string, target: "board" | "calendar") => void;
+}) {
+  const actionLabel = payload.intent === "add" ? "Add" : payload.intent === "remove" ? "Remove" : "Edit";
+
+  if (resolved) {
+    return (
+      <div style={{
+        background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: "18px 18px 18px 4px", padding: "12px 16px", maxWidth: "82%", opacity: 0.5,
+      }}>
+        <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "6px", fontWeight: 600, letterSpacing: "0.08em" }}>WHERE</span>
+        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>
+          {resolved === "board" ? "→ Board" : resolved === "calendar" ? "→ Calendar" : "Dismissed"}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: "18px 18px 18px 4px", padding: "14px 16px", maxWidth: "82%",
+    }}>
+      <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "8px", fontWeight: 600, letterSpacing: "0.08em" }}>WHERE</span>
+      <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.75)", marginBottom: "12px", lineHeight: 1.4 }}>
+        {actionLabel} on your <strong>Board</strong> or <strong>Calendar</strong>?
+      </p>
+      <div style={{ display: "flex", gap: "8px" }}>
+        <button onClick={() => onPick(payload.id, "board")} style={{
+          flex: 1, padding: "8px 12px",
+          background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
+          borderRadius: "10px", fontSize: "13px", fontWeight: 600,
+          color: "rgba(255,255,255,0.8)", cursor: "pointer", fontFamily: "inherit",
+          display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+        }}>
+          <span style={{ fontSize: "16px" }}>☰</span>
+          Board
+        </button>
+        <button onClick={() => onPick(payload.id, "calendar")} style={{
+          flex: 1, padding: "8px 12px",
+          background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
+          borderRadius: "10px", fontSize: "13px", fontWeight: 600,
+          color: "rgba(255,255,255,0.8)", cursor: "pointer", fontFamily: "inherit",
+          display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+        }}>
+          <span style={{ fontSize: "16px" }}>◻</span>
+          Calendar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
   payload: HitlCalendarPayload;
   resolved?: "added" | "skipped";
@@ -332,6 +395,7 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
   const [endTime, setEndTime] = useState(payload.endTime);
   const [location, setLocation] = useState(payload.location);
   const [recurrence, setRecurrence] = useState(payload.recurrence);
+  const [guests, setGuests] = useState(payload.guests ?? "");
 
   const isDone = !!resolved;
   const addLabel = mode === "sync" ? "Add to Board" : "Add to Calendar";
@@ -362,6 +426,7 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
               { label: "Start time", value: time, set: setTime, type: "time" },
               { label: "End time", value: endTime, set: setEndTime, type: "time" },
               { label: "Location", value: location, set: setLocation, type: "text" },
+              { label: "Guests (comma-separated emails)", value: guests, set: setGuests, type: "text" },
               { label: "Recurrence (RRULE)", value: recurrence, set: setRecurrence, type: "text" },
             ].map(({ label, value, set, type }) => (
               <div key={label}>
@@ -380,7 +445,7 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
               border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px",
               fontSize: "12px", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontFamily: "inherit",
             }}>Skip</button>
-            <button onClick={() => onAdd({ ...payload, title, date, time, endTime, location, recurrence })} style={{
+            <button onClick={() => onAdd({ ...payload, title, date, time, endTime, location, recurrence, guests })} style={{
               flex: 1, padding: "6px 12px", background: "#ffffff",
               border: "none", borderRadius: "8px",
               fontSize: "12px", fontWeight: 700, color: "#000000", cursor: "pointer", fontFamily: "inherit",
@@ -494,6 +559,7 @@ export default function BoardPage() {
           location: payload.location,
           recurrence: payload.recurrence,
           allDay: !payload.time,
+          guests: payload.guests,
         }),
       });
     }
@@ -532,6 +598,83 @@ export default function BoardPage() {
         ? { ...m, resolved: "kept" as const }
         : m
     ));
+  }
+
+  async function handleTargetPick(pickerId: string, target: "board" | "calendar") {
+    // Find the picker to get the original userText and intent
+    const picker = chatMessages.find(m => m.type === "hitl_target_picker" && m.payload.id === pickerId);
+    if (!picker || picker.type !== "hitl_target_picker") return;
+    const { userText, intent } = picker.payload;
+
+    // Mark picker as resolved
+    setChatMessages(prev => prev.map(m =>
+      m.type === "hitl_target_picker" && m.payload.id === pickerId
+        ? { ...m, resolved: target as "board" | "calendar" }
+        : m
+    ));
+
+    setLoading(true);
+    const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
+
+    try {
+      if (target === "calendar") {
+        if (intent === "add") {
+          const lastAssistant = (chatMessages.filter(m => m.role === "assistant" && !m.type).slice(-1)[0] as { text: string } | undefined)?.text ?? "";
+          const calContext = lastAssistant ? `${lastAssistant}\n\nUser instruction: ${userText}` : userText;
+          const res = await fetch("/api/lifeboard/calendar/extract", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: userText, description: calContext }),
+          });
+          const data = await res.json();
+          const hitlPayload: HitlCalendarPayload = {
+            id: `hitl-${Math.random().toString(36).slice(2, 10)}`,
+            title: data.title ?? userText,
+            date: data.date ?? "",
+            time: data.time ?? "",
+            endTime: data.endTime ?? "",
+            location: data.location ?? "",
+            recurrence: data.recurrence ?? "",
+            guests: data.guests ?? "",
+            label: "",
+          };
+          setChatMessages(prev => [...prev, { role: "assistant" as const, type: "hitl_calendar" as const, payload: hitlPayload }]);
+        } else if (intent === "remove") {
+          const res = await fetch("/api/lifeboard/calendar/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accessToken, query: userText, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+          });
+          const data = await res.json();
+          if (data.confirm) {
+            setChatMessages(prev => [...prev, { role: "assistant" as const, type: "hitl_calendar_delete" as const, event: data.event }]);
+          } else {
+            setChatMessages(prev => [...prev, { role: "assistant", text: data.message ?? "Couldn't find that event on your calendar." }]);
+          }
+        }
+      } else {
+        // Board target — run card action
+        const res = await fetch("/api/lifeboard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: userText, existingCards: cards, history, memorySummary, user_id: userId }),
+        });
+        const data = await res.json();
+        const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
+        if (refreshed.cards) setCards(refreshed.cards);
+        const reply = data.reply ?? (data.mode === "create" && data.cards?.length
+          ? (() => {
+              const lines = data.cards.map((c: { title: string; description?: string; points?: number }) =>
+                `• ${c.title} (${c.points ?? 1} pt${(c.points ?? 1) !== 1 ? "s" : ""})${c.description ? ` — ${c.description}` : ""}`
+              );
+              return `Added ${data.cards.length} card${data.cards.length !== 1 ? "s" : ""}:\n\n${lines.join("\n")}`;
+            })()
+          : "Done.");
+        setChatMessages(prev => [...prev, { role: "assistant", text: reply }]);
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSubmit() {
@@ -642,9 +785,7 @@ export default function BoardPage() {
           body: JSON.stringify({ accessToken, query: userText, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
         });
         const data = await res.json();
-        if (data.deleted) {
-          setChatMessages(prev => [...prev, { role: "assistant", text: `Removed **${data.title}** from your Google Calendar.` }]);
-        } else if (data.confirm) {
+        if (data.confirm) {
           setChatMessages(prev => [...prev, { role: "assistant" as const, type: "hitl_calendar_delete" as const, event: data.event }]);
         } else {
           setChatMessages(prev => [...prev, { role: "assistant", text: data.message ?? "Couldn't find that event on your calendar." }]);
@@ -673,14 +814,55 @@ export default function BoardPage() {
           endTime: data.endTime ?? "",
           location: data.location ?? "",
           recurrence: data.recurrence ?? "",
+          guests: data.guests ?? "",
           label: "",
         };
-        setChatMessages(prev => [...prev, { role: "assistant", type: "hitl_calendar", payload: hitlPayload }]);
+        setChatMessages(prev => [...prev, { role: "assistant" as const, type: "hitl_calendar" as const, payload: hitlPayload }]);
+        return;
+      }
+
+      // AMBIGUOUS ADD — show board vs calendar picker
+      if (intent === "ambiguous_add") {
+        setChatMessages(prev => [...prev, {
+          role: "assistant" as const, type: "hitl_target_picker" as const,
+          payload: { id: `picker-${Math.random().toString(36).slice(2, 10)}`, userText, intent: "add" as const },
+        }]);
+        return;
+      }
+
+      // AMBIGUOUS REMOVE — show board vs calendar picker
+      if (intent === "ambiguous_remove") {
+        setChatMessages(prev => [...prev, {
+          role: "assistant" as const, type: "hitl_target_picker" as const,
+          payload: { id: `picker-${Math.random().toString(36).slice(2, 10)}`, userText, intent: "remove" as const },
+        }]);
+        return;
+      }
+
+      // CALENDAR VIEW — plain text list of events
+      if (intent === "calendar_view") {
+        if (!session) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
+          return;
+        }
+        const res = await fetch("/api/lifeboard/calendar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken, user_id: userId, query: userText, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, viewOnly: true }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't reach your calendar. Try reconnecting in Settings." }]);
+        } else if (data.summary) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: data.summary }]);
+        } else {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "No events found for that period." }]);
+        }
         return;
       }
 
       // CALENDAR SYNC — show one HITL card per event
-      if (intent === "calendar") {
+      if (intent === "calendar_sync") {
         if (!session) {
           setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
           return;
@@ -716,6 +898,7 @@ export default function BoardPage() {
                   endTime: "",
                   location: "",
                   recurrence: "",
+                  guests: "",
                   label: c.label,
                   boardCard: { description: c.description, status: c.status, category: c.category, points: c.points, user_id: c.user_id },
                 },
@@ -1157,7 +1340,13 @@ export default function BoardPage() {
             display: "flex",
             justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
           }}>
-            {msg.type === "hitl_calendar" ? (
+            {msg.type === "hitl_target_picker" ? (
+              <HitlTargetPicker
+                payload={msg.payload}
+                resolved={msg.resolved}
+                onPick={handleTargetPick}
+              />
+            ) : msg.type === "hitl_calendar" ? (
               <HitlCalendarCard
                 payload={msg.payload}
                 resolved={msg.resolved}

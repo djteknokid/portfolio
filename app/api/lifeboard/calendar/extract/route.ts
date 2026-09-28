@@ -23,7 +23,8 @@ export async function POST(req: NextRequest) {
   "time": "HH:MM (24h) or empty string",
   "endTime": "HH:MM (24h) or empty string",
   "location": "venue/address if explicitly mentioned, else empty string",
-  "recurrence": "RRULE string if recurring, else empty string"
+  "recurrence": "RRULE string if recurring, else empty string",
+  "guests": "comma-separated email addresses if mentioned, else empty string"
 }
 - "every Tuesday" → recurrence: "RRULE:FREQ=WEEKLY;BYDAY=TU"
 - "every weekday" → recurrence: "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"
@@ -52,7 +53,8 @@ Return JSON with the same shape, only filling in fields that were empty. Do not 
   "time": "keep existing or best guess from event type",
   "endTime": "keep existing or infer from duration (swim class ~45min, basketball ~2h, etc.)",
   "location": "keep existing or suggest full address if you know the venue",
-  "recurrence": "keep existing"
+  "recurrence": "keep existing",
+  "guests": "keep existing"
 }`,
         },
         {
@@ -77,8 +79,9 @@ Fill in any empty fields with smart defaults.`,
       endTime: extracted.endTime || enriched.endTime || "",
       location: extracted.location || enriched.location || "",
       recurrence: extracted.recurrence || enriched.recurrence || "",
+      guests: extracted.guests || enriched.guests || "",
     });
   } catch {
-    return NextResponse.json({ title, date: "", time: "", endTime: "", location: "", recurrence: "" });
+    return NextResponse.json({ title, date: "", time: "", endTime: "", location: "", recurrence: "", guests: "" });
   }
 }
