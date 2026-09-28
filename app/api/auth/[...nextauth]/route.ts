@@ -41,8 +41,15 @@ const handler = NextAuth({
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
-        token.expiresAt = account.expires_at; // seconds since epoch
+        // expires_at from Google is already seconds since epoch
+        token.expiresAt = account.expires_at ?? Math.floor(Date.now() / 1000) + 3600;
+        token.error = undefined;
         return token;
+      }
+
+      // No expiry stored — treat as expired to force refresh
+      if (!token.expiresAt) {
+        token.expiresAt = 0;
       }
 
       // Token still valid
@@ -51,11 +58,17 @@ const handler = NextAuth({
       }
 
       // Token expired — refresh it
+      if (!token.refreshToken) {
+        token.error = "RefreshAccessTokenError";
+        return token;
+      }
+
       try {
         const refreshed = await refreshAccessToken(token.refreshToken as string);
         token.accessToken = refreshed.accessToken;
         token.refreshToken = refreshed.refreshToken;
         token.expiresAt = refreshed.expiresAt;
+        token.error = undefined;
       } catch (err) {
         console.error("Token refresh failed:", err);
         token.error = "RefreshAccessTokenError";

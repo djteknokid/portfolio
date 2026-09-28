@@ -698,6 +698,18 @@ export default function BoardPage() {
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { data: session } = useSession();
+  const sessionError = (session as typeof session & { error?: string })?.error;
+
+  // Auto-prompt reconnect when token refresh fails
+  useEffect(() => {
+    if (sessionError === "RefreshAccessTokenError") {
+      setChatMessages(prev => {
+        const alreadyShown = prev.some(m => m.type === undefined && m.role === "assistant" && m.text?.includes("reconnect Google"));
+        if (alreadyShown) return prev;
+        return [...prev, { role: "assistant" as const, text: "Your Google connection expired. Tap the profile icon → Settings → reconnect Google to restore calendar and Gmail access." }];
+      });
+    }
+  }, [sessionError]);
 
   const points = cards.filter(c => c.status === "done").reduce((sum, c) => sum + (c.points ?? 1), 0);
 
