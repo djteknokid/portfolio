@@ -447,6 +447,150 @@ function HitlTargetPicker({ payload, resolved, onPick }: {
   );
 }
 
+type RecurrenceState = {
+  freq: "none" | "daily" | "weekly" | "monthly" | "yearly";
+  interval: number;
+  days: string[]; // SU,MO,TU,WE,TH,FR,SA
+  endsType: "never" | "on" | "after";
+  endsDate: string;
+  endsCount: number;
+};
+
+const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+const DAY_KEYS = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+
+function rruleFromState(r: RecurrenceState): string {
+  if (r.freq === "none") return "";
+  const freqMap = { daily: "DAILY", weekly: "WEEKLY", monthly: "MONTHLY", yearly: "YEARLY" };
+  let rule = `RRULE:FREQ=${freqMap[r.freq]}`;
+  if (r.interval > 1) rule += `;INTERVAL=${r.interval}`;
+  if (r.freq === "weekly" && r.days.length > 0) rule += `;BYDAY=${r.days.join(",")}`;
+  if (r.endsType === "on" && r.endsDate) rule += `;UNTIL=${r.endsDate.replace(/-/g, "")}T000000Z`;
+  if (r.endsType === "after" && r.endsCount > 0) rule += `;COUNT=${r.endsCount}`;
+  return rule;
+}
+
+function stateFromRrule(rrule: string): RecurrenceState {
+  const defaults: RecurrenceState = { freq: "none", interval: 1, days: [], endsType: "never", endsDate: "", endsCount: 13 };
+  if (!rrule) return defaults;
+  const freqMatch = rrule.match(/FREQ=(\w+)/);
+  const intervalMatch = rrule.match(/INTERVAL=(\d+)/);
+  const bydayMatch = rrule.match(/BYDAY=([\w,]+)/);
+  const untilMatch = rrule.match(/UNTIL=(\d{8})/);
+  const countMatch = rrule.match(/COUNT=(\d+)/);
+  const freqMap: Record<string, RecurrenceState["freq"]> = { DAILY: "daily", WEEKLY: "weekly", MONTHLY: "monthly", YEARLY: "yearly" };
+  return {
+    freq: freqMatch ? (freqMap[freqMatch[1]] ?? "none") : "none",
+    interval: intervalMatch ? parseInt(intervalMatch[1]) : 1,
+    days: bydayMatch ? bydayMatch[1].split(",") : [],
+    endsType: untilMatch ? "on" : countMatch ? "after" : "never",
+    endsDate: untilMatch ? `${untilMatch[1].slice(0, 4)}-${untilMatch[1].slice(4, 6)}-${untilMatch[1].slice(6, 8)}` : "",
+    endsCount: countMatch ? parseInt(countMatch[1]) : 13,
+  };
+}
+
+function RecurrencePicker({ value, onChange }: { value: string; onChange: (rrule: string) => void }) {
+  const [state, setState] = useState<RecurrenceState>(() => stateFromRrule(value));
+
+  function update(patch: Partial<RecurrenceState>) {
+    const next = { ...state, ...patch };
+    setState(next);
+    onChange(rruleFromState(next));
+  }
+
+  const inputStyle: React.CSSProperties = {
+    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "6px", padding: "5px 8px", fontSize: "12px", color: "#ffffff",
+    outline: "none", fontFamily: "inherit", width: "52px", textAlign: "center",
+  };
+  const selectStyle: React.CSSProperties = {
+    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "6px", padding: "5px 8px", fontSize: "12px", color: "#ffffff",
+    outline: "none", fontFamily: "inherit", cursor: "pointer",
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      {/* Frequency row */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap" }}>Repeat</span>
+        <select value={state.freq} onChange={e => update({ freq: e.target.value as RecurrenceState["freq"] })} style={{ ...selectStyle, flex: 1 }}>
+          <option value="none">Does not repeat</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </div>
+
+      {state.freq !== "none" && (
+        <>
+          {/* Interval */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap" }}>Every</span>
+            <input type="number" min={1} max={99} value={state.interval} onChange={e => update({ interval: Math.max(1, parseInt(e.target.value) || 1) })} style={inputStyle} />
+            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+              {{ daily: "day(s)", weekly: "week(s)", monthly: "month(s)", yearly: "year(s)", none: "" }[state.freq]}
+            </span>
+          </div>
+
+          {/* Day picker (weekly only) */}
+          {state.freq === "weekly" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>Repeat on</span>
+              <div style={{ display: "flex", gap: "5px" }}>
+                {DAY_KEYS.map((key, i) => {
+                  const active = state.days.includes(key);
+                  return (
+                    <button key={key} onClick={() => {
+                      const next = active ? state.days.filter(d => d !== key) : [...state.days, key];
+                      update({ days: next });
+                    }} style={{
+                      width: "28px", height: "28px", borderRadius: "50%",
+                      background: active ? "#ffffff" : "rgba(255,255,255,0.08)",
+                      border: `1px solid ${active ? "#ffffff" : "rgba(255,255,255,0.15)"}`,
+                      fontSize: "11px", fontWeight: 700,
+                      color: active ? "#000000" : "rgba(255,255,255,0.45)",
+                      cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+                    }}>{DAY_LABELS[i]}</button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Ends */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>Ends</span>
+            {(["never", "on", "after"] as const).map(opt => (
+              <label key={opt} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                <div onClick={() => update({ endsType: opt })} style={{
+                  width: "14px", height: "14px", borderRadius: "50%", flexShrink: 0,
+                  border: `2px solid ${state.endsType === opt ? "#ffffff" : "rgba(255,255,255,0.25)"}`,
+                  background: state.endsType === opt ? "#ffffff" : "transparent",
+                  cursor: "pointer",
+                }} />
+                <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", minWidth: "44px" }}>
+                  {{ never: "Never", on: "On", after: "After" }[opt]}
+                </span>
+                {opt === "on" && state.endsType === "on" && (
+                  <input type="date" value={state.endsDate} onChange={e => update({ endsDate: e.target.value })} style={{ ...inputStyle, width: "auto", flex: 1 }} />
+                )}
+                {opt === "after" && state.endsType === "after" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <input type="number" min={1} max={999} value={state.endsCount} onChange={e => update({ endsCount: Math.max(1, parseInt(e.target.value) || 1) })} style={inputStyle} />
+                    <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>occurrences</span>
+                  </div>
+                )}
+              </label>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
   payload: HitlCalendarPayload;
   resolved?: "added" | "skipped";
@@ -492,7 +636,6 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
               { label: "End time", value: endTime, set: setEndTime, type: "time" },
               { label: "Location", value: location, set: setLocation, type: "text" },
               { label: "Guests (comma-separated emails)", value: guests, set: setGuests, type: "text" },
-              { label: "Recurrence (RRULE)", value: recurrence, set: setRecurrence, type: "text" },
             ].map(({ label, value, set, type }) => (
               <div key={label}>
                 <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</p>
@@ -503,6 +646,10 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
                 }} />
               </div>
             ))}
+            <div>
+              <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", marginBottom: "8px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>Recurrence</p>
+              <RecurrencePicker value={recurrence} onChange={setRecurrence} />
+            </div>
           </div>
           <div style={{ display: "flex", gap: "6px", marginTop: "12px" }}>
             <button onClick={() => onSkip(payload.id)} style={{
