@@ -665,7 +665,7 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, onDelete, mode }: 
                 padding: "6px 14px", background: "rgba(239,68,68,0.08)",
                 border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px",
                 fontSize: "12px", fontWeight: 600, color: "rgba(239,68,68,0.7)", cursor: "pointer", fontFamily: "inherit",
-              }}>Delete</button>
+              }}>Remove</button>
             )}
             <button onClick={() => onAdd({ ...payload, title, date, time, endTime, location, recurrence, guests })} style={{
               flex: 1, padding: "6px 12px", background: "#ffffff",
