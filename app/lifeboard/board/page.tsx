@@ -607,6 +607,10 @@ export default function BoardPage() {
       });
       const refreshed = await fetch(`/api/lifeboard?user_id=${userId}`).then(r => r.json());
       if (refreshed.cards) setCards(refreshed.cards);
+      setChatMessages(prev => [
+        ...prev.map(m => m.type === "hitl_calendar" && m.payload.id === payload.id ? { ...m, resolved: "added" as const } : m),
+        { role: "assistant" as const, text: `Added **${payload.title}** to your board.` },
+      ]);
     } else {
       // calendar_add mode: write to Google Calendar
       if (!accessToken) return;
@@ -627,12 +631,13 @@ export default function BoardPage() {
           guests: payload.guests,
         }),
       });
+      const dateLabel = payload.date ? ` for ${new Date(payload.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}` : "";
+      const timeLabel = payload.time ? ` at ${payload.time}` : "";
+      setChatMessages(prev => [
+        ...prev.map(m => m.type === "hitl_calendar" && m.payload.id === payload.id ? { ...m, resolved: "added" as const } : m),
+        { role: "assistant" as const, text: `Done — **${payload.title}** added to your calendar${dateLabel}${timeLabel}.` },
+      ]);
     }
-    setChatMessages(prev => prev.map(m =>
-      m.type === "hitl_calendar" && m.payload.id === payload.id
-        ? { ...m, resolved: "added" as const }
-        : m
-    ));
   }
 
   function handleHitlSkip(id: string) {
@@ -650,19 +655,19 @@ export default function BoardPage() {
       method: "DELETE",
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    setChatMessages(prev => prev.map(m =>
-      m.type === "hitl_calendar_delete" && m.event.id === event.id
-        ? { ...m, resolved: "deleted" as const }
-        : m
-    ));
+    setChatMessages(prev => [
+      ...prev.map(m => m.type === "hitl_calendar_delete" && m.event.id === event.id ? { ...m, resolved: "deleted" as const } : m),
+      { role: "assistant" as const, text: `Removed **${event.title}** from your calendar.` },
+    ]);
   }
 
   function handleHitlKeep(id: string) {
-    setChatMessages(prev => prev.map(m =>
-      m.type === "hitl_calendar_delete" && m.event.id === id
-        ? { ...m, resolved: "kept" as const }
-        : m
-    ));
+    const msg = chatMessages.find(m => m.type === "hitl_calendar_delete" && m.event.id === id);
+    const title = msg && msg.type === "hitl_calendar_delete" ? msg.event.title : "";
+    setChatMessages(prev => [
+      ...prev.map(m => m.type === "hitl_calendar_delete" && m.event.id === id ? { ...m, resolved: "kept" as const } : m),
+      { role: "assistant" as const, text: `Kept **${title}** on your calendar.` },
+    ]);
   }
 
   async function handleTargetPick(pickerId: string, target: "board" | "calendar") {
