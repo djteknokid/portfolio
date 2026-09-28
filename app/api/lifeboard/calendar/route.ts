@@ -24,24 +24,36 @@ async function getDateRange(query: string, timezone: string): Promise<{ timeMin:
           content: `Today is ${today} (${timezone}). The user wants to check their calendar. Extract the date range they're asking about.
 Return JSON: { "timeMin": "YYYY-MM-DD", "timeMax": "YYYY-MM-DD" }
 Rules:
-- "this week" = Monday–Sunday of the current week (include today even if mid-week)
+- "this week" = today through the coming Sunday (never include past days)
 - "next week" = Monday–Sunday of next week
-- "today" = just today
+- "today" = just today (${today})
 - "tomorrow" = just tomorrow
-- "this weekend" = Saturday–Sunday of current week
-- No date hint = next 7 days from today`,
+- "this weekend" = the coming Saturday and Sunday
+- No date hint = today through 7 days from today
+IMPORTANT: Never return a timeMin earlier than today (${today}). Past events are not useful.`,
         },
         { role: "user", content: query || "what do i have" },
       ],
     });
     const parsed = JSON.parse(completion.choices[0].message.content ?? "{}");
     if (parsed.timeMin && parsed.timeMax) {
-      // Convert YYYY-MM-DD to start/end of day in user's timezone as ISO strings
-      const startOfDay = new Date(`${parsed.timeMin}T00:00:00`);
-      const endOfDay = new Date(`${parsed.timeMax}T23:59:59`);
+      // Build timezone-aware boundaries by finding the UTC offset for that date
+      const toTzISO = (dateStr: string, endOfDay: boolean) => {
+        const [y, m, d] = dateStr.split("-").map(Number);
+        const time = endOfDay ? "23:59:59" : "00:00:00";
+        const [th, tmin, ts] = time.split(":").map(Number);
+        // Find the UTC offset for this timezone on this date (handles DST)
+        const probe = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+        const localStr = new Intl.DateTimeFormat("en-CA", {
+          timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit",
+        }).format(probe);
+        const [ly, lm, ld] = localStr.split("-").map(Number);
+        const offsetMs = Date.UTC(y, m - 1, d, 12) - Date.UTC(ly, lm - 1, ld, 12);
+        return new Date(Date.UTC(y, m - 1, d, th, tmin, ts) + offsetMs).toISOString();
+      };
       return {
-        timeMin: startOfDay.toISOString(),
-        timeMax: endOfDay.toISOString(),
+        timeMin: toTzISO(parsed.timeMin, false),
+        timeMax: toTzISO(parsed.timeMax, true),
       };
     }
   } catch {
