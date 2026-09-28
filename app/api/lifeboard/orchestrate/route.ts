@@ -23,6 +23,7 @@ Intents:
 - "calendar_view" — user wants to SEE or READ their calendar events (what do I have, what's on, show me, any events today/this week)
 - "calendar_sync" — user explicitly wants to SYNC calendar events TO their board ("sync my calendar", "add calendar events to my board")
 - "calendar_add" — explicitly adding something to the CALENDAR ("put on my calendar", "add to google calendar", "schedule it")
+- "calendar_update" — modifying an EXISTING calendar event (add/change guest, change time/location/title of a named event)
 - "calendar_delete" — removing something from the CALENDAR specifically ("remove from calendar", "delete from google calendar")
 - "card_action" — explicitly adding/removing/editing a task or card on the BOARD ("add to board", "add a task", "mark as done")
 - "ambiguous_add" — user wants to add something but hasn't said board vs calendar ("add dentist appointment", "put swim class on", "add this")
@@ -46,6 +47,11 @@ Examples:
 "put this on my calendar for 8:30am" → calendar_add
 "add hangeul contest to my calendar" → calendar_add
 "add this to google calendar" → calendar_add
+"add mkshim2@gmail.com on taisho event" → calendar_update
+"add guest to dentist appointment" → calendar_update
+"change the time of basketball to 3pm" → calendar_update
+"move swim class to Friday" → calendar_update
+"update my dentist location" → calendar_update
 "remove the swimming event from the calendar" → calendar_delete
 "delete from google calendar" → calendar_delete
 "add dentist appointment Tuesday" → ambiguous_add

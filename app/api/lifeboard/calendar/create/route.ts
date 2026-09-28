@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
 export async function POST(req: NextRequest) {
-  const { accessToken, title, description, start: preStart, end: preEnd, location: preLocation, recurrence: preRecurrence, allDay: preAllDay, guests } = await req.json();
+  const { accessToken, title, description, start: preStart, end: preEnd, location: preLocation, recurrence: preRecurrence, allDay: preAllDay, guests, eventId } = await req.json();
   if (!accessToken || !title) {
     return NextResponse.json({ error: "Missing accessToken or title" }, { status: 400 });
   }
@@ -77,14 +77,16 @@ If time found, set allDay false, use 24h format.`,
     ? { ...baseEvent, start: { date: startDateTime.split("T")[0] }, end: { date: endDateTime.split("T")[0] } }
     : { ...baseEvent, start: { dateTime: startDateTime, timeZone: "America/Los_Angeles" }, end: { dateTime: endDateTime, timeZone: "America/Los_Angeles" } };
 
-  const res = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-    {
-      method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify(event),
-    }
-  );
+  const method = eventId ? "PUT" : "POST";
+  const endpoint = eventId
+    ? `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`
+    : "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+
+  const res = await fetch(endpoint, {
+    method,
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(event),
+  });
 
   if (!res.ok) {
     const err = await res.text();

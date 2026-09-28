@@ -24,8 +24,9 @@ type HitlCalendarPayload = {
   endTime: string;
   location: string;
   recurrence: string;
-  guests: string;   // comma-separated emails
+  guests: string;
   label: string;
+  eventId?: string; // Google Calendar event ID — present when updating an existing event
   boardCard?: { description: string; status: string; category: string; points: number; user_id: string };
 };
 
@@ -616,7 +617,7 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
       maxWidth: "82%", opacity: isDone ? 0.5 : 1, transition: "opacity 0.2s",
     }}>
       <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", display: "block", marginBottom: "8px", fontWeight: 600, letterSpacing: "0.08em" }}>
-        {mode === "sync" ? "CALENDAR EVENT" : "NEW CALENDAR EVENT"}
+        {mode === "sync" ? "CALENDAR EVENT" : payload.eventId ? "EDIT CALENDAR EVENT" : "NEW CALENDAR EVENT"}
       </span>
 
       {isDone ? (
@@ -776,13 +777,16 @@ export default function BoardPage() {
           recurrence: payload.recurrence,
           allDay: !payload.time,
           guests: payload.guests,
+          eventId: payload.eventId,
         }),
       });
       const dateLabel = payload.date ? ` for ${new Date(payload.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}` : "";
       const timeLabel = payload.time ? ` at ${payload.time}` : "";
+      const verb = payload.eventId ? "Updated" : "Done —";
+      const action = payload.eventId ? "updated" : "added to your calendar";
       setChatMessages(prev => [
         ...prev.map(m => m.type === "hitl_calendar" && m.payload.id === payload.id ? { ...m, resolved: "added" as const } : m),
-        { role: "assistant" as const, text: `Done — **${payload.title}** added to your calendar${dateLabel}${timeLabel}.` },
+        { role: "assistant" as const, text: `${verb} **${payload.title}** ${action}${dateLabel}${timeLabel}.` },
       ]);
     }
   }
@@ -1012,6 +1016,32 @@ export default function BoardPage() {
       });
       const { intent } = await orchRes.json();
       const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
+
+      // CALENDAR UPDATE — modify an existing event, show pre-filled HITL card
+      if (intent === "calendar_update") {
+        if (!session) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
+          return;
+        }
+        const res = await fetch("/api/lifeboard/calendar/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken, query: userText, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+        });
+        const data = await res.json();
+        if (!data.found) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: data.message ?? "Couldn't find that event on your calendar." }]);
+        } else {
+          const hitlPayload: HitlCalendarPayload = {
+            id: `hitl-${Math.random().toString(36).slice(2, 10)}`,
+            eventId: data.eventId,
+            ...data.payload,
+            label: "",
+          };
+          setChatMessages(prev => [...prev, { role: "assistant" as const, type: "hitl_calendar" as const, payload: hitlPayload }]);
+        }
+        return;
+      }
 
       // CALENDAR DELETE — find and remove event from Google Calendar
       if (intent === "calendar_delete") {
