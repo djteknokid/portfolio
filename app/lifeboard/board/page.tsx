@@ -584,6 +584,33 @@ export default function BoardPage() {
       }
     }
 
+    // Handle delete confirmation
+    const calPendingDeleteRaw = sessionStorage.getItem("cal_pending_delete");
+    if (calPendingDeleteRaw) {
+      const lower = userText.toLowerCase().trim();
+      const isYes = /\b(yes|yeah|yep|sure|ok|okay|delete it|remove it|go ahead|do it|confirm)\b/.test(lower);
+      const isNo = /^(no|nope|no thanks|cancel|don't|not now)$/.test(lower);
+      if (isYes || isNo) {
+        sessionStorage.removeItem("cal_pending_delete");
+        if (isNo) {
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: "No problem — kept it on your calendar." }]);
+          return;
+        }
+        const event: { id: string; title: string } = JSON.parse(calPendingDeleteRaw);
+        const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
+        if (accessToken) {
+          await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${event.id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          setLoading(false);
+          setChatMessages(prev => [...prev, { role: "assistant", text: `Removed **${event.title}** from your Google Calendar.` }]);
+        }
+        return;
+      }
+    }
+
     // Handle calendar add confirmation (yes/no after "Want me to add X to your calendar?")
     const calPendingRaw = sessionStorage.getItem("cal_pending_add");
     if (calPendingRaw) {
@@ -628,6 +655,29 @@ export default function BoardPage() {
       });
       const { intent } = await orchRes.json();
       const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
+
+      // CALENDAR DELETE — find and remove event from Google Calendar
+      if (intent === "calendar_delete") {
+        if (!session) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
+          return;
+        }
+        const res = await fetch("/api/lifeboard/calendar/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken, query: userText, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+        });
+        const data = await res.json();
+        if (data.deleted) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: `Removed **${data.title}** from your Google Calendar.` }]);
+        } else if (data.confirm) {
+          setChatMessages(prev => [...prev, { role: "assistant", text: `Found **${data.event.title}** on ${data.event.date} — is this the one you want to delete? Say "yes delete it" to confirm.` }]);
+          sessionStorage.setItem("cal_pending_delete", JSON.stringify(data.event));
+        } else {
+          setChatMessages(prev => [...prev, { role: "assistant", text: data.message ?? "Couldn't find that event on your calendar." }]);
+        }
+        return;
+      }
 
       // CALENDAR ADD — extract event details then show HITL card, don't write yet
       if (intent === "calendar_add") {

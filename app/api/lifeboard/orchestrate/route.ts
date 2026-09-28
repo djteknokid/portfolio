@@ -22,6 +22,7 @@ Intents:
 - "gmail" — anything about email, mail, inbox, gmail
 - "calendar" — ONLY explicit requests to CHECK or SYNC the calendar (must include words like check/sync/show/see/what's on)
 - "calendar_add" — explicitly adding/putting a specific event ON the calendar
+- "calendar_delete" — removing, deleting, or cancelling a specific event from the calendar
 - "card_action" — creating, editing, moving, deleting a task/card on the board
 - "chat" — everything else: questions, follow-ups, confusion, conversation, vague messages, anything ambiguous
 
@@ -40,6 +41,9 @@ Examples:
 "put this on my calendar for 8:30am" → calendar_add
 "add hangeul contest to my calendar" → calendar_add
 "add this to google calendar" → calendar_add
+"remove the swimming event from the calendar" → calendar_delete
+"delete the basketball event" → calendar_delete
+"cancel my dentist appointment" → calendar_delete
 "what?" → chat
 "did you put that on the right date?" → chat
 "you said you put that on my calendar did you" → chat
