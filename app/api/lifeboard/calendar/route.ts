@@ -39,17 +39,24 @@ IMPORTANT: Never return a timeMin earlier than today (${today}). Past events are
     if (parsed.timeMin && parsed.timeMax) {
       // Build timezone-aware boundaries by finding the UTC offset for that date
       const toTzISO = (dateStr: string, endOfDay: boolean) => {
+        const timeStr = endOfDay ? "23:59:59" : "00:00:00";
+        // Find the UTC offset by asking what UTC time == noon on this date in the target timezone
+        const noonUtc = new Date(`${dateStr}T12:00:00Z`);
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: timezone,
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", second: "2-digit",
+          hour12: false,
+        }).formatToParts(noonUtc);
+        const p = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+        // localNoon is what the clock reads in the tz when UTC is noon
+        const localNoonMs = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+        // utcOffset = UTC - localTime  (e.g. LA summer: +7h)
+        const utcOffsetMs = noonUtc.getTime() - localNoonMs;
+        // Convert desired local wall-clock time to UTC by adding the offset
         const [y, m, d] = dateStr.split("-").map(Number);
-        const time = endOfDay ? "23:59:59" : "00:00:00";
-        const [th, tmin, ts] = time.split(":").map(Number);
-        // Find the UTC offset for this timezone on this date (handles DST)
-        const probe = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-        const localStr = new Intl.DateTimeFormat("en-CA", {
-          timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit",
-        }).format(probe);
-        const [ly, lm, ld] = localStr.split("-").map(Number);
-        const offsetMs = Date.UTC(y, m - 1, d, 12) - Date.UTC(ly, lm - 1, ld, 12);
-        return new Date(Date.UTC(y, m - 1, d, th, tmin, ts) + offsetMs).toISOString();
+        const [th, tmin, ts] = timeStr.split(":").map(Number);
+        return new Date(Date.UTC(y, m - 1, d, th, tmin, ts) + utcOffsetMs).toISOString();
       };
       return {
         timeMin: toTzISO(parsed.timeMin, false),

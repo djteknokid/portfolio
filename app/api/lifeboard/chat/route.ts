@@ -28,12 +28,19 @@ export async function POST(req: NextRequest) {
       ? `\n\nCurrent board: ${cards.length} cards — ${cards.filter((c: { status: string }) => c.status === "todo").length} todo, ${cards.filter((c: { status: string }) => c.status === "inprogress").length} in progress, ${cards.filter((c: { status: string }) => c.status === "done").length} done.`
       : "";
 
+    const today = new Date().toLocaleDateString("en-US", {
+      weekday: "long", year: "numeric", month: "long", day: "numeric",
+      timeZone: "America/Los_Angeles",
+    });
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1",
       messages: [
         {
           role: "system",
-          content: `You are Lifeboard, a warm and intelligent personal life assistant for a busy parent with a full-time job. You help manage life — work, family, health, finances — through conversation.${memoryBlock}${boardSummary}
+          content: `You are Lifeboard, a warm and intelligent personal life assistant for a busy parent with a full-time job. You help manage life — work, family, health, finances — through conversation.
+
+Today is ${today}.${memoryBlock}${boardSummary}
 
 You have full context of the recent conversation. When the user asks a follow-up question like "did you do that?" or "what?" or "is that right?" — answer based on what you actually said in the recent messages above. Be honest and direct. Respond like a smart friend, not a bot. Be concise.
 
