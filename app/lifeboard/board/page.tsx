@@ -592,11 +592,12 @@ function RecurrencePicker({ value, onChange }: { value: string; onChange: (rrule
   );
 }
 
-function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
+function HitlCalendarCard({ payload, resolved, onAdd, onSkip, onDelete, mode }: {
   payload: HitlCalendarPayload;
   resolved?: "added" | "skipped";
   onAdd: (p: HitlCalendarPayload) => void;
   onSkip: (id: string) => void;
+  onDelete?: (eventId: string, title: string) => void;
   mode: "calendar_add" | "sync";
 }) {
   const [title, setTitle] = useState(payload.title);
@@ -658,6 +659,13 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
               border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px",
               fontSize: "12px", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontFamily: "inherit",
             }}>Cancel</button>
+            {payload.eventId && onDelete && (
+              <button onClick={() => onDelete(payload.eventId!, title)} style={{
+                padding: "6px 14px", background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px",
+                fontSize: "12px", fontWeight: 600, color: "rgba(239,68,68,0.7)", cursor: "pointer", fontFamily: "inherit",
+              }}>Delete</button>
+            )}
             <button onClick={() => onAdd({ ...payload, title, date, time, endTime, location, recurrence, guests })} style={{
               flex: 1, padding: "6px 12px", background: "#ffffff",
               border: "none", borderRadius: "8px",
@@ -809,6 +817,19 @@ export default function BoardPage() {
     setChatMessages(prev => [
       ...prev.map(m => m.type === "hitl_calendar_delete" && m.event.id === event.id ? { ...m, resolved: "deleted" as const } : m),
       { role: "assistant" as const, text: `Removed **${event.title}** from your calendar.` },
+    ]);
+  }
+
+  async function handleHitlCardDelete(eventId: string, title: string) {
+    const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
+    if (!accessToken) return;
+    await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    setChatMessages(prev => [
+      ...prev.map(m => m.type === "hitl_calendar" && m.payload.eventId === eventId ? { ...m, resolved: "skipped" as const } : m),
+      { role: "assistant" as const, text: `Removed **${title}** from your calendar.` },
     ]);
   }
 
@@ -1626,6 +1647,7 @@ export default function BoardPage() {
                 resolved={msg.resolved}
                 onAdd={handleHitlAdd}
                 onSkip={handleHitlSkip}
+                onDelete={handleHitlCardDelete}
                 mode={msg.payload.boardCard ? "sync" : "calendar_add"}
               />
             ) : msg.type === "hitl_calendar_delete" ? (
