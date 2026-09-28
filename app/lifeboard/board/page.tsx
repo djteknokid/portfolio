@@ -479,8 +479,7 @@ export default function BoardPage() {
       const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
 
       // CALENDAR ADD (write directly, no card)
-      if (intent === "calendar_add") {
-        if (!session) {
+      if (intent === "calendar_add") {        if (!session) {
           setChatMessages(prev => [...prev, { role: "assistant", text: "Connect your Google Calendar first — tap the profile icon → Settings." }]);
           return;
         }
@@ -510,7 +509,7 @@ export default function BoardPage() {
         const res = await fetch("/api/lifeboard/calendar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken, user_id: userId }),
+          body: JSON.stringify({ accessToken, user_id: userId, query: userText, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
         });
         const data = await res.json();
         if (data.error) {
@@ -701,6 +700,7 @@ export default function BoardPage() {
         body: JSON.stringify({
           accessToken: (session as typeof session & { accessToken?: string }).accessToken,
           user_id: userId,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
       const data = await res.json();
