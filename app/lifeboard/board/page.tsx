@@ -463,7 +463,7 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
   const [guests, setGuests] = useState(payload.guests ?? "");
 
   const isDone = !!resolved;
-  const addLabel = mode === "sync" ? "Add to Board" : "Add to Calendar";
+  const addLabel = "Submit";
 
   return (
     <div style={{
@@ -479,7 +479,7 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
         <>
           <p style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", marginBottom: "4px" }}>{title}</p>
           <p style={{ fontSize: "11px", color: resolved === "added" ? "rgba(34,197,94,0.7)" : "rgba(255,255,255,0.25)", marginTop: "4px", fontWeight: 600 }}>
-            {resolved === "added" ? (mode === "sync" ? "✓ Added to board" : "✓ Added to calendar") : "Skipped"}
+            {resolved === "added" ? (mode === "sync" ? "✓ Added to board" : "✓ Added to calendar") : "Cancelled"}
           </p>
         </>
       ) : (
@@ -509,7 +509,7 @@ function HitlCalendarCard({ payload, resolved, onAdd, onSkip, mode }: {
               padding: "6px 14px", background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px",
               fontSize: "12px", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontFamily: "inherit",
-            }}>Skip</button>
+            }}>Cancel</button>
             <button onClick={() => onAdd({ ...payload, title, date, time, endTime, location, recurrence, guests })} style={{
               flex: 1, padding: "6px 12px", background: "#ffffff",
               border: "none", borderRadius: "8px",
