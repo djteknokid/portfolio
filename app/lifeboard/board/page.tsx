@@ -493,7 +493,8 @@ export default function BoardPage() {
         const data = await res.json();
         if (data.ok) {
           const addedTitle = data.title ?? "the event";
-          setChatMessages(prev => [...prev, { role: "assistant", text: `Added **${addedTitle}** to your Google Calendar.` }]);
+          const recurringNote = data.recurring ? " (recurring)" : "";
+          setChatMessages(prev => [...prev, { role: "assistant", text: `Added **${addedTitle}**${recurringNote} to your Google Calendar.` }]);
         } else {
           setChatMessages(prev => [...prev, { role: "assistant", text: "Couldn't add to calendar — try reconnecting Google in Settings." }]);
         }

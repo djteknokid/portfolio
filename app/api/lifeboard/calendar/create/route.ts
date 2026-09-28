@@ -11,11 +11,11 @@ export async function POST(req: NextRequest) {
   let endDateTime: string | null = null;
   let isAllDay = true;
   let eventTitle = title;
+  let eventLocation: string | null = null;
+  let recurrenceRule: string | null = null;
 
   const textHint = `${title} ${description ?? ""}`;
   const hasTimeHint = /\d{1,2}:\d{2}|\d{1,2}(am|pm)/i.test(textHint);
-
-  // Detect vague titles that need context-based extraction
   const isVague = /^(put this|add this|this|put it|add it)/i.test(title.trim());
 
   try {
@@ -27,15 +27,34 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `Today is ${today}. Extract event info from the context. Return JSON:
-{ "title": "short event name (if original title is vague like 'put this', extract from context)", "start": "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS", "end": "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS", "allDay": true/false }
-If no date found, use tomorrow. If time found, use it and set allDay false, duration 1 hour. Use 24h format.`,
+          content: `Today is ${today}. Extract event details from the user's instruction. Return JSON:
+{
+  "title": "clean short event name only (e.g. 'Jiwon Swimming', not the full instruction)",
+  "start": "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS",
+  "end": "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS",
+  "allDay": true/false,
+  "location": "full address or venue name if mentioned, else null",
+  "recurrence": "RRULE string if recurring, else null"
+}
+
+Recurrence examples:
+- "every Tuesday" → "RRULE:FREQ=WEEKLY;BYDAY=TU"
+- "every weekday" → "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"
+- "every Monday and Wednesday" → "RRULE:FREQ=WEEKLY;BYDAY=MO,WE"
+- "every day" → "RRULE:FREQ=DAILY"
+- "every month on the 1st" → "RRULE:FREQ=MONTHLY;BYMONTHDAY=1"
+- not recurring → null
+
+If no date found, use the next occurrence of the day mentioned (e.g. "Tuesday" = next Tuesday).
+If time found, set allDay false, use 24h format.`,
         },
-        { role: "user", content: `Original title: ${title}\nContext: ${textHint}` },
+        { role: "user", content: `Instruction: ${textHint}` },
       ],
     });
     const parsed = JSON.parse(completion.choices[0].message.content ?? "{}");
-    if (isVague && parsed.title) eventTitle = parsed.title;
+    if (parsed.title) eventTitle = parsed.title;
+    if (parsed.location) eventLocation = parsed.location;
+    if (parsed.recurrence) recurrenceRule = parsed.recurrence;
     startDateTime = parsed.start ?? null;
     endDateTime = parsed.end ?? null;
     isAllDay = parsed.allDay ?? !hasTimeHint;
@@ -52,9 +71,16 @@ If no date found, use tomorrow. If time found, use it and set allDay false, dura
   }
   if (!endDateTime) endDateTime = startDateTime;
 
+  const baseEvent: Record<string, unknown> = {
+    summary: eventTitle,
+    description: description ?? "",
+    ...(eventLocation ? { location: eventLocation } : {}),
+    ...(recurrenceRule ? { recurrence: [recurrenceRule] } : {}),
+  };
+
   const event = isAllDay
-    ? { summary: eventTitle, description: description ?? "", start: { date: startDateTime.split("T")[0] }, end: { date: endDateTime.split("T")[0] } }
-    : { summary: eventTitle, description: description ?? "", start: { dateTime: startDateTime, timeZone: "America/Los_Angeles" }, end: { dateTime: endDateTime, timeZone: "America/Los_Angeles" } };
+    ? { ...baseEvent, start: { date: startDateTime.split("T")[0] }, end: { date: endDateTime.split("T")[0] } }
+    : { ...baseEvent, start: { dateTime: startDateTime, timeZone: "America/Los_Angeles" }, end: { dateTime: endDateTime, timeZone: "America/Los_Angeles" } };
 
   const res = await fetch(
     "https://www.googleapis.com/calendar/v3/calendars/primary/events",
@@ -74,5 +100,5 @@ If no date found, use tomorrow. If time found, use it and set allDay false, dura
   }
 
   const created = await res.json();
-  return NextResponse.json({ ok: true, eventId: created.id, title: eventTitle });
+  return NextResponse.json({ ok: true, eventId: created.id, title: eventTitle, recurring: !!recurrenceRule });
 }
