@@ -32,6 +32,7 @@ type HitlCalendarPayload = {
 type ChatMessage =
   | { role: "user" | "assistant"; text: string; type?: undefined }
   | { role: "assistant"; type: "hitl_calendar"; payload: HitlCalendarPayload; resolved?: "added" | "skipped" }
+  | { role: "assistant"; type: "hitl_calendar_delete"; event: { id: string; title: string; date: string }; resolved?: "deleted" | "kept" }
   | { role: "assistant"; type: "hitl_header"; text: string };
 
 const CATEGORY_COLOR: Record<string, string> = {
@@ -533,6 +534,28 @@ export default function BoardPage() {
     ));
   }
 
+  async function handleHitlDelete(event: { id: string; title: string }) {
+    const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
+    if (!accessToken) return;
+    await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${event.id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    setChatMessages(prev => prev.map(m =>
+      m.type === "hitl_calendar_delete" && m.event.id === event.id
+        ? { ...m, resolved: "deleted" as const }
+        : m
+    ));
+  }
+
+  function handleHitlKeep(id: string) {
+    setChatMessages(prev => prev.map(m =>
+      m.type === "hitl_calendar_delete" && m.event.id === id
+        ? { ...m, resolved: "kept" as const }
+        : m
+    ));
+  }
+
   async function handleSubmit() {
     if (!input.trim() || loading || !userId) return;
     const userText = input;
@@ -579,33 +602,6 @@ export default function BoardPage() {
         } else {
           setLoading(false);
           setChatMessages(prev => [...prev, { role: "assistant", text: "Skipped — nothing added." }]);
-        }
-        return;
-      }
-    }
-
-    // Handle delete confirmation
-    const calPendingDeleteRaw = sessionStorage.getItem("cal_pending_delete");
-    if (calPendingDeleteRaw) {
-      const lower = userText.toLowerCase().trim();
-      const isYes = /\b(yes|yeah|yep|sure|ok|okay|delete it|remove it|go ahead|do it|confirm)\b/.test(lower);
-      const isNo = /^(no|nope|no thanks|cancel|don't|not now)$/.test(lower);
-      if (isYes || isNo) {
-        sessionStorage.removeItem("cal_pending_delete");
-        if (isNo) {
-          setLoading(false);
-          setChatMessages(prev => [...prev, { role: "assistant", text: "No problem — kept it on your calendar." }]);
-          return;
-        }
-        const event: { id: string; title: string } = JSON.parse(calPendingDeleteRaw);
-        const accessToken = (session as typeof session & { accessToken?: string })?.accessToken;
-        if (accessToken) {
-          await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${event.id}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${accessToken}` },
-          });
-          setLoading(false);
-          setChatMessages(prev => [...prev, { role: "assistant", text: `Removed **${event.title}** from your Google Calendar.` }]);
         }
         return;
       }
@@ -671,8 +667,7 @@ export default function BoardPage() {
         if (data.deleted) {
           setChatMessages(prev => [...prev, { role: "assistant", text: `Removed **${data.title}** from your Google Calendar.` }]);
         } else if (data.confirm) {
-          setChatMessages(prev => [...prev, { role: "assistant", text: `Found **${data.event.title}** on ${data.event.date} — is this the one you want to delete? Say "yes delete it" to confirm.` }]);
-          sessionStorage.setItem("cal_pending_delete", JSON.stringify(data.event));
+          setChatMessages(prev => [...prev, { role: "assistant" as const, type: "hitl_calendar_delete" as const, event: data.event }]);
         } else {
           setChatMessages(prev => [...prev, { role: "assistant", text: data.message ?? "Couldn't find that event on your calendar." }]);
         }
@@ -1192,6 +1187,34 @@ export default function BoardPage() {
                 onSkip={handleHitlSkip}
                 mode={msg.payload.boardCard ? "sync" : "calendar_add"}
               />
+            ) : msg.type === "hitl_calendar_delete" ? (
+              <div style={{
+                background: "rgba(255,255,255,0.07)", border: "1px solid rgba(239,68,68,0.2)",
+                borderRadius: "18px 18px 18px 4px", padding: "14px 16px", maxWidth: "82%",
+                opacity: msg.resolved ? 0.5 : 1, transition: "opacity 0.2s",
+              }}>
+                <span style={{ fontSize: "10px", color: "rgba(239,68,68,0.5)", display: "block", marginBottom: "8px", fontWeight: 600, letterSpacing: "0.08em" }}>REMOVE FROM CALENDAR</span>
+                <p style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", marginBottom: "4px" }}>{msg.event.title}</p>
+                {msg.event.date && <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "12px" }}>{msg.event.date}</p>}
+                {!msg.resolved ? (
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <button onClick={() => handleHitlKeep(msg.event.id)} style={{
+                      flex: 1, padding: "6px 12px", background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px",
+                      fontSize: "12px", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontFamily: "inherit",
+                    }}>Keep</button>
+                    <button onClick={() => handleHitlDelete(msg.event)} style={{
+                      flex: 2, padding: "6px 12px", background: "rgba(239,68,68,0.15)",
+                      border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px",
+                      fontSize: "12px", fontWeight: 700, color: "rgba(239,68,68,0.9)", cursor: "pointer", fontFamily: "inherit",
+                    }}>Delete</button>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: "11px", fontWeight: 600, color: msg.resolved === "deleted" ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.25)" }}>
+                    {msg.resolved === "deleted" ? "✓ Removed from calendar" : "Kept"}
+                  </p>
+                )}
+              </div>
             ) : msg.type === "hitl_header" ? (
               <div style={{
                 padding: "8px 14px", borderRadius: "18px 18px 18px 4px",

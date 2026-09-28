@@ -61,24 +61,10 @@ Return JSON: { "index": <1-based index of best match, or 0 if no match>, "confid
 
   const match = events[idx];
 
-  // Show a HITL confirm card instead of deleting immediately — return event info
-  if (parsed.confidence === "low") {
-    return NextResponse.json({
-      deleted: false,
-      confirm: true,
-      event: { id: match.id, title: match.summary ?? "Untitled", date: match.start?.dateTime ?? match.start?.date ?? "" },
-    });
-  }
-
-  // High confidence — delete directly
-  const delRes = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${match.id}`,
-    { method: "DELETE", headers: { Authorization: `Bearer ${accessToken}` } }
-  );
-
-  if (!delRes.ok && delRes.status !== 204) {
-    return NextResponse.json({ deleted: false, message: "Failed to delete the event." });
-  }
-
-  return NextResponse.json({ deleted: true, title: match.summary ?? "Untitled" });
+  // Always show a confirm card before deleting
+  return NextResponse.json({
+    deleted: false,
+    confirm: true,
+    event: { id: match.id, title: match.summary ?? "Untitled", date: match.start?.dateTime ?? match.start?.date ?? "" },
+  });
 }
