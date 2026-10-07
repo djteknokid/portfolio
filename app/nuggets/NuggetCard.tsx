@@ -20,7 +20,7 @@ async function fetchCards(completed: Card[], seed?: string, skipped?: string[]):
       ...completed.map((c) => c.question),
       ...(skipped ?? []),
     ]);
-    if (goldMatches.length >= 4) {
+    if (goldMatches.length >= 1) {
       return goldMatches.slice(0, 4).map(recordToCard);
     }
   }
