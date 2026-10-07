@@ -54,6 +54,7 @@ export default function NuggetDeck() {
   const [loadingStart, setLoadingStart] = useState(false);
   const [loadingNext, setLoadingNext] = useState(false);
   const [loadingSkip, setLoadingSkip] = useState(false);
+  const [loadingNugget, setLoadingNugget] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const fetchGen = useRef(0);
   const { profile, recordCorrect } = useProfile();
@@ -128,12 +129,29 @@ export default function NuggetDeck() {
 
   async function handleSelectSuggestion(question: string) {
     const selected = nextCards.find((c) => c.question === question);
-    if (!selected) return;
-    const next = [...completed, card!];
-    setCard(selected);
-    setNextCards([]);
-    setCompleted(next);
-    fetchNext([...next, selected]);
+    if (selected) {
+      // Gold card — already have full data
+      const next = [...completed, card!];
+      setCard(selected);
+      setNextCards([]);
+      setCompleted(next);
+      fetchNext([...next, selected]);
+      return;
+    }
+    // Need to fetch — question is a stub
+    setLoadingNugget(question);
+    try {
+      const cards = await fetchCards([...completed, card!], question);
+      if (cards[0]) {
+        const next = [...completed, card!];
+        setCard(cards[0]);
+        setNextCards([]);
+        setCompleted(next);
+        fetchNext([...next, cards[0]]);
+      }
+    } finally {
+      setLoadingNugget(null);
+    }
   }
 
   // Score chip shown on both screens
@@ -165,7 +183,7 @@ export default function NuggetDeck() {
     </button>
   ) : null;
 
-  const TOPICS = ["History", "Science", "Tech", "Economics", "Politics", "Culture", "Space", "Medicine"];
+  const TOPICS = ["WWII", "History", "Science", "Tech", "Economics", "Politics", "Culture", "Space", "Medicine"];
   const QUESTIONS = [
     "Why did the US enter WWI?",
     "Why did the Soviet Union collapse?",
@@ -324,7 +342,7 @@ export default function NuggetDeck() {
           suggestions={nextCards.map((c) => c.question)}
           loadingSuggestions={loadingNext}
           onSelectSuggestion={handleSelectSuggestion}
-          loadingNugget={null}
+          loadingNugget={loadingNugget}
         />
       </div>
     </>

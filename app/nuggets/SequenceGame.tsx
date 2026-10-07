@@ -2,11 +2,6 @@
 
 import { useState, useRef } from "react";
 import { brand } from "./brand";
-import { SequenceEval, WhatsNextEval, buildCopyText } from "./EvalForm";
-import type { SequenceRating, WhatsNextRating } from "./EvalForm";
-
-const DEFAULT_SEQ_RATING: SequenceRating = { mustKnow: null, story: null, orderMatters: null, revelation: null, verdict: null };
-const DEFAULT_NEXT_RATING: WhatsNextRating = { mustKnow: null, infoItch: null, nextTap: null, verdict: null };
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -29,7 +24,7 @@ interface Props {
   loadingNugget?: string | null;
 }
 
-export default function SequenceGame({ question, sequence, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
+export default function SequenceGame({ question: _question, sequence, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
   const correct = Array.isArray(sequence) ? sequence : [];
   const [items, setItems] = useState(() => shuffle(correct));
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -37,9 +32,6 @@ export default function SequenceGame({ question, sequence, onComplete, onSkip, l
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [lockedIndices, setLockedIndices] = useState<Set<number>>(new Set());
-  const [seqRating, setSeqRating] = useState<SequenceRating>(DEFAULT_SEQ_RATING);
-  const [nextRating, setNextRating] = useState<WhatsNextRating>(DEFAULT_NEXT_RATING);
-  const [copied, setCopied] = useState(false);
   const touchStartIndex = useRef<number | null>(null);
   const touchCurrentIndex = useRef<number | null>(null);
 
@@ -49,7 +41,6 @@ export default function SequenceGame({ question, sequence, onComplete, onSkip, l
     if (isLocked(i)) return;
     setDragIndex(i);
 
-    // Create a styled clone to use as the drag image
     const target = e.currentTarget as HTMLElement;
     const card = target.querySelector("[data-drag-card]") as HTMLElement;
     if (card) {
@@ -116,7 +107,6 @@ export default function SequenceGame({ question, sequence, onComplete, onSkip, l
   }
 
   function handleReset() {
-    // Lock correct items in place, only shuffle the wrong ones
     const newLocked = new Set(items.map((item, i) => item.id === correct[i].id ? i : -1).filter(i => i !== -1));
     setLockedIndices(newLocked);
     const wrongItems = items.filter((item, i) => item.id !== correct[i].id);
@@ -160,17 +150,13 @@ export default function SequenceGame({ question, sequence, onComplete, onSkip, l
                 userSelect: "none",
                 paddingBottom: i < items.length - 1 ? "28px" : "0",
                 position: "relative",
-                // Drop target: accent line above
                 ...(isDropTarget ? { paddingTop: "4px" } : {}),
               }}
             >
-              {/* Drop zone indicator — line above the target */}
               {isDropTarget && (
                 <div style={{
                   position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
+                  top: 0, left: 0, right: 0,
                   height: "2px",
                   borderRadius: "1px",
                   background: brand.border.accent,
@@ -178,18 +164,16 @@ export default function SequenceGame({ question, sequence, onComplete, onSkip, l
                 }} />
               )}
 
-              {/* The card itself — ghost when dragging, normal otherwise */}
               <div
                 data-drag-card
                 style={{
-                display: "flex",
-                gap: "16px",
-                flex: 1,
-                padding: "0",
-                opacity: isDragging ? 0.3 : 1,
-                transition: "opacity 80ms ease",
-              }}>
-                {/* Drag handle */}
+                  display: "flex",
+                  gap: "16px",
+                  flex: 1,
+                  padding: "0",
+                  opacity: isDragging ? 0.3 : 1,
+                  transition: "opacity 80ms ease",
+                }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "5px", width: "12px", flexShrink: 0 }}>
                   {!submitted && !isLocked(i) && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
@@ -208,7 +192,6 @@ export default function SequenceGame({ question, sequence, onComplete, onSkip, l
                   )}
                 </div>
 
-                {/* Text */}
                 <p style={{
                   fontSize: "17px",
                   fontWeight: "400",
@@ -251,9 +234,7 @@ export default function SequenceGame({ question, sequence, onComplete, onSkip, l
           <div style={{ width: "100%", height: "1px", background: brand.border.item }} />
           <span style={{ fontSize: "13px", color: brand.text.muted }}>You got it.</span>
 
-          <SequenceEval rating={seqRating} onChange={setSeqRating} />
-
-          {/* Next question suggestions */}
+          {/* What's Next */}
           {loadingSuggestions ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[1, 2, 3, 4].map((i) => (
@@ -278,35 +259,11 @@ export default function SequenceGame({ question, sequence, onComplete, onSkip, l
                     transition: brand.motion.snap,
                   }}
                 >
-                  {loadingNugget === q ? "Generating…" : q}
+                  {loadingNugget === q ? "Loading…" : q}
                 </button>
               ))}
-              <WhatsNextEval rating={nextRating} onChange={setNextRating} />
             </div>
           ) : null}
-
-          {/* Single copy button */}
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(
-                buildCopyText({ question, sequence: correct, suggestions, seqRating, nextRating })
-              ).then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              });
-            }}
-            style={{
-              width: "100%", padding: "12px",
-              borderRadius: brand.radius.button,
-              background: copied ? brand.bg.raised : "transparent",
-              border: `1px solid ${copied ? brand.border.accent : brand.border.item}`,
-              color: copied ? brand.text.primary : brand.text.muted,
-              fontSize: "11px", fontWeight: "700", letterSpacing: "0.1em",
-              cursor: "pointer", transition: brand.motion.snap,
-            }}
-          >
-            {copied ? "COPIED" : "COPY FULL EVAL"}
-          </button>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
