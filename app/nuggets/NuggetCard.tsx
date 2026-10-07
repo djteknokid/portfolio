@@ -6,7 +6,7 @@ import ProfilePanel from "./ProfilePanel";
 import { brand } from "./brand";
 import { useProfile } from "./useProfile";
 import { seedLibrary } from "@/lib/nuggets/seed";
-import { findGoldByTopic, getNextSequences, saveDrafts, recordToCard, slugify } from "@/lib/nuggets/library";
+import { findGoldByTopic, getNextSequences, saveDrafts, recordToCard, getSequenceByQuestion } from "@/lib/nuggets/library";
 
 interface Card {
   question: string;
@@ -66,11 +66,13 @@ export default function NuggetDeck() {
     if (!lastCard) return;
 
     // Check gold relationships first (client-side, instant)
-    const goldId = slugify(lastCard.question);
-    const goldNext = getNextSequences(goldId).filter(
-      (s) => s.status === "gold" && !completedCards.some((c) => c.question === s.question)
-    );
-    if (goldNext.length >= 4) {
+    const goldRecord = getSequenceByQuestion(lastCard.question);
+    const goldNext = goldRecord
+      ? getNextSequences(goldRecord.id).filter(
+          (s) => s.status === "gold" && !completedCards.some((c) => c.question === s.question)
+        )
+      : [];
+    if (goldNext.length >= 1) {
       setNextCards(goldNext.slice(0, 4).map(recordToCard));
       return;
     }
