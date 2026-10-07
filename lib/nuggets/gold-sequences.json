@@ -1,0 +1,154 @@
+[
+  {
+    "id": "wwii-beginning",
+    "question": "How did World War II begin?",
+    "beat_1": "Hitler takes Austria and then parts of Czechoslovakia. Britain and France avoid war—but warn that Poland will be different.",
+    "beat_2": "On September 1, 1939, Germany invades Poland, attacking with tanks and aircraft before Poland can fully mobilize.",
+    "beat_3": "Hitler expects Britain and France to back down again. This time, they don't. Two days later, both declare war on Germany.",
+    "beat_4": "The Soviet Union then invades Poland from the east. Poland is divided between Germany and the Soviet Union—and Europe is at war.",
+    "topic": "history",
+    "tags": ["wwii", "world war 2", "germany", "poland", "britain", "france", "hitler", "europe"],
+    "story_engine": "power_struggle",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: Hitler gambled Britain/France would back down again—they didn't. Soviet invasion of Poland from east is the payoff beat most people don't know.",
+    "next": [
+      { "id": "hitler-rise-to-power", "question": "Why did Hitler come to power?" },
+      { "id": "japan-pearl-harbor", "question": "Why did Japan attack Pearl Harbor?" },
+      { "id": "holocaust-how", "question": "How did the Holocaust happen?" },
+      { "id": "wwii-end", "question": "How did World War II end?" }
+    ]
+  },
+  {
+    "id": "hitler-rise-to-power",
+    "question": "Why did Hitler come to power?",
+    "beat_1": "Germany loses World War I and is left with heavy debts, humiliation, and political turmoil.",
+    "beat_2": "The Great Depression hits Germany hard, leaving millions unemployed and desperate for change.",
+    "beat_3": "The Nazis surge to become Germany's largest party — but never win a majority.",
+    "beat_4": "Hitler is appointed chancellor in 1933, then dismantles democracy and establishes a dictatorship.",
+    "topic": "history",
+    "tags": ["hitler", "nazi", "germany", "weimar republic", "world war 2", "rise of fascism"],
+    "story_engine": "power_struggle",
+    "scores": { "must_know": 10, "story": 9, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: Nazis never won a majority — Hitler was appointed, not elected. The Depression is the hinge that makes the Nazi surge possible.",
+    "next": [
+      { "id": "wwii-beginning", "question": "How did World War II begin?" },
+      { "id": "holocaust-how", "question": "How did the Holocaust happen?" },
+      { "id": "wwii-end", "question": "How did World War II end?" },
+      { "id": "weimar-republic", "question": "Why did the Weimar Republic fail?" }
+    ]
+  },
+  {
+    "id": "japan-pearl-harbor",
+    "question": "Why did Japan attack Pearl Harbor?",
+    "beat_1": "Japan invades China and expands across Asia, needing oil and raw materials to keep fighting.",
+    "beat_2": "The U.S. responds by cutting off Japan's access to American oil, putting Japan under severe pressure.",
+    "beat_3": "Japan decides to seize the oil-rich territories of Southeast Asia, knowing this could mean war with the U.S.",
+    "beat_4": "To keep America from stopping them, Japan launches a surprise attack on the U.S. Pacific Fleet at Pearl Harbor.",
+    "topic": "history",
+    "tags": ["japan", "pearl harbor", "world war 2", "pacific war", "usa", "oil embargo"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 10, "story": 9, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: the oil embargo, not ideology, forced Japan's hand. Pearl Harbor was a calculated preemptive strike to buy time — not aggression for its own sake.",
+    "next": [
+      { "id": "atomic-bomb", "question": "Why did the U.S. drop the atomic bomb?" },
+      { "id": "japan-wwii-loss", "question": "How did Japan lose World War II?" },
+      { "id": "holocaust-how", "question": "How did the Holocaust happen?" },
+      { "id": "wwii-end", "question": "How did World War II end?" }
+    ]
+  },
+  {
+    "id": "holocaust-how",
+    "question": "How did the Holocaust happen?",
+    "beat_1": "The Nazis strip Jews of rights, jobs, and property, increasingly isolating them from German society.",
+    "beat_2": "World War II puts millions more Jews under Nazi control, and many are forced into ghettos and deported.",
+    "beat_3": "After invading the Soviet Union, Nazi units begin mass shootings of entire Jewish communities.",
+    "beat_4": "The Nazis expand this into the \"Final Solution,\" deporting Jews across Europe to killing centers. Six million Jews are murdered.",
+    "topic": "history",
+    "tags": ["holocaust", "jews", "nazi", "genocide", "world war 2", "germany", "final solution"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: escalated in stages — persecution → ghettos → mobile shootings → industrial killing. The Soviet invasion (beat 3) is the pivot most people miss: the mobile killing squads came first, the camps followed.",
+    "next": [
+      { "id": "hitler-rise-to-power", "question": "Why did Hitler come to power?" },
+      { "id": "wwii-beginning", "question": "How did World War II begin?" },
+      { "id": "nazi-germany-fall", "question": "How did Nazi Germany fall?" },
+      { "id": "israel-creation", "question": "Why was Israel created?" }
+    ]
+  },
+  {
+    "id": "nazi-germany-fall",
+    "question": "How did Nazi Germany fall?",
+    "beat_1": "Germany invades the Soviet Union but fails to defeat it, leaving Hitler fighting a massive war on multiple fronts.",
+    "beat_2": "The Soviet army pushes Germany back from the east while Allied bombing weakens German cities, factories, and supplies.",
+    "beat_3": "The Western Allies land in France and advance toward Germany, while Soviet forces close in from the opposite direction.",
+    "beat_4": "Soviet troops reach Berlin. Hitler kills himself, and Germany surrenders days later.",
+    "topic": "history",
+    "tags": ["nazi germany", "world war 2", "hitler", "soviet union", "d-day", "berlin", "surrender"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 10, "revelation": 8 },
+    "eval_notes": "Key revelation: Germany's defeat was structural — fighting the Soviet Union simultaneously with the Western Allies made collapse inevitable once the Soviet front held. Hitler's suicide as the payoff beat grounds the abstraction in a single concrete moment.",
+    "next": [
+      { "id": "germany-invades-soviet-union", "question": "Why did Germany invade the Soviet Union?" },
+      { "id": "dday-success", "question": "How did D-Day succeed?" },
+      { "id": "japan-refuse-surrender", "question": "Why did Japan refuse to surrender?" },
+      { "id": "atomic-bomb", "question": "Why did the U.S. drop the atomic bomb?" }
+    ]
+  },
+  {
+    "id": "germany-invades-soviet-union",
+    "question": "Why did Germany invade the Soviet Union?",
+    "beat_1": "Hitler wanted to conquer Soviet territory for land, food, oil, and resources for the German empire.",
+    "beat_2": "After defeating France, Hitler believed Britain was holding out because it hoped the Soviet Union would eventually help.",
+    "beat_3": "Hitler became convinced the Soviet Union could be defeated quickly, before it grew stronger.",
+    "beat_4": "Germany launches a massive surprise invasion — but the quick victory never comes, opening a devastating Eastern Front.",
+    "topic": "history",
+    "tags": ["germany", "soviet union", "operation barbarossa", "world war 2", "hitler", "eastern front"],
+    "story_engine": "mistake",
+    "scores": { "must_know": 9, "story": 9, "order_matters": 9, "revelation": 9 },
+    "eval_notes": "Key revelation: Hitler invaded partly to eliminate Britain's last hope of a continental ally — not purely for territory. The ideological and strategic motives stack causally: resources → Britain's resilience → window of opportunity → invasion. The decisive mistake framing makes this a genuine revelation.",
+    "next": [
+      { "id": "stalingrad", "question": "Why did Germany lose the Battle of Stalingrad?" },
+      { "id": "dday-success", "question": "How did D-Day succeed?" },
+      { "id": "japan-pearl-harbor", "question": "Why did Japan attack Pearl Harbor?" },
+      { "id": "wwii-end", "question": "How did World War II end?" }
+    ]
+  },
+  {
+    "id": "wwii-end",
+    "question": "How did World War II end?",
+    "beat_1": "The Allies land at Normandy and push toward Germany, while the Soviet army closes in from the east.",
+    "beat_2": "Soviet troops capture Berlin. Hitler kills himself, and Germany surrenders.",
+    "beat_3": "Japan continues fighting in the Pacific, even as its cities are devastated and its military position collapses.",
+    "beat_4": "The U.S. drops atomic bombs on Hiroshima and Nagasaki, the Soviet Union attacks Japan, and Japan surrenders.",
+    "topic": "history",
+    "tags": ["world war 2", "wwii", "normandy", "berlin", "atomic bomb", "hiroshima", "nagasaki", "japan", "surrender"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 10, "revelation": 8 },
+    "eval_notes": "Key revelation: two separate endings — Europe and the Pacific — with Japan continuing to fight after Germany fell. The Soviet declaration of war against Japan in beat 4 is the detail most people miss; it came simultaneously with the bombs and may have been equally decisive.",
+    "next": [
+      { "id": "atomic-bomb", "question": "Why did the U.S. drop the atomic bomb?" },
+      { "id": "japan-refuse-surrender", "question": "Why did Japan refuse to surrender?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "germany-divided", "question": "Why was Germany divided after World War II?" }
+    ]
+  },
+  {
+    "id": "atomic-bomb",
+    "question": "Why did the U.S. drop the atomic bomb?",
+    "beat_1": "Germany surrenders, but Japan keeps fighting, leaving the Pacific War unfinished.",
+    "beat_2": "The U.S. prepares to invade Japan, expecting a costly battle with heavy casualties.",
+    "beat_3": "The secret Manhattan Project produces a working atomic bomb, giving the U.S. a new option to force surrender.",
+    "beat_4": "The U.S. bombs Hiroshima and Nagasaki; the Soviet Union also enters the war against Japan, and Japan surrenders.",
+    "topic": "history",
+    "tags": ["atomic bomb", "hiroshima", "nagasaki", "manhattan project", "japan", "world war 2", "pacific war", "usa"],
+    "story_engine": "mystery",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: the invasion estimate made the bomb feel like the lesser catastrophe — not cruelty but a calculation. Beat 3 is the non-obvious hinge: the bomb only becomes an option because of a years-long secret program running in parallel. Soviet entry in beat 4 is the detail most people miss.",
+    "next": [
+      { "id": "manhattan-project", "question": "What was the Manhattan Project?" },
+      { "id": "japan-refuse-surrender", "question": "Why did Japan refuse to surrender?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "hiroshima-nagasaki-chosen", "question": "Why were Hiroshima and Nagasaki chosen?" }
+    ]
+  }
+]
