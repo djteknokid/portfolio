@@ -345,10 +345,11 @@ export default function NuggetDeck({ openAnswered, onAnsweredClose }: { openAnsw
     const newAnswered = [...answeredQuestions, card.question];
     setAnsweredQuestions(newAnswered);
 
-    // Remove solved card from feed after a short pause
+    // Remove solved card from feed after victory sound finishes (~700ms in game)
     setTimeout(() => {
       setFeed((prev) => prev.filter((c) => c.question !== card.question));
-    }, 800);
+      setActiveQuestion((prev) => prev === card.question ? null : prev);
+    }, 900);
 
     // Get recommendations and append new unseen cards to the feed
     if (card.mechanic === "sequence") {
@@ -399,7 +400,7 @@ export default function NuggetDeck({ openAnswered, onAnsweredClose }: { openAnsw
     <div style={{ width: "100%", maxWidth: "390px", display: "flex", flexDirection: "column" }}>
 
       {/* Feed — venture cards injected every 3 items */}
-      {feed.map((card, i) => {
+      {feed.filter((c) => !answeredQuestions.includes(c.question)).map((card, i) => {
         const isActive = activeQuestion === card.question;
         const suggestions = isActive && card.mechanic === "sequence"
           ? getRecommendations(getSequenceByQuestion(card.question)?.id ?? "", answeredQuestions)
