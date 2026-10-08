@@ -36,6 +36,15 @@ export const NUGGET_SETS: NuggetSet[] = [
     thumbId: "",
     cardCount: 9,
   },
+  {
+    slug: "wine",
+    number: "004",
+    name: "Wine Essentials",
+    description: "Know enough about wine to order confidently and sound like you mean it.",
+    topics: ["wine"],
+    thumbId: "",
+    cardCount: 6,
+  },
 ];
 
 export function getSet(slug: string): NuggetSet | undefined {
