@@ -1,7 +1,7 @@
 import { upsertSequence, addRelationship, addEvaluation, getSequenceById } from "./library";
 import goldSequences from "./gold-sequences.json";
 
-const SEED_VERSION = "v14";
+const SEED_VERSION = "v15";
 const SEED_KEY = `sequence_seed_${SEED_VERSION}`;
 
 interface GoldEntry {

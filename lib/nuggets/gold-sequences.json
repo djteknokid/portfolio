@@ -568,5 +568,24 @@
       { "id": "wwii-end", "question": "How did World War II end?" },
       { "id": "japan-wwii-loss", "question": "How did Japan lose World War II?" }
     ]
+  },
+  {
+    "id": "china-communist",
+    "question": "How did China become communist?",
+    "beat_1": "After China's imperial dynasty collapses, the country struggles with political instability, and Nationalists and Communists compete for power.",
+    "beat_2": "The Nationalist government fights the Communists, forcing Mao Zedong's forces into a long retreat before Japan's invasion leads to an uneasy alliance.",
+    "beat_3": "After Japan's defeat in World War II, civil war resumes. The Communists gain rural support and defeat Nationalist armies.",
+    "beat_4": "Mao declares the People's Republic of China in 1949, while the defeated Nationalist government retreats to Taiwan.",
+    "topic": "history",
+    "tags": ["china", "communism", "mao", "nationalist", "civil war", "cold war", "taiwan", "1949"],
+    "story_engine": "power_struggle",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: Japan's invasion didn't end the Chinese civil war — it paused it. The moment Japan surrendered, both sides immediately resumed fighting. The Communist victory was built on rural peasant support the Nationalists never mobilized.",
+    "next": [
+      { "id": "korean-war-begin", "question": "How did the Korean War begin?" },
+      { "id": "japan-pearl-harbor", "question": "Why did Japan attack Pearl Harbor?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "japan-korea-annexation", "question": "How did Japan take control of Korea?" }
+    ]
   }
 ]
