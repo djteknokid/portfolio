@@ -15,7 +15,7 @@
       { "id": "hitler-rise-to-power", "question": "Why did Hitler come to power?" },
       { "id": "japan-pearl-harbor", "question": "Why did Japan attack Pearl Harbor?" },
       { "id": "holocaust-how", "question": "How did the Holocaust happen?" },
-      { "id": "wwii-end", "question": "How did World War II end?" }
+      { "id": "usa-enters-wwii", "question": "How did the U.S. enter World War II?" }
     ]
   },
   {
@@ -51,7 +51,7 @@
     "eval_notes": "Key revelation: the oil embargo, not ideology, forced Japan's hand. Pearl Harbor was a calculated preemptive strike to buy time — not aggression for its own sake.",
     "next": [
       { "id": "atomic-bomb", "question": "Why did the U.S. drop the atomic bomb?" },
-      { "id": "japan-wwii-loss", "question": "How did Japan lose World War II?" },
+      { "id": "usa-enters-wwii", "question": "How did the U.S. enter World War II?" },
       { "id": "holocaust-how", "question": "How did the Holocaust happen?" },
       { "id": "wwii-end", "question": "How did World War II end?" }
     ]
@@ -529,6 +529,25 @@
       { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
       { "id": "germany-divided", "question": "Why was Germany divided after World War II?" },
       { "id": "nuclear-arms-race", "question": "Why did the nuclear arms race begin?" }
+    ]
+  },
+  {
+    "id": "usa-enters-wwii",
+    "question": "How did the U.S. enter World War II?",
+    "beat_1": "As war spreads across Europe and Asia, the United States remains officially neutral, despite growing pressure to get involved.",
+    "beat_2": "The U.S. begins supplying Britain and other Allied nations with weapons and supplies while imposing economic sanctions on Japan.",
+    "beat_3": "Japan launches a surprise attack on the American naval base at Pearl Harbor, killing more than 2,400 Americans.",
+    "beat_4": "The U.S. declares war on Japan. Days later, Germany and Italy declare war on the U.S., bringing America into both major theaters of World War II.",
+    "topic": "history",
+    "tags": ["usa", "world war 2", "wwii", "pearl harbor", "japan", "neutrality", "lend-lease", "roosevelt"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 10, "story": 9, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: Germany and Italy declared war on the U.S. voluntarily — not the other way around. Without that, Roosevelt might have faced a one-front Pacific war and left Europe to Britain and the Soviets.",
+    "next": [
+      { "id": "japan-pearl-harbor", "question": "Why did Japan attack Pearl Harbor?" },
+      { "id": "wwii-end", "question": "How did World War II end?" },
+      { "id": "atomic-bomb", "question": "Why did the U.S. drop the atomic bomb?" },
+      { "id": "dday-success", "question": "What was D-Day?" }
     ]
   }
 ]
