@@ -248,4 +248,16 @@ export const GAME_QUESTIONS: Question[] = [
       { id: "4", text: "A Unique Musical Melting Pot — Black musicians blend African, Caribbean, and European influences, giving birth to jazz around 1900." },
     ],
   },
+  {
+    id: "jazz-swing",
+    question: "What Is Swing Music?",
+    mechanic: "sequence",
+    topic: "jazz",
+    sequence: [
+      { id: "1", text: "Jazz Gets People Dancing — In the 1920s, jazz becomes popular in dance halls and clubs across America." },
+      { id: "2", text: "Big Bands Take Over — Larger jazz orchestras develop powerful, danceable rhythms with trumpets, saxophones, and trombones." },
+      { id: "3", text: "Swing Becomes a Craze — In the 1930s, bandleaders like Benny Goodman and Duke Ellington help bring swing to national audiences." },
+      { id: "4", text: "America Dances to Swing — Radio, ballrooms, and dances like the Lindy Hop make swing a defining sound of the 1930s and early 1940s." },
+    ],
+  },
 ];
