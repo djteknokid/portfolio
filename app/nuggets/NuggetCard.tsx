@@ -116,7 +116,7 @@ function FeedCard({
             src={`/nuggets/thumbs/${card.thumbId}.jpg`}
             alt=""
             onError={() => setImgFailed(true)}
-            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center center", display: "block" }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center center", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }}
           />
         )}
 
@@ -330,7 +330,6 @@ export default function NuggetDeck({ openAnswered, onAnsweredClose, topics }: { 
 
     const initialFeed = [...goldCards, ...gameCards];
     setFeed(initialFeed);
-    if (initialFeed.length > 0) setActiveQuestion(initialFeed[0].question);
   }, []);
 
   useEffect(() => {

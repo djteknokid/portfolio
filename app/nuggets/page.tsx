@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { brand } from "./brand";
 import { NUGGET_SETS } from "@/lib/nuggets/sets";
-import { useProfile } from "./useProfile";
 
 function PackCard({ slug, number, name, description, thumbId, cardCount }: {
   slug: string;
@@ -45,7 +44,7 @@ function PackCard({ slug, number, name, description, thumbId, cardCount }: {
             src={`/nuggets/thumbs/${thumbId}.jpg`}
             alt=""
             onError={() => setImgFailed(true)}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }}
           />
         )}
         <div style={{
@@ -120,8 +119,6 @@ function PackCard({ slug, number, name, description, thumbId, cardCount }: {
 }
 
 export default function NuggetsPage() {
-  const { profile } = useProfile();
-
   return (
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
 
@@ -147,11 +144,6 @@ export default function NuggetsPage() {
         }}>
           Sequence
         </span>
-        {profile.score > 0 && (
-          <span style={{ fontSize: "12px", fontWeight: "600", color: brand.status.correct.text }}>
-            {profile.score} solved
-          </span>
-        )}
       </div>
 
       {/* Content */}

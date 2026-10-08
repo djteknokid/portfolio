@@ -65,17 +65,17 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
           style={{
             background: "none", border: "none",
             padding: "4px 8px",
-            cursor: profile.score > 0 ? "pointer" : "default",
+            cursor: "pointer",
             display: "flex", alignItems: "center", gap: "6px",
             borderRadius: "6px",
+            WebkitTapHighlightColor: "transparent",
           }}
         >
           <span style={{
             fontSize: "18px", fontWeight: "700",
-            color: profile.score > 0 ? brand.text.primary : brand.text.muted,
+            color: brand.text.primary,
             fontVariantNumeric: "tabular-nums",
             letterSpacing: "-0.02em",
-            transition: "color 300ms ease",
           }}>
             {profile.score}
           </span>
