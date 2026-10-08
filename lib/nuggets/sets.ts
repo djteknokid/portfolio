@@ -1,8 +1,8 @@
 export interface NuggetSet {
   slug: string;
-  label: string;
-  name: string;         // pack name, e.g. "Iron Curtain"
-  description: string;  // one-line tagline
+  number: string;       // "001", "002", etc.
+  name: string;         // "WWII Essentials"
+  description: string;
   topics: string[];
   thumbId: string;
   cardCount: number;
@@ -11,45 +11,45 @@ export interface NuggetSet {
 export const NUGGET_SETS: NuggetSet[] = [
   {
     slug: "history",
-    label: "History",
-    name: "How Did We Get Here",
-    description: "Big events that explain the world today.",
+    number: "001",
+    name: "History Essentials",
+    description: "The events everyone should know.",
     topics: ["history"],
     thumbId: "berlin-wall-fall",
     cardCount: 40,
   },
   {
     slug: "wwii",
-    label: "World War II",
-    name: "The War That Changed Everything",
-    description: "Six years that redrew every border on the map.",
+    number: "002",
+    name: "WWII Essentials",
+    description: "The war everyone should understand.",
     topics: ["WWII"],
     thumbId: "wwii-beginning",
     cardCount: 3,
   },
   {
     slug: "cold-war",
-    label: "Cold War",
-    name: "Us vs. Them",
-    description: "Decades of standoff between two superpowers.",
+    number: "003",
+    name: "Cold War Essentials",
+    description: "The rivalry that shaped our world.",
     topics: ["Cold War"],
     thumbId: "cold-war-begin",
     cardCount: 2,
   },
   {
     slug: "music",
-    label: "Music",
-    name: "Why K-pop Took Over",
-    description: "The industry behind the biggest pop machine on earth.",
+    number: "004",
+    name: "K-Pop Essentials",
+    description: "Know the artists, songs, and culture.",
     topics: ["K-pop"],
     thumbId: "south-korea-global-rise",
     cardCount: 2,
   },
   {
     slug: "culture",
-    label: "Culture",
-    name: "Korea Goes Global",
-    description: "Dramas, food, and soft power — how it spread.",
+    number: "005",
+    name: "Korean Culture Essentials",
+    description: "The soft power behind the global wave.",
     topics: ["Korean culture"],
     thumbId: "korean-culture-appeal",
     cardCount: 1,

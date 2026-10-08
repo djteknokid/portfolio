@@ -6,9 +6,9 @@ import { brand } from "./brand";
 import { NUGGET_SETS } from "@/lib/nuggets/sets";
 import { useProfile } from "./useProfile";
 
-function PackCard({ slug, label, name, description, thumbId, cardCount }: {
+function PackCard({ slug, number, name, description, thumbId, cardCount }: {
   slug: string;
-  label: string;
+  number: string;
   name: string;
   description: string;
   thumbId: string;
@@ -25,19 +25,18 @@ function PackCard({ slug, label, name, description, thumbId, cardCount }: {
         borderRadius: "20px",
         overflow: "hidden",
         border: `1px solid ${brand.border.card}`,
-        background: "transparent",
+        background: brand.bg.raised,
         cursor: "pointer",
         textAlign: "left",
         padding: 0,
         display: "block",
-        position: "relative",
       }}
     >
       {/* Hero image */}
       <div style={{
         width: "100%",
         aspectRatio: "16 / 9",
-        background: brand.bg.raised,
+        background: brand.bg.page,
         position: "relative",
         overflow: "hidden",
       }}>
@@ -49,41 +48,20 @@ function PackCard({ slug, label, name, description, thumbId, cardCount }: {
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
         )}
-        {/* Scrim */}
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,0.75) 100%)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,0.6) 100%)",
         }} />
-
-        {/* Label pill */}
-        <div style={{
-          position: "absolute",
-          top: "14px",
-          left: "16px",
-          background: "rgba(0,0,0,0.55)",
-          backdropFilter: "blur(8px)",
-          borderRadius: "99px",
-          padding: "4px 10px",
-          fontSize: "10px",
-          fontWeight: "600",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.6)",
-        }}>
-          {label}
-        </div>
 
         {/* Card count pill */}
         <div style={{
           position: "absolute",
-          top: "14px",
-          right: "16px",
-          background: "rgba(0,0,0,0.55)",
+          top: "14px", right: "14px",
+          background: "rgba(0,0,0,0.5)",
           backdropFilter: "blur(8px)",
           borderRadius: "99px",
           padding: "4px 10px",
-          fontSize: "10px",
-          fontWeight: "600",
+          fontSize: "10px", fontWeight: "600",
           color: "rgba(255,255,255,0.45)",
         }}>
           {cardCount} cards
@@ -92,21 +70,42 @@ function PackCard({ slug, label, name, description, thumbId, cardCount }: {
 
       {/* Pack info */}
       <div style={{
-        padding: "16px 18px 18px",
-        background: brand.bg.raised,
+        padding: "16px 18px 20px",
         display: "flex",
         flexDirection: "column",
-        gap: "6px",
+        gap: "8px",
       }}>
+        {/* SET / 001 */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{
+            fontSize: "9px", fontWeight: "700",
+            letterSpacing: "0.16em", textTransform: "uppercase",
+            color: brand.text.muted,
+          }}>
+            Set
+          </span>
+          <span style={{
+            fontSize: "9px", fontWeight: "700",
+            letterSpacing: "0.1em",
+            color: brand.text.muted,
+            fontVariantNumeric: "tabular-nums",
+          }}>
+            {number}
+          </span>
+        </div>
+
+        {/* Name */}
         <span style={{
           fontSize: "20px",
           fontWeight: "800",
           color: brand.text.primary,
           letterSpacing: "-0.025em",
-          lineHeight: 1.1,
+          lineHeight: 1.15,
         }}>
           {name}
         </span>
+
+        {/* Description */}
         <span style={{
           fontSize: "13px",
           fontWeight: "400",
@@ -186,7 +185,7 @@ export default function NuggetsPage() {
               <PackCard
                 key={set.slug}
                 slug={set.slug}
-                label={set.label}
+                number={set.number}
                 name={set.name}
                 description={set.description}
                 thumbId={set.thumbId}
