@@ -27,6 +27,15 @@ export const NUGGET_SETS: NuggetSet[] = [
     thumbId: "korean-culture-appeal",
     cardCount: 3,
   },
+  {
+    slug: "jazz",
+    number: "003",
+    name: "Jazz Essentials",
+    description: "Things everyone should know about jazz, even if they're not a fan.",
+    topics: ["jazz"],
+    thumbId: "",
+    cardCount: 5,
+  },
 ];
 
 export function getSet(slug: string): NuggetSet | undefined {

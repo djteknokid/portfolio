@@ -159,4 +159,81 @@ export const GAME_QUESTIONS: Question[] = [
       { id: "kfc",      left: "Korean Fried Chicken", right: "Extra-crispy, saucy chicken"     },
     ],
   },
+
+  // ── Jazz Essentials ───────────────────────────────────────────────
+  {
+    id: "jazz-origins",
+    question: "What Is Jazz?",
+    mechanic: "sequence",
+    topic: "jazz",
+    sequence: [
+      { id: "1", text: "Jazz emerges from Black musical traditions in New Orleans." },
+      { id: "2", text: "Blues, ragtime, and improvisation shape its distinctive sound in Southern communities." },
+      { id: "3", text: "The Great Migration brings jazz to Chicago and New York." },
+      { id: "4", text: "Radio, clubs, and recordings make jazz a defining American musical form." },
+    ],
+  },
+  {
+    id: "jazz-elements",
+    question: "What Makes Jazz, Jazz?",
+    mechanic: "grouping",
+    topic: "jazz",
+    zones: [
+      { id: "jazz", label: "Jazz Elements", color: "#f59e0b" },
+    ],
+    items: [
+      { id: "improvisation", label: "Improvisation",              emoji: "", correctGroup: "jazz" },
+      { id: "swing",         label: "Swing Rhythm",               emoji: "", correctGroup: "jazz" },
+      { id: "blue-notes",    label: "Blue Notes",                 emoji: "", correctGroup: "jazz" },
+      { id: "syncopation",   label: "Syncopation",                emoji: "", correctGroup: "jazz" },
+      { id: "call-response", label: "Call and Response",          emoji: "", correctGroup: "jazz" },
+      { id: "scripted",      label: "Strictly Scripted Performance", emoji: "", correctGroup: "none" },
+      { id: "edm",           label: "Electronic Dance Beats",     emoji: "", correctGroup: "none" },
+      { id: "operatic",      label: "Operatic Singing",           emoji: "", correctGroup: "none" },
+    ],
+  },
+  {
+    id: "jazz-legends",
+    question: "5 Jazz Legends Everyone Should Know",
+    mechanic: "matching",
+    topic: "jazz",
+    pairs: [
+      { id: "armstrong", left: "Louis Armstrong",  right: "What a Wonderful World" },
+      { id: "ellington", left: "Duke Ellington",   right: "Take the 'A' Train"     },
+      { id: "davis",     left: "Miles Davis",      right: "So What"                },
+      { id: "coltrane",  left: "John Coltrane",    right: "Giant Steps"            },
+      { id: "fitzgerald",left: "Ella Fitzgerald",  right: "Summertime"             },
+    ],
+  },
+  {
+    id: "jazz-styles",
+    question: "What Are the Different Types of Jazz?",
+    mechanic: "matching",
+    topic: "jazz",
+    pairs: [
+      { id: "nola",   left: "New Orleans Jazz", right: "Collective improvisation"      },
+      { id: "swing",  left: "Swing",            right: "Big bands and dance rhythms"   },
+      { id: "bebop",  left: "Bebop",            right: "Fast, complex improvisation"   },
+      { id: "cool",   left: "Cool Jazz",        right: "Relaxed, understated sound"    },
+      { id: "fusion", left: "Jazz Fusion",      right: "Jazz mixed with rock and funk" },
+    ],
+  },
+  {
+    id: "jazz-vs-blues",
+    question: "What's the Difference Between Blues and Jazz?",
+    mechanic: "grouping",
+    topic: "jazz",
+    zones: [
+      { id: "blues", label: "Blues", color: "#60a5fa" },
+      { id: "jazz",  label: "Jazz",  color: "#f59e0b" },
+    ],
+    items: [
+      { id: "storytelling",  label: "Personal storytelling",    emoji: "", correctGroup: "blues" },
+      { id: "emotional",     label: "Emotional expression",     emoji: "", correctGroup: "blues" },
+      { id: "repeating",     label: "Repeating patterns",       emoji: "", correctGroup: "blues" },
+      { id: "improvisation", label: "Improvisation",            emoji: "", correctGroup: "jazz"  },
+      { id: "rhythmic",      label: "Rhythmic freedom",         emoji: "", correctGroup: "jazz"  },
+      { id: "harmonic",      label: "Harmonic exploration",     emoji: "", correctGroup: "jazz"  },
+    ],
+  },
 ];
