@@ -549,5 +549,24 @@
       { "id": "atomic-bomb", "question": "Why did the U.S. drop the atomic bomb?" },
       { "id": "dday-success", "question": "What was D-Day?" }
     ]
+  },
+  {
+    "id": "japan-korea-annexation",
+    "question": "How did Japan take control of Korea?",
+    "beat_1": "Japan modernizes its military and seeks greater influence in Asia, viewing Korea as strategically important to its expansion.",
+    "beat_2": "Japan defeats China in a war over influence in Korea, forcing China to recognize Korea's independence and weakening Chinese influence.",
+    "beat_3": "Japan defeats Russia in another war, removing a major rival and establishing a protectorate over Korea, taking control of its foreign affairs.",
+    "beat_4": "Japan forces Korea's annexation, making it a Japanese colony in 1910. Japanese colonial rule lasts until 1945.",
+    "topic": "history",
+    "tags": ["japan", "korea", "annexation", "colonialism", "asia", "sino-japanese war", "russo-japanese war", "1910"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 9, "story": 9, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: Korea's annexation required defeating two great powers in sequence — China first, then Russia. Each victory didn't just expand Japan's influence; it removed the next obstacle on the path to annexation.",
+    "next": [
+      { "id": "japan-pearl-harbor", "question": "Why did Japan attack Pearl Harbor?" },
+      { "id": "korean-war-begin", "question": "How did the Korean War begin?" },
+      { "id": "wwii-end", "question": "How did World War II end?" },
+      { "id": "japan-wwii-loss", "question": "How did Japan lose World War II?" }
+    ]
   }
 ]
