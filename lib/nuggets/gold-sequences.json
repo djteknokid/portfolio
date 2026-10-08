@@ -587,5 +587,175 @@
       { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
       { "id": "japan-korea-annexation", "question": "How did Japan take control of Korea?" }
     ]
+  },
+  {
+    "id": "qing-dynasty-collapse",
+    "question": "How did China's last imperial dynasty collapse?",
+    "beat_1": "China is ruled by the Qing Dynasty, but defeats by foreign powers and growing unrest weaken the emperor's authority.",
+    "beat_2": "Reform efforts fail to satisfy growing demands for change, and revolutionaries call for an end to imperial rule.",
+    "beat_3": "A military uprising sparks a nationwide revolution, and provinces begin declaring independence from the Qing government.",
+    "beat_4": "The last emperor abdicates in 1912, ending over 2,000 years of imperial rule. China becomes a republic but soon falls into political instability.",
+    "topic": "history",
+    "tags": ["china", "qing dynasty", "imperial", "revolution", "1912", "republic", "collapse", "sun yat-sen"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 9, "story": 9, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: the dynasty wasn't toppled by a single uprising — it was already hollowed out by foreign defeats and failed reforms. The revolution finished what decades of humiliation had started.",
+    "next": [
+      { "id": "china-communist", "question": "How did China become communist?" },
+      { "id": "china-communist-why", "question": "Why did China become communist?" },
+      { "id": "japan-korea-annexation", "question": "How did Japan take control of Korea?" },
+      { "id": "wwii-beginning", "question": "How did World War II begin?" }
+    ]
+  },
+  {
+    "id": "china-communist-why",
+    "question": "Why did China become communist?",
+    "beat_1": "After China's last emperor falls, the new republic struggles with corruption, poverty, and powerful regional warlords.",
+    "beat_2": "Mao Zedong's Communist Party promises land reform and greater equality, gaining support among poor farmers.",
+    "beat_3": "Japan's invasion weakens the Nationalist government, while the Communists expand their influence in the countryside.",
+    "beat_4": "After Japan's defeat, civil war resumes. The Communists defeat the Nationalists, and Mao establishes the People's Republic of China in 1949.",
+    "topic": "history",
+    "tags": ["china", "communism", "mao", "nationalist", "civil war", "land reform", "peasants", "1949", "cold war"],
+    "story_engine": "power_struggle",
+    "scores": { "must_know": 10, "story": 9, "order_matters": 9, "revelation": 9 },
+    "eval_notes": "Key revelation: the Communists didn't win because they were stronger militarily — they won because they solved a problem the Nationalists ignored. Land reform turned peasants into a revolutionary army.",
+    "next": [
+      { "id": "china-communist", "question": "How did China become communist?" },
+      { "id": "qing-dynasty-collapse", "question": "How did China's last imperial dynasty collapse?" },
+      { "id": "korean-war-begin", "question": "How did the Korean War begin?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" }
+    ]
+  },
+  {
+    "id": "china-cultural-revolution",
+    "question": "What was China's Cultural Revolution?",
+    "beat_1": "After Mao Zedong's Great Leap Forward causes a devastating famine, his leadership faces criticism within China's Communist Party.",
+    "beat_2": "Mao launches the Cultural Revolution, calling on young people to attack traditional ideas and challenge officials he labels enemies of communism.",
+    "beat_3": "Millions of Red Guards target teachers, intellectuals, and officials. Schools close, cultural treasures are destroyed, and widespread violence erupts.",
+    "beat_4": "After years of political persecution and chaos, Mao dies in 1976. The Cultural Revolution ends, and China's new leadership gradually changes direction.",
+    "topic": "history",
+    "tags": ["china", "mao", "cultural revolution", "red guards", "communism", "1966", "1976", "persecution", "cold war"],
+    "story_engine": "power_struggle",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 9, "revelation": 10 },
+    "eval_notes": "Key revelation: the Cultural Revolution wasn't about culture — it was Mao using mass mobilization to purge political rivals who had quietly undermined him after the Great Leap famine. The chaos was the point.",
+    "next": [
+      { "id": "china-communist", "question": "How did China become communist?" },
+      { "id": "china-communist-why", "question": "Why did China become communist?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "korean-war-begin", "question": "How did the Korean War begin?" }
+    ]
+  },
+  {
+    "id": "korea-divided",
+    "question": "How was Korea divided after World War II?",
+    "beat_1": "Korea is already under Japanese colonial rule, with Koreans facing restrictions on their language, culture, and political freedom.",
+    "beat_2": "As Japan expands its war, Koreans are increasingly forced into military service and labor, while many women are subjected to sexual slavery.",
+    "beat_3": "Japan's defeat ends its colonial rule, but the United States and Soviet Union agree to divide Korea into separate occupation zones.",
+    "beat_4": "Soviet forces occupy the north and American forces the south, dividing Korea at the 38th parallel and setting the stage for two separate governments.",
+    "topic": "history",
+    "tags": ["korea", "division", "38th parallel", "japan", "colonial rule", "cold war", "ussr", "usa", "wwii", "occupation"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 10, "story": 9, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: Korea wasn't divided because of anything Koreans did — it was divided as a side effect of two superpowers agreeing on occupation logistics. A line drawn on a map became one of the world's most fortified borders.",
+    "next": [
+      { "id": "korean-war-begin", "question": "How did the Korean War begin?" },
+      { "id": "japan-korea-annexation", "question": "How did Japan take control of Korea?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "china-communist", "question": "How did China become communist?" }
+    ]
+  },
+  {
+    "id": "korean-war-begin",
+    "question": "How did the Korean War begin?",
+    "beat_1": "After Japan's defeat in World War II, Korea is divided at the 38th parallel, with Soviet forces in the north and American forces in the south.",
+    "beat_2": "Two rival governments emerge: communist North Korea under Kim Il-sung and anti-communist South Korea under Syngman Rhee. Both claim authority over all Korea.",
+    "beat_3": "Kim Il-sung secures Stalin's approval and Soviet military support for an invasion, believing he can reunify Korea by force.",
+    "beat_4": "North Korean troops cross the 38th parallel in June 1950, invading South Korea and triggering the Korean War.",
+    "topic": "history",
+    "tags": ["korea", "korean war", "kim il-sung", "stalin", "cold war", "38th parallel", "1950", "north korea", "south korea"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: Kim Il-sung didn't act alone — he needed Stalin's approval and weapons. Stalin initially refused, then changed his mind after China went communist. The Korean War was a Cold War proxy conflict from the first shot.",
+    "next": [
+      { "id": "korea-divided", "question": "How was Korea divided after World War II?" },
+      { "id": "china-communist", "question": "How did China become communist?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "japan-korea-annexation", "question": "How did Japan take control of Korea?" }
+    ]
+  },
+  {
+    "id": "us-enters-korean-war",
+    "question": "Why did the U.S. enter the Korean War?",
+    "beat_1": "After World War II, the U.S. adopts a policy of containing communism, aiming to prevent Soviet influence from spreading.",
+    "beat_2": "Communist North Korea invades South Korea, quickly capturing territory and threatening to unify the peninsula by force.",
+    "beat_3": "President Harry Truman fears that allowing North Korea to succeed would encourage further communist expansion across Asia.",
+    "beat_4": "The United Nations authorizes military assistance, and Truman sends U.S. forces to defend South Korea, bringing America into the Korean War.",
+    "topic": "history",
+    "tags": ["korean war", "usa", "truman", "containment", "cold war", "united nations", "1950", "communism", "north korea"],
+    "story_engine": "power_struggle",
+    "scores": { "must_know": 9, "story": 9, "order_matters": 9, "revelation": 8 },
+    "eval_notes": "Key revelation: Truman didn't ask Congress for a declaration of war — he called it a 'police action' authorized by the UN. This set a precedent for U.S. military interventions that bypassed congressional war powers.",
+    "next": [
+      { "id": "korean-war-begin", "question": "How did the Korean War begin?" },
+      { "id": "korean-war-end", "question": "How did the Korean War end?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "korea-divided", "question": "How was Korea divided after World War II?" }
+    ]
+  },
+  {
+    "id": "korean-war-end",
+    "question": "How did the Korean War end?",
+    "beat_1": "North Korea nearly conquers South Korea, but U.S.-led UN forces push North Korean troops back and advance toward China.",
+    "beat_2": "China enters the war, driving UN forces south. After fierce fighting, neither side can achieve a decisive victory.",
+    "beat_3": "The fighting settles into a stalemate near the 38th parallel, and both sides begin negotiations to end the war.",
+    "beat_4": "An armistice is signed in 1953, stopping the fighting and establishing the Demilitarized Zone (DMZ). No peace treaty is signed.",
+    "topic": "history",
+    "tags": ["korean war", "armistice", "dmz", "stalemate", "china", "1953", "38th parallel", "cold war", "un"],
+    "story_engine": "domino_effect",
+    "scores": { "must_know": 10, "story": 9, "order_matters": 10, "revelation": 10 },
+    "eval_notes": "Key revelation: the Korean War never officially ended — the armistice is a ceasefire, not a peace treaty. North and South Korea are technically still at war, which is why the DMZ remains one of the most militarized borders in the world.",
+    "next": [
+      { "id": "korean-war-begin", "question": "How did the Korean War begin?" },
+      { "id": "us-enters-korean-war", "question": "Why did the U.S. enter the Korean War?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "nuclear-arms-race", "question": "How did the nuclear arms race begin?" }
+    ]
+  },
+  {
+    "id": "south-korea-global-rise",
+    "question": "Why is South Korea so popular around the world?",
+    "beat_1": "After the Korean War, South Korea is devastated and impoverished, struggling to rebuild its economy and international standing.",
+    "beat_2": "Government-backed industrialization helps companies like Samsung and Hyundai grow, transforming South Korea into a major economic power.",
+    "beat_3": "As South Korea becomes wealthier and more democratic, its entertainment industry grows, producing globally successful music, television, and films.",
+    "beat_4": "Streaming platforms, social media, and international fandoms bring K-pop, K-dramas, Korean food, and beauty trends to audiences worldwide.",
+    "topic": "history",
+    "tags": ["south korea", "k-pop", "hallyu", "samsung", "hyundai", "culture", "soft power", "economic development", "kdramas"],
+    "story_engine": "transformation",
+    "scores": { "must_know": 9, "story": 10, "order_matters": 9, "revelation": 10 },
+    "eval_notes": "Key revelation: South Korea's cultural dominance wasn't accidental — it was built on an economic foundation that took decades to construct. The country went from war-ruined to culturally exported in a single generation.",
+    "next": [
+      { "id": "korean-war-end", "question": "How did the Korean War end?" },
+      { "id": "korean-war-begin", "question": "How did the Korean War begin?" },
+      { "id": "korea-divided", "question": "How was Korea divided after World War II?" },
+      { "id": "korean-culture-appeal", "question": "What makes Korean culture so appealing worldwide?" }
+    ]
+  },
+  {
+    "id": "korean-culture-appeal",
+    "question": "What makes Korean culture so appealing worldwide?",
+    "beat_1": "Korea develops distinctive cultural traditions shaped by centuries of history, emphasizing family, community, ritual, and shared identity.",
+    "beat_2": "Colonization, war, and rapid social change leave lasting themes of separation, resilience, ambition, and belonging in Korean cultural expression.",
+    "beat_3": "Korean filmmakers, musicians, and creators transform these experiences into emotionally powerful stories, blending traditional influences with modern styles.",
+    "beat_4": "International audiences discover entertainment that feels culturally distinctive yet emotionally familiar, drawing them toward Korean music, films, food, and everyday culture.",
+    "topic": "history",
+    "tags": ["south korea", "k-pop", "hallyu", "culture", "soft power", "films", "parasite", "bts", "identity", "storytelling"],
+    "story_engine": "transformation",
+    "scores": { "must_know": 8, "story": 10, "order_matters": 8, "revelation": 10 },
+    "eval_notes": "Key revelation: Korean content resonates globally not despite its cultural specificity but because of it. Audiences who have never experienced Korea recognize the emotional core — loss, ambition, belonging — because those themes are universal.",
+    "next": [
+      { "id": "south-korea-global-rise", "question": "Why is South Korea so popular around the world?" },
+      { "id": "korean-war-end", "question": "How did the Korean War end?" },
+      { "id": "korea-divided", "question": "How was Korea divided after World War II?" }
+    ]
   }
 ]

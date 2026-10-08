@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { brand } from "./brand";
+import SuggestionList, { type Suggestion } from "./SuggestionList";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -18,7 +19,7 @@ interface Props {
   onComplete: () => void;
   onSkip?: () => void;
   loadingSkip?: boolean;
-  suggestions?: string[];
+  suggestions?: Suggestion[];
   loadingSuggestions?: boolean;
   onSelectSuggestion?: (q: string) => void;
   loadingNugget?: string | null;
@@ -208,11 +209,11 @@ export default function SequenceGame({ question: _question, sequence, onComplete
               )}
 
               {/* Drag handle */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "5px", width: "12px", flexShrink: 0 }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "4px", width: "12px", flexShrink: 0 }}>
                 {!submitted && !isLocked(i) && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                    {[0, 1].map((d) => (
-                      <div key={d} style={{ width: "12px", height: "1px", borderRadius: "1px", background: brand.text.muted, opacity: 0.5 }} />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px" }}>
+                    {[0,1,2,3,4,5].map((d) => (
+                      <div key={d} style={{ width: "3px", height: "3px", borderRadius: "50%", background: brand.text.secondary, opacity: 0.6 }} />
                     ))}
                   </div>
                 )}
@@ -274,29 +275,9 @@ export default function SequenceGame({ question: _question, sequence, onComplete
                 <div key={i} style={{ height: "48px", borderRadius: brand.radius.item, background: brand.bg.raised, border: `1px solid ${brand.border.item}`, opacity: 0.3 }} />
               ))}
             </div>
-          ) : suggestions.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <span style={{ ...brand.type.label, color: brand.text.muted }}>What&apos;s next?</span>
-              {suggestions.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => onSelectSuggestion?.(q)}
-                  disabled={loadingNugget !== null}
-                  style={{
-                    width: "100%", padding: "14px 16px", borderRadius: brand.radius.item,
-                    background: loadingNugget === q ? brand.bg.hover : brand.bg.raised,
-                    border: `1px solid ${loadingNugget === q ? brand.border.accent : brand.border.item}`,
-                    color: loadingNugget === q ? brand.text.primary : brand.text.secondary,
-                    fontSize: "14px", fontWeight: "500", lineHeight: "1.4",
-                    textAlign: "left", cursor: loadingNugget !== null ? "default" : "pointer",
-                    transition: brand.motion.snap,
-                  }}
-                >
-                  {loadingNugget === q ? "Loading…" : q}
-                </button>
-              ))}
-            </div>
-          ) : null}
+          ) : (
+            <SuggestionList suggestions={suggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} />
+          )}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>

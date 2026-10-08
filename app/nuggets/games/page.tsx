@@ -1,112 +1,102 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { brand } from "../brand";
 import GroupingGame from "../GroupingGame";
 import MatchingGame from "../MatchingGame";
+import RankedListGame from "../RankedListGame";
 import SequenceGame from "../SequenceGame";
+import { GAME_QUESTIONS } from "./questions";
+import type { MechanicType, Question, GroupingQuestion, MatchingQuestion, SequenceQuestion, RankedQuestion } from "./questions";
 
-const AXIS_ALLIES_DATA = {
-  question: "Which countries fought on which side in World War II?",
-  zones: [
-    { id: "allies", label: "Allied Powers", color: "#60a5fa" },
-    { id: "axis",   label: "Axis Powers",   color: "#f87171" },
-  ],
-  items: [
-    { id: "usa",     label: "United States", emoji: "🇺🇸", correctGroup: "allies" },
-    { id: "uk",      label: "United Kingdom", emoji: "🇬🇧", correctGroup: "allies" },
-    { id: "ussr",    label: "Soviet Union",  emoji: "🇷🇺", correctGroup: "allies" },
-    { id: "france",  label: "France",        emoji: "🇫🇷", correctGroup: "allies" },
-    { id: "china",   label: "China",         emoji: "🇨🇳", correctGroup: "allies" },
-    { id: "germany", label: "Germany",       emoji: "🇩🇪", correctGroup: "axis"   },
-    { id: "japan",   label: "Japan",         emoji: "🇯🇵", correctGroup: "axis"   },
-    { id: "italy",   label: "Italy",         emoji: "🇮🇹", correctGroup: "axis"   },
-  ],
+// ── Mechanic emoji icon ───────────────────────────────────────────
+
+const MECHANIC_EMOJI: Record<MechanicType, string> = {
+  sequence: "🧩",
+  matching: "🎯",
+  grouping: "👥",
+  ranked:   "🎯",
 };
 
-const NATO_DATA = {
-  question: "Which countries were founding members of NATO in 1949?",
-  zones: [
-    { id: "nato",     label: "Founding NATO Members", color: "#60a5fa" },
-    { id: "non-nato", label: "Not in NATO",            color: "#a78bfa" },
-  ],
-  items: [
-    { id: "usa",         label: "United States",  emoji: "🇺🇸", correctGroup: "nato"     },
-    { id: "uk",          label: "United Kingdom", emoji: "🇬🇧", correctGroup: "nato"     },
-    { id: "france",      label: "France",         emoji: "🇫🇷", correctGroup: "nato"     },
-    { id: "canada",      label: "Canada",         emoji: "🇨🇦", correctGroup: "nato"     },
-    { id: "norway",      label: "Norway",         emoji: "🇳🇴", correctGroup: "nato"     },
-    { id: "denmark",     label: "Denmark",        emoji: "🇩🇰", correctGroup: "nato"     },
-    { id: "portugal",    label: "Portugal",       emoji: "🇵🇹", correctGroup: "nato"     },
-    { id: "italy",       label: "Italy",          emoji: "🇮🇹", correctGroup: "nato"     },
-    { id: "germany",     label: "Germany",        emoji: "🇩🇪", correctGroup: "non-nato" },
-    { id: "ussr",        label: "Soviet Union",   emoji: "🇷🇺", correctGroup: "non-nato" },
-    { id: "sweden",      label: "Sweden",         emoji: "🇸🇪", correctGroup: "non-nato" },
-    { id: "switzerland", label: "Switzerland",    emoji: "🇨🇭", correctGroup: "non-nato" },
-  ],
-};
+function MechanicIcon({ type }: { type: MechanicType }) {
+  return (
+    <span style={{ fontSize: "14px", lineHeight: 1, flexShrink: 0 }}>
+      {MECHANIC_EMOJI[type]}
+    </span>
+  );
+}
 
-const CAPITALS_DATA = {
-  question: "What were the capital cities of the major World War II powers?",
-  pairs: [
-    { id: "germany-pair", left: "Germany",        right: "Berlin"    },
-    { id: "japan-pair",   left: "Japan",           right: "Tokyo"     },
-    { id: "uk-pair",      left: "United Kingdom",  right: "London"    },
-    { id: "france-pair",  left: "France",          right: "Paris"     },
-    { id: "italy-pair",   left: "Italy",           right: "Rome"      },
-    { id: "usa-pair",     left: "United States",   right: "Washington D.C." },
-  ],
-};
+// ── What's next panel ─────────────────────────────────────────────
 
-const ASIAN_COMMUNISM_DATA = {
-  question: "Which Asian countries were communist during the Cold War?",
-  zones: [
-    { id: "communist", label: "Communist Countries", color: "#f87171" },
-  ],
-  items: [
-    { id: "china",       label: "China",        emoji: "🇨🇳", correctGroup: "communist" },
-    { id: "north-korea", label: "North Korea",  emoji: "🇰🇵", correctGroup: "communist" },
-    { id: "mongolia",    label: "Mongolia",     emoji: "🇲🇳", correctGroup: "communist" },
-    { id: "north-viet",  label: "North Vietnam",emoji: "🇻🇳", correctGroup: "communist" },
-    { id: "japan",       label: "Japan",        emoji: "🇯🇵", correctGroup: "none"      },
-    { id: "south-korea", label: "South Korea",  emoji: "🇰🇷", correctGroup: "none"      },
-    { id: "philippines", label: "Philippines",  emoji: "🇵🇭", correctGroup: "none"      },
-    { id: "thailand",    label: "Thailand",     emoji: "🇹🇭", correctGroup: "none"      },
-  ],
-};
+function WhatsNext({ remaining, onSelect }: { remaining: Question[]; onSelect: (id: string) => void }) {
+  if (remaining.length === 0) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ width: "100%", height: "1px", background: brand.border.item }} />
+        <span style={{ fontSize: "13px", color: brand.text.muted }}>All done.</span>
+      </div>
+    );
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <span style={{ ...brand.type.label, color: brand.text.muted }}>What&apos;s next?</span>
+      {remaining.map((q) => (
+        <button
+          key={q.id}
+          onClick={() => onSelect(q.id)}
+          style={{
+            width: "100%", padding: "14px 16px", borderRadius: brand.radius.item,
+            background: brand.bg.raised,
+            border: `1px solid ${brand.border.item}`,
+            color: brand.text.secondary,
+            fontSize: "14px", fontWeight: "500", lineHeight: "1.4",
+            textAlign: "left", cursor: "pointer",
+            transition: brand.motion.snap,
+            display: "flex", alignItems: "center", gap: "14px",
+          }}
+        >
+          <span style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", width: "20px" }}>
+            <MechanicIcon type={q.mechanic} />
+          </span>
+          <span style={{ flex: 1 }}>{q.question}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
-const SEQUENCE_DATA = {
-  question: "How did World War II begin?",
-  sequence: [
-    { id: "1", text: "Hitler takes Austria and Czechoslovakia. Britain and France warn Poland will be different." },
-    { id: "2", text: "Germany invades Poland, attacking with tanks and aircraft." },
-    { id: "3", text: "Hitler expects Britain and France to back down. They don't — both declare war." },
-    { id: "4", text: "The Soviet Union invades Poland from the east. Europe is at war." },
-  ],
-};
+// ── Page ──────────────────────────────────────────────────────────
 
-type GameType = "axis-allies" | "nato" | "asian-communism" | "matching" | "sequence";
+export default function GamesPage() {
+  const [activeId, setActiveId] = useState<string>(GAME_QUESTIONS[0].id);
+  const [done, setDone] = useState<Set<string>>(new Set());
 
-export default function GamesDemo() {
-  const [active, setActive] = useState<GameType>("axis-allies");
-  const [done, setDone] = useState<Record<GameType, boolean>>({
-    "axis-allies": false, nato: false, "asian-communism": false, matching: false, sequence: false,
-  });
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (q && GAME_QUESTIONS.some((gq) => gq.id === q)) {
+      setActiveId(q);
+    }
+  }, []);
 
-  const tabs: { id: GameType; label: string }[] = [
-    { id: "axis-allies",      label: "Axis / Allies"   },
-    { id: "nato",             label: "NATO 1949"        },
-    { id: "asian-communism",  label: "Cold War Asia"    },
-    { id: "matching",         label: "Capitals"         },
-    { id: "sequence",         label: "Sequence"         },
-  ];
+  const active = GAME_QUESTIONS.find((q) => q.id === activeId)!;
+  const remaining = GAME_QUESTIONS.filter((q) => q.id !== activeId && !done.has(q.id));
+  const isCorrect = done.has(activeId);
 
-  const question =
-    active === "axis-allies"     ? AXIS_ALLIES_DATA.question :
-    active === "nato"            ? NATO_DATA.question :
-    active === "asian-communism" ? ASIAN_COMMUNISM_DATA.question :
-    active === "matching"        ? CAPITALS_DATA.question :
-    SEQUENCE_DATA.question;
+  function handleComplete(id: string) {
+    setDone((prev) => new Set([...prev, id]));
+  }
+
+  function handleSelect(id: string) {
+    setActiveId(id);
+  }
+
+  // Group questions by mechanic so each game component mounts once
+  // and stays mounted for the lifetime of the page.
+  const grouping = GAME_QUESTIONS.filter((q): q is GroupingQuestion => q.mechanic === "grouping");
+  const matching = GAME_QUESTIONS.filter((q): q is MatchingQuestion => q.mechanic === "matching");
+  const sequence = GAME_QUESTIONS.filter((q): q is SequenceQuestion => q.mechanic === "sequence");
+  const ranked   = GAME_QUESTIONS.filter((q): q is RankedQuestion   => q.mechanic === "ranked");
 
   return (
     <main style={{
@@ -123,49 +113,56 @@ export default function GamesDemo() {
       <div style={{ width: "100%", maxWidth: "360px", display: "flex", flexDirection: "column", gap: "32px" }}>
 
         {/* Header */}
-        <div>
-          <h1 style={{ margin: 0, fontSize: "22px", fontWeight: "700", color: brand.text.primary, letterSpacing: "-0.02em" }}>
-            Answer types
-          </h1>
-          <p style={{ margin: "6px 0 0", fontSize: "13px", color: brand.text.muted }}>
-            Three ways to test knowledge
-          </p>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: "22px", fontWeight: "700", color: brand.text.primary, letterSpacing: "-0.02em" }}>
+              Answer types
+            </h1>
+            <p style={{ margin: "6px 0 0", fontSize: "13px", color: brand.text.muted }}>
+              Three ways to test knowledge
+            </p>
+          </div>
+          <span style={{ fontSize: "12px", color: brand.text.muted }}>
+            {done.size} / {GAME_QUESTIONS.length}
+          </span>
         </div>
 
-        {/* Tab switcher */}
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActive(t.id)}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "10px",
-                border: `1px solid ${active === t.id ? brand.border.accent : brand.border.item}`,
-                background: active === t.id ? brand.bg.hover : "transparent",
-                color: active === t.id ? brand.text.primary : brand.text.muted,
-                fontSize: "11px",
-                fontWeight: "600",
-                letterSpacing: "0.06em",
-                cursor: "pointer",
-                transition: brand.motion.snap,
-                position: "relative",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {t.label}
-              {done[t.id] && (
-                <span style={{
-                  position: "absolute", top: "-4px", right: "-4px",
-                  width: "8px", height: "8px", borderRadius: "50%",
-                  background: brand.status.correct.text,
-                }} />
-              )}
-            </button>
-          ))}
+        {/* All questions — same "what's next" style */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          {GAME_QUESTIONS.map((q) => {
+            const isCurrent = q.id === activeId;
+            const isDone = done.has(q.id);
+            return (
+              <button
+                key={q.id}
+                onClick={() => !isCurrent && handleSelect(q.id)}
+                style={{
+                  width: "100%", padding: "13px 14px", borderRadius: brand.radius.item,
+                  background: isCurrent ? brand.bg.hover : "transparent",
+                  border: `1px solid ${isCurrent ? brand.border.accent : "transparent"}`,
+                  color: isCurrent ? brand.text.primary : isDone ? brand.text.muted : brand.text.secondary,
+                  fontSize: "13px", fontWeight: "500", lineHeight: "1.4",
+                  textAlign: "left", cursor: isCurrent ? "default" : "pointer",
+                  transition: brand.motion.snap,
+                  display: "flex", alignItems: "center", gap: "14px",
+                  opacity: isDone && !isCurrent ? 0.45 : 1,
+                }}
+              >
+                <span style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", width: "20px" }}>
+                  <MechanicIcon type={q.mechanic} />
+                </span>
+                <span style={{ flex: 1 }}>{q.question}</span>
+                {isDone && (
+                  <span style={{ fontSize: "11px", color: brand.status.correct.text, flexShrink: 0 }}>✓</span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Question */}
+        <div style={{ width: "100%", height: "1px", background: brand.border.item }} />
+
+        {/* Active question title */}
         <h2 style={{
           margin: 0,
           fontSize: "clamp(1.3rem, 6vw, 1.7rem)",
@@ -174,45 +171,51 @@ export default function GamesDemo() {
           letterSpacing: "-0.025em",
           lineHeight: "1.2",
         }}>
-          {question}
+          {active.question}
         </h2>
 
-        {/* Game */}
-        {active === "axis-allies" && (
-          <GroupingGame
-            key="axis-allies"
-            {...AXIS_ALLIES_DATA}
-            onComplete={() => setDone((d) => ({ ...d, "axis-allies": true }))}
-          />
-        )}
-        {active === "nato" && (
-          <GroupingGame
-            key="nato"
-            {...NATO_DATA}
-            onComplete={() => setDone((d) => ({ ...d, nato: true }))}
-          />
-        )}
-        {active === "asian-communism" && (
-          <GroupingGame
-            key="asian-communism"
-            {...ASIAN_COMMUNISM_DATA}
-            onComplete={() => setDone((d) => ({ ...d, "asian-communism": true }))}
-          />
-        )}
-        {active === "matching" && (
-          <MatchingGame
-            key="matching"
-            {...CAPITALS_DATA}
-            onComplete={() => setDone((d) => ({ ...d, matching: true }))}
-          />
-        )}
-        {active === "sequence" && (
-          <SequenceGame
-            key="sequence"
-            {...SEQUENCE_DATA}
-            onComplete={() => setDone((d) => ({ ...d, sequence: true }))}
-          />
-        )}
+        {/* All game instances — mounted once per question, shown/hidden via display */}
+        {grouping.map((q) => (
+          <div key={q.id} style={{ display: activeId === q.id ? "block" : "none" }}>
+            <GroupingGame
+              question={q.question}
+              zones={q.zones}
+              items={q.items}
+              onComplete={() => handleComplete(q.id)}
+            />
+          </div>
+        ))}
+        {matching.map((q) => (
+          <div key={q.id} style={{ display: activeId === q.id ? "block" : "none" }}>
+            <MatchingGame
+              question={q.question}
+              pairs={q.pairs}
+              onComplete={() => handleComplete(q.id)}
+            />
+          </div>
+        ))}
+        {sequence.map((q) => (
+          <div key={q.id} style={{ display: activeId === q.id ? "block" : "none" }}>
+            <SequenceGame
+              question={q.question}
+              sequence={q.sequence}
+              onComplete={() => handleComplete(q.id)}
+            />
+          </div>
+        ))}
+        {ranked.map((q) => (
+          <div key={q.id} style={{ display: activeId === q.id ? "block" : "none" }}>
+            <RankedListGame
+              question={q.question}
+              items={q.items}
+              onComplete={() => handleComplete(q.id)}
+            />
+          </div>
+        ))}
+
+        {/* What's next — shown after correct */}
+        {isCorrect && <WhatsNext remaining={remaining} onSelect={handleSelect} />}
+
       </div>
     </main>
   );
