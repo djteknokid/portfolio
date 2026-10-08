@@ -24,6 +24,28 @@ const AXIS_ALLIES_DATA = {
   ],
 };
 
+const NATO_DATA = {
+  question: "Which countries were founding members of NATO in 1949?",
+  zones: [
+    { id: "nato",     label: "Founding NATO Members", color: "#60a5fa" },
+    { id: "non-nato", label: "Not in NATO",            color: "#a78bfa" },
+  ],
+  items: [
+    { id: "usa",         label: "United States",  emoji: "🇺🇸", correctGroup: "nato"     },
+    { id: "uk",          label: "United Kingdom", emoji: "🇬🇧", correctGroup: "nato"     },
+    { id: "france",      label: "France",         emoji: "🇫🇷", correctGroup: "nato"     },
+    { id: "canada",      label: "Canada",         emoji: "🇨🇦", correctGroup: "nato"     },
+    { id: "norway",      label: "Norway",         emoji: "🇳🇴", correctGroup: "nato"     },
+    { id: "denmark",     label: "Denmark",        emoji: "🇩🇰", correctGroup: "nato"     },
+    { id: "portugal",    label: "Portugal",       emoji: "🇵🇹", correctGroup: "nato"     },
+    { id: "italy",       label: "Italy",          emoji: "🇮🇹", correctGroup: "nato"     },
+    { id: "germany",     label: "Germany",        emoji: "🇩🇪", correctGroup: "non-nato" },
+    { id: "ussr",        label: "Soviet Union",   emoji: "🇷🇺", correctGroup: "non-nato" },
+    { id: "sweden",      label: "Sweden",         emoji: "🇸🇪", correctGroup: "non-nato" },
+    { id: "switzerland", label: "Switzerland",    emoji: "🇨🇭", correctGroup: "non-nato" },
+  ],
+};
+
 const CAPITALS_DATA = {
   question: "What were the capital cities of the major World War II powers?",
   pairs: [
@@ -46,19 +68,26 @@ const SEQUENCE_DATA = {
   ],
 };
 
-type GameType = "sequence" | "grouping" | "matching";
+type GameType = "axis-allies" | "nato" | "matching" | "sequence";
 
 export default function GamesDemo() {
-  const [active, setActive] = useState<GameType>("grouping");
+  const [active, setActive] = useState<GameType>("axis-allies");
   const [done, setDone] = useState<Record<GameType, boolean>>({
-    sequence: false, grouping: false, matching: false,
+    "axis-allies": false, nato: false, matching: false, sequence: false,
   });
 
   const tabs: { id: GameType; label: string }[] = [
-    { id: "grouping",  label: "Grouping" },
-    { id: "matching",  label: "Matching" },
-    { id: "sequence",  label: "Sequence" },
+    { id: "axis-allies", label: "Axis / Allies" },
+    { id: "nato",        label: "NATO 1949"     },
+    { id: "matching",    label: "Capitals"      },
+    { id: "sequence",    label: "Sequence"      },
   ];
+
+  const question =
+    active === "axis-allies" ? AXIS_ALLIES_DATA.question :
+    active === "nato"        ? NATO_DATA.question :
+    active === "matching"    ? CAPITALS_DATA.question :
+    SEQUENCE_DATA.question;
 
   return (
     <main style={{
@@ -85,24 +114,24 @@ export default function GamesDemo() {
         </div>
 
         {/* Tab switcher */}
-        <div style={{ display: "flex", gap: "6px" }}>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setActive(t.id)}
               style={{
-                flex: 1,
-                padding: "8px",
+                padding: "8px 12px",
                 borderRadius: "10px",
                 border: `1px solid ${active === t.id ? brand.border.accent : brand.border.item}`,
                 background: active === t.id ? brand.bg.hover : "transparent",
                 color: active === t.id ? brand.text.primary : brand.text.muted,
-                fontSize: "12px",
+                fontSize: "11px",
                 fontWeight: "600",
                 letterSpacing: "0.06em",
                 cursor: "pointer",
                 transition: brand.motion.snap,
                 position: "relative",
+                whiteSpace: "nowrap",
               }}
             >
               {t.label}
@@ -126,17 +155,22 @@ export default function GamesDemo() {
           letterSpacing: "-0.025em",
           lineHeight: "1.2",
         }}>
-          {active === "grouping" ? AXIS_ALLIES_DATA.question
-           : active === "matching" ? CAPITALS_DATA.question
-           : SEQUENCE_DATA.question}
+          {question}
         </h2>
 
         {/* Game */}
-        {active === "grouping" && (
+        {active === "axis-allies" && (
           <GroupingGame
-            key="grouping"
+            key="axis-allies"
             {...AXIS_ALLIES_DATA}
-            onComplete={() => setDone((d) => ({ ...d, grouping: true }))}
+            onComplete={() => setDone((d) => ({ ...d, "axis-allies": true }))}
+          />
+        )}
+        {active === "nato" && (
+          <GroupingGame
+            key="nato"
+            {...NATO_DATA}
+            onComplete={() => setDone((d) => ({ ...d, nato: true }))}
           />
         )}
         {active === "matching" && (
