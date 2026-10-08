@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { brand } from "./brand";
-import SuggestionList, { type Suggestion } from "./SuggestionList";
+import { playCorrectBeep, playVictory } from "./sounds";
 
 export interface MatchPair {
   id: string;
@@ -16,9 +16,6 @@ interface Props {
   onComplete: () => void;
   onSkip?: () => void;
   loadingSkip?: boolean;
-  suggestions?: Suggestion[];
-  onSelectSuggestion?: (q: string) => void;
-  loadingNugget?: string | null;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -30,17 +27,12 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export default function MatchingGame({
-  pairs, onComplete, onSkip, loadingSkip = false,
-  suggestions = [], onSelectSuggestion, loadingNugget,
-}: Props) {
+export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = false }: Props) {
   const [shuffledRight] = useState(() => shuffle(pairs.map((p) => ({ id: p.id, text: p.right }))));
-  // connections: leftId → rightId
   const [connections, setConnections] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
+  const [lockedPairs, setLockedPairs] = useState<Set<string>>(new Set());
+  const [allDone, setAllDone] = useState(false);
 
-  // Active drag from a left item
   const dragging = useRef(false);
   const dragLeftId = useRef<string | null>(null);
   const lineStart = useRef<{ x: number; y: number } | null>(null);
@@ -50,36 +42,26 @@ export default function MatchingGame({
   const rightRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  function getRightCenterY(id: string): number {
-    const el = rightRefs.current[id];
-    if (!el) return 0;
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    const rect = el.getBoundingClientRect();
-    return rect.top + rect.height / 2 - (containerRect?.top ?? 0);
-  }
-
-  function getLeftCenterY(id: string): number {
-    const el = leftRefs.current[id];
-    if (!el) return 0;
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    const rect = el.getBoundingClientRect();
-    return rect.top + rect.height / 2 - (containerRect?.top ?? 0);
-  }
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setContainerSize({ width: el.offsetWidth, height: el.offsetHeight }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   function getRightAtPoint(clientX: number, clientY: number): string | null {
     for (const [id, el] of Object.entries(rightRefs.current)) {
       if (!el) continue;
       const rect = el.getBoundingClientRect();
-      if (clientX >= rect.left && clientX <= rect.right &&
-          clientY >= rect.top && clientY <= rect.bottom) {
-        return id;
-      }
+      if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) return id;
     }
     return null;
   }
 
   function onPointerDownLeft(leftId: string, e: React.PointerEvent) {
-    if (submitted) return;
+    if (allDone || lockedPairs.has(leftId)) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     dragging.current = true;
     dragLeftId.current = leftId;
@@ -87,10 +69,7 @@ export default function MatchingGame({
     const containerRect = containerRef.current?.getBoundingClientRect();
     if (el && containerRect) {
       const rect = el.getBoundingClientRect();
-      lineStart.current = {
-        x: rect.right - containerRect.left,
-        y: rect.top + rect.height / 2 - containerRect.top,
-      };
+      lineStart.current = { x: rect.right - containerRect.left, y: rect.top + rect.height / 2 - containerRect.top };
     }
     setDragPos({ x: e.clientX - (containerRef.current?.getBoundingClientRect().left ?? 0), y: e.clientY - (containerRef.current?.getBoundingClientRect().top ?? 0) });
   }
@@ -99,10 +78,7 @@ export default function MatchingGame({
     if (!dragging.current) return;
     e.preventDefault();
     const containerRect = containerRef.current?.getBoundingClientRect();
-    setDragPos({
-      x: e.clientX - (containerRect?.left ?? 0),
-      y: e.clientY - (containerRect?.top ?? 0),
-    });
+    setDragPos({ x: e.clientX - (containerRect?.left ?? 0), y: e.clientY - (containerRect?.top ?? 0) });
   }
 
   function onPointerUp(e: React.PointerEvent) {
@@ -113,89 +89,57 @@ export default function MatchingGame({
     lineStart.current = null;
     setDragPos(null);
     if (!leftId) return;
+
     const rightId = getRightAtPoint(e.clientX, e.clientY);
-    if (rightId) {
-      setConnections((prev) => {
-        const next = { ...prev };
-        // Remove any existing connection to this right item
-        for (const [k, v] of Object.entries(next)) {
-          if (v === rightId) delete next[k];
-        }
-        next[leftId] = rightId;
-        return next;
-      });
-    } else {
-      // Drop on nothing — remove connection
-      setConnections((prev) => {
-        const next = { ...prev };
-        delete next[leftId];
-        return next;
-      });
+    if (!rightId) {
+      setConnections((prev) => { const next = { ...prev }; delete next[leftId]; return next; });
+      return;
+    }
+
+    // Check correctness immediately
+    const isCorrect = rightId === leftId;
+
+    setConnections((prev) => {
+      const next = { ...prev };
+      for (const [k, v] of Object.entries(next)) { if (v === rightId) delete next[k]; }
+      next[leftId] = rightId;
+      return next;
+    });
+
+    if (isCorrect) {
+      playCorrectBeep();
+      const newLocked = new Set([...lockedPairs, leftId]);
+      setLockedPairs(newLocked);
+      if (newLocked.size === pairs.length) {
+        setAllDone(true);
+        playVictory();
+        setTimeout(() => onComplete(), 700);
+      }
     }
   }
 
-  function handleSubmit() {
-    const allConnected = pairs.every((p) => connections[p.id]);
-    if (!allConnected) return;
-    const ok = pairs.every((p) => connections[p.id] === p.id);
-    setIsCorrect(ok);
-    setSubmitted(true);
-    if (ok) onComplete();
-  }
-
-  function handleReset() {
-    setConnections((prev) => {
-      const next: Record<string, string> = {};
-      pairs.forEach((p) => { if (prev[p.id] === p.id) next[p.id] = p.id; });
-      return next;
-    });
-    setSubmitted(false);
-    setIsCorrect(false);
-  }
-
-  const allConnected = pairs.every((p) => connections[p.id]);
-  const connectedCount = Object.keys(connections).length;
-
   function lineColor(leftId: string) {
-    if (!submitted) return "rgba(255,255,255,0.15)";
-    return connections[leftId] === leftId
-      ? brand.status.correct.border
-      : brand.status.wrong.border;
+    if (lockedPairs.has(leftId)) return brand.status.correct.border;
+    return "rgba(255,255,255,0.15)";
   }
 
-  function chipColor(id: string, side: "left" | "right") {
-    if (!submitted) return { text: brand.text.primary, border: brand.border.item, bg: brand.bg.raised };
+  function chipStyle(id: string, side: "left" | "right") {
     const leftId = side === "left" ? id : Object.entries(connections).find(([, v]) => v === id)?.[0];
-    if (!leftId) return { text: brand.text.secondary, border: brand.border.item, bg: brand.bg.raised };
-    const correct = connections[leftId] === leftId;
-    return correct
-      ? { text: brand.status.correct.text, border: brand.status.correct.border, bg: brand.status.correct.bg }
-      : { text: brand.status.wrong.text, border: brand.status.wrong.border, bg: brand.status.wrong.bg };
+    const locked = leftId ? lockedPairs.has(leftId) : false;
+    return {
+      text: locked ? brand.status.correct.text : brand.text.primary,
+      border: locked ? brand.status.correct.border : connections[id] || Object.values(connections).includes(id) ? brand.border.accent : brand.border.item,
+      bg: locked ? brand.status.correct.bg : brand.bg.raised,
+      shadow: locked ? `0 0 10px ${brand.status.correct.border}` : "0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+    };
   }
-
-  // SVG line dimensions
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => {
-      setContainerSize({ width: el.offsetWidth, height: el.offsetHeight });
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <div ref={containerRef} style={{ position: "relative", display: "flex", gap: "0", alignItems: "stretch" }}>
 
-        {/* SVG overlay for lines */}
-        <svg
-          style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1, overflow: "visible" }}
-          width={containerSize.width}
-          height={containerSize.height}
-        >
-          {/* Committed lines */}
+        {/* SVG lines */}
+        <svg style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1, overflow: "visible" }} width={containerSize.width} height={containerSize.height}>
           {pairs.map((p) => {
             const rightId = connections[p.id];
             if (!rightId) return null;
@@ -211,153 +155,73 @@ export default function MatchingGame({
             const y2 = rightRect.top + rightRect.height / 2 - containerRect.top;
             const cx = (x1 + x2) / 2;
             return (
-              <path
-                key={p.id}
-                d={`M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`}
-                fill="none"
-                stroke={lineColor(p.id)}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
+              <path key={p.id} d={`M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`}
+                fill="none" stroke={lineColor(p.id)} strokeWidth="1.5" strokeLinecap="round" />
             );
           })}
-
-          {/* Live drag line */}
           {dragging.current && lineStart.current && dragPos && (
-            <path
-              d={`M ${lineStart.current.x} ${lineStart.current.y} C ${(lineStart.current.x + dragPos.x) / 2} ${lineStart.current.y}, ${(lineStart.current.x + dragPos.x) / 2} ${dragPos.y}, ${dragPos.x} ${dragPos.y}`}
-              fill="none"
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="1.5"
-              strokeDasharray="4 4"
-              strokeLinecap="round"
-            />
+            <path d={`M ${lineStart.current.x} ${lineStart.current.y} C ${(lineStart.current.x + dragPos.x) / 2} ${lineStart.current.y}, ${(lineStart.current.x + dragPos.x) / 2} ${dragPos.y}, ${dragPos.x} ${dragPos.y}`}
+              fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeDasharray="4 4" strokeLinecap="round" />
           )}
         </svg>
 
         {/* Left column */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px", zIndex: 2 }}>
           {pairs.map((p) => {
-            const c = chipColor(p.id, "left");
+            const c = chipStyle(p.id, "left");
+            const locked = lockedPairs.has(p.id);
             return (
-              <div
-                key={p.id}
-                ref={(el) => { leftRefs.current[p.id] = el; }}
+              <div key={p.id} ref={(el) => { leftRefs.current[p.id] = el; }}
                 onPointerDown={(e) => onPointerDownLeft(p.id, e)}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
+                onPointerMove={onPointerMove} onPointerUp={onPointerUp}
                 style={{
-                  padding: "10px 12px",
-                  borderRadius: brand.radius.item,
-                  background: c.bg,
-                  border: `1px solid ${connections[p.id] ? brand.border.accent : c.border}`,
-                  cursor: submitted ? "default" : "crosshair",
-                  userSelect: "none",
-                  touchAction: "none",
-                  transition: brand.motion.snap,
-                }}
-              >
-                <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4 }}>
-                  {p.left}
-                </span>
+                  padding: "10px 12px", borderRadius: brand.radius.item,
+                  background: c.bg, border: `1px solid ${c.border}`,
+                  boxShadow: c.shadow,
+                  cursor: allDone || locked ? "default" : "crosshair",
+                  userSelect: "none", touchAction: "none",
+                  transition: "border-color 300ms ease, background 300ms ease, box-shadow 300ms ease",
+                }}>
+                <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4, transition: "color 300ms ease" }}>{p.left}</span>
               </div>
             );
           })}
         </div>
 
-        {/* Gap between columns */}
         <div style={{ width: "48px", flexShrink: 0 }} />
 
         {/* Right column */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px", zIndex: 2 }}>
           {shuffledRight.map((r) => {
-            const c = chipColor(r.id, "right");
-            const isConnected = Object.values(connections).includes(r.id);
+            const c = chipStyle(r.id, "right");
+            const leftId = Object.entries(connections).find(([, v]) => v === r.id)?.[0];
+            const locked = leftId ? lockedPairs.has(leftId) : false;
             return (
-              <div
-                key={r.id}
-                ref={(el) => { rightRefs.current[r.id] = el; }}
+              <div key={r.id} ref={(el) => { rightRefs.current[r.id] = el; }}
                 style={{
-                  padding: "10px 12px",
-                  borderRadius: brand.radius.item,
-                  background: c.bg,
-                  border: `1px solid ${isConnected ? brand.border.accent : c.border}`,
+                  padding: "10px 12px", borderRadius: brand.radius.item,
+                  background: c.bg, border: `1px solid ${c.border}`,
+                  boxShadow: c.shadow,
                   userSelect: "none",
-                  transition: brand.motion.snap,
-                }}
-              >
-                <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4 }}>
-                  {r.text}
-                </span>
+                  transition: "border-color 300ms ease, background 300ms ease, box-shadow 300ms ease",
+                }}>
+                <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4, transition: "color 300ms ease" }}>{r.text}</span>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Actions */}
-      {!submitted ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <button
-            onClick={handleSubmit}
-            disabled={!allConnected}
-            style={{
-              width: "100%", padding: "14px",
-              borderRadius: brand.radius.button,
-              background: "transparent",
-              border: `1px solid ${allConnected ? brand.border.accent : brand.border.item}`,
-              color: allConnected ? brand.text.primary : brand.text.muted,
-              fontSize: "12px", fontWeight: "600", letterSpacing: "0.12em",
-              textTransform: "uppercase", cursor: allConnected ? "pointer" : "default",
-              transition: brand.motion.snap,
-            }}
-          >
-            {allConnected ? "I'm done" : `${pairs.length - connectedCount} left to match`}
-          </button>
-          {onSkip && (
-            <button
-              onClick={onSkip}
-              disabled={loadingSkip}
-              style={{
-                width: "100%", padding: "12px",
-                borderRadius: brand.radius.button,
-                background: "transparent", border: "none",
-                color: brand.text.muted, fontSize: "11px", fontWeight: "500",
-                letterSpacing: "0.06em",
-                cursor: loadingSkip ? "default" : "pointer",
-                opacity: loadingSkip ? 0.4 : 0.6,
-                transition: brand.motion.snap,
-              }}
-            >
-              {loadingSkip ? "Finding next…" : "Skip"}
-            </button>
-          )}
-        </div>
-      ) : isCorrect ? (
+      {allDone ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div style={{ width: "100%", height: "1px", background: brand.border.item }} />
           <span style={{ fontSize: "13px", color: brand.text.muted }}>You got it.</span>
-          <SuggestionList suggestions={suggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} />
         </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ width: "100%", height: "1px", background: brand.border.item }} />
-          <button
-            onClick={handleReset}
-            style={{
-              width: "100%", padding: "14px",
-              borderRadius: brand.radius.button,
-              background: "transparent",
-              border: `1px solid ${brand.border.item}`,
-              color: brand.text.muted,
-              fontSize: "12px", fontWeight: "600",
-              letterSpacing: "0.12em", textTransform: "uppercase",
-              cursor: "pointer",
-            }}
-          >
-            Retry
-          </button>
-        </div>
+      ) : onSkip && (
+        <button onClick={onSkip} disabled={loadingSkip}
+          style={{ width: "100%", padding: "12px", borderRadius: brand.radius.button, background: "transparent", border: "none", color: brand.text.muted, fontSize: "11px", fontWeight: "500", letterSpacing: "0.06em", cursor: loadingSkip ? "default" : "pointer", opacity: loadingSkip ? 0.4 : 0.5, transition: brand.motion.snap }}>
+          {loadingSkip ? "Finding next…" : "Skip"}
+        </button>
       )}
     </div>
   );

@@ -1,47 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import SequenceGame from "./SequenceGame";
 import GroupingGame from "./GroupingGame";
 import MatchingGame from "./MatchingGame";
 import RankedListGame from "./RankedListGame";
-import ProfilePanel from "./ProfilePanel";
 import { brand } from "./brand";
 import { useProfile } from "./useProfile";
 import { seedLibrary } from "@/lib/nuggets/seed";
-import { findGoldByTopic, getRecommendations, saveDrafts, recordToCard, getSequenceByQuestion, getGoldSequences } from "@/lib/nuggets/library";
+import { getRecommendations, saveDrafts, recordToCard, getSequenceByQuestion, getGoldSequences } from "@/lib/nuggets/library";
 import type { SequenceRecord } from "@/lib/nuggets/library";
 import { GAME_QUESTIONS } from "./games/questions";
 import type { Question } from "./games/questions";
 
-function AllThumb({ id, full }: { id: string; full?: boolean }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) return full ? null : <div style={{ width: "56px", height: "56px", flexShrink: 0 }} />;
-  return (
-    <img
-      src={`/nuggets/thumbs/${id}.jpg`}
-      alt=""
-      onError={() => setFailed(true)}
-      style={full
-        ? { width: "100%", height: "200px", borderRadius: "14px", objectFit: "cover" }
-        : { width: "56px", height: "56px", borderRadius: "10px", objectFit: "cover", flexShrink: 0 }
-      }
-    />
-  );
-}
+// ── Types ─────────────────────────────────────────────────────────
 
-interface SequenceCard {
-  kind: "sequence";
-  question: string;
-  sequence: { id: string; text: string }[];
-  thumbId: string;
-}
-
-type ActiveCard = SequenceCard | (Question & { kind: Exclude<Question["mechanic"], "sequence"> | "sequence"; thumbId: string });
-
-// Flatten: all active cards have question, thumbId, mechanic
 type AnyCard =
-  | { mechanic: "sequence"; question: string; sequence: { id: string; text: string }[]; thumbId: string }
+  | { mechanic: "sequence"; question: string; sequence: { id: string; text: string }[]; thumbId: string; topic: string }
   | (Question & { thumbId: string });
 
 interface LegacyCard {
@@ -49,21 +24,11 @@ interface LegacyCard {
   sequence: { id: string; text: string }[];
 }
 
-async function fetchCards(completed: LegacyCard[], seed?: string, skipped?: string[]): Promise<LegacyCard[]> {
-  if (seed) {
-    const goldMatches = findGoldByTopic(seed, [
-      ...completed.map((c) => c.question),
-      ...(skipped ?? []),
-    ]);
-    if (goldMatches.length >= 1) {
-      return goldMatches.slice(0, 4).map(recordToCard);
-    }
-  }
-
+async function fetchCards(seed: string, exclude: string[]): Promise<LegacyCard[]> {
   const res = await fetch("/api/nuggets/suggest", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ completed, seed, skipped }),
+    body: JSON.stringify({ completed: [], seed, skipped: exclude }),
   });
   const { cards } = await res.json();
   if (!Array.isArray(cards)) return [];
@@ -73,470 +38,448 @@ async function fetchCards(completed: LegacyCard[], seed?: string, skipped?: stri
       Array.isArray(c?.sequence) &&
       c.sequence.length > 0
   );
-  if (valid.length > 0) {
-    try { saveDrafts(valid); } catch {}
-  }
+  if (valid.length > 0) { try { saveDrafts(valid); } catch {} }
   return valid;
 }
 
 function legacyToAny(c: LegacyCard): AnyCard {
   const rec = getSequenceByQuestion(c.question);
-  return { mechanic: "sequence", question: c.question, sequence: c.sequence, thumbId: rec?.id ?? "" };
+  return { mechanic: "sequence", question: c.question, sequence: c.sequence, thumbId: rec?.id ?? "", topic: rec?.topic ?? "history" };
 }
 
 function gameQuestionToAny(q: Question): AnyCard {
   return { ...q, thumbId: q.id } as AnyCard;
 }
 
-export default function NuggetDeck() {
-  const [topic, setTopic] = useState("");
-  const [card, setCard] = useState<AnyCard | null>(null);
-  const [completedQuestions, setCompletedQuestions] = useState<string[]>([]);
-  const [skipped, setSkipped] = useState<string[]>([]);
-  const [nextCards, setNextCards] = useState<LegacyCard[]>([]);
-  const [loadingStart, setLoadingStart] = useState(false);
-  const [loadingNext, setLoadingNext] = useState(false);
-  const [loadingSkip, setLoadingSkip] = useState(false);
+// ── Labels ────────────────────────────────────────────────────────
+
+const TOPIC_LABEL: Record<string, string> = {
+  history: "History",
+  "Cold War": "History",
+  WWII: "History",
+  "K-pop": "Pop Culture",
+  "Korean culture": "Pop Culture",
+};
+function topicLabel(t: string) { return TOPIC_LABEL[t] ?? t; }
+function mechLabel(m: string) {
+  if (m === "sequence") return "Sequence";
+  if (m === "matching") return "Matching";
+  if (m === "grouping") return "Grouping";
+  if (m === "ranked") return "Ranked";
+  return m;
+}
+
+// ── Feed card ─────────────────────────────────────────────────────
+
+function FeedCard({
+  card,
+  isActive,
+  onTap,
+  onComplete,
+  suggestions,
+  loadingSuggestions,
+  onSelectSuggestion,
+  loadingNugget,
+  cardRef,
+}: {
+  card: AnyCard;
+  isActive: boolean;
+  onTap: () => void;
+  onComplete: () => void;
+  suggestions: { id: string; question: string }[];
+  loadingSuggestions: boolean;
+  onSelectSuggestion: (q: string) => void;
+  loadingNugget: string | null;
+  cardRef?: (el: HTMLDivElement | null) => void;
+}) {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  return (
+    <div ref={cardRef} style={{ width: "100%", paddingBottom: "24px" }}>
+
+      {/* Hero image — always shown, tappable when not active */}
+      <div
+        onClick={() => !isActive && onTap()}
+        style={{
+          width: "100%",
+          aspectRatio: "4 / 3",
+          borderRadius: "18px",
+          overflow: "hidden",
+          background: brand.bg.raised,
+          position: "relative",
+          cursor: isActive ? "default" : "pointer",
+          marginBottom: isActive ? "20px" : "0",
+        }}
+      >
+        {!imgFailed && (
+          <img
+            src={`/nuggets/thumbs/${card.thumbId}.jpg`}
+            alt=""
+            onError={() => setImgFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center center", display: "block" }}
+          />
+        )}
+
+        {/* Scrim */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.0) 20%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0.82) 100%)",
+        }} />
+
+        {/* Title + meta */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px 22px 24px" }}>
+          <div style={{
+            fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em",
+            textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "7px",
+          }}>
+            {topicLabel(card.topic ?? "")} · {mechLabel(card.mechanic)}
+          </div>
+          <div style={{
+            fontSize: "clamp(1.25rem, 5.5vw, 1.5rem)", fontWeight: "800",
+            color: "#ffffff", lineHeight: "1.18", letterSpacing: "-0.025em",
+            textShadow: "0 1px 8px rgba(0,0,0,0.3)",
+          }}>
+            {card.question}
+          </div>
+        </div>
+
+        {/* Tap hint when not active */}
+        {!isActive && (
+          <div style={{
+            position: "absolute", top: "12px", right: "12px",
+            background: "rgba(0,0,0,0.45)",
+            borderRadius: "99px", padding: "4px 10px",
+            fontSize: "11px", fontWeight: "500",
+            color: "rgba(255,255,255,0.5)",
+            backdropFilter: "blur(8px)",
+          }}>
+            Tap to play
+          </div>
+        )}
+      </div>
+
+      {/* Game — only when active */}
+      {isActive && (
+        <SequenceGameOrOther
+          card={card}
+          onComplete={onComplete}
+          suggestions={suggestions}
+          loadingSuggestions={loadingSuggestions}
+          onSelectSuggestion={onSelectSuggestion}
+          loadingNugget={loadingNugget}
+        />
+      )}
+    </div>
+  );
+}
+
+function SequenceGameOrOther({ card, onComplete, suggestions, loadingSuggestions, onSelectSuggestion, loadingNugget }: {
+  card: AnyCard;
+  onComplete: () => void;
+  suggestions: { id: string; question: string }[];
+  loadingSuggestions: boolean;
+  onSelectSuggestion: (q: string) => void;
+  loadingNugget: string | null;
+}) {
+  if (card.mechanic === "sequence") {
+    return (
+      <SequenceGame
+        key={card.question}
+        question={card.question}
+        sequence={card.sequence}
+        onComplete={onComplete}
+        suggestions={suggestions}
+        loadingSuggestions={loadingSuggestions}
+        onSelectSuggestion={onSelectSuggestion}
+        loadingNugget={loadingNugget}
+      />
+    );
+  }
+  if (card.mechanic === "grouping") {
+    return <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={onComplete} />;
+  }
+  if (card.mechanic === "matching") {
+    return <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={onComplete} />;
+  }
+  if (card.mechanic === "ranked") {
+    return <RankedListGame key={card.question} question={card.question} items={card.items} onComplete={onComplete} />;
+  }
+  return null;
+}
+
+// ── Venture card — "try something different" break in the feed ────
+
+const MECHANIC_ACCENT: Record<string, string> = {
+  sequence: "#a78bfa",  // violet
+  matching: "#38bdf8",  // sky
+  grouping: "#fb923c",  // orange
+  ranked:   "#f472b6",  // pink
+};
+
+function VentureCard({ picks, onSelect }: {
+  picks: AnyCard[];
+  onSelect: (card: AnyCard) => void;
+}) {
+  if (picks.length === 0) return null;
+  return (
+    <div style={{ paddingBottom: "24px" }}>
+      <div style={{
+        fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em",
+        textTransform: "uppercase", color: brand.text.muted,
+        marginBottom: "10px",
+      }}>
+        Try something different
+      </div>
+      <div style={{ display: "flex", gap: "10px", overflowX: "auto", scrollbarWidth: "none", paddingBottom: "4px" }}>
+        {picks.map((card) => {
+          const accent = MECHANIC_ACCENT[card.mechanic] ?? brand.text.muted;
+          return (
+            <button
+              key={card.question}
+              onClick={() => onSelect(card)}
+              style={{
+                flexShrink: 0,
+                width: "160px",
+                padding: "14px",
+                borderRadius: "14px",
+                background: brand.bg.raised,
+                border: `1px solid ${brand.border.item}`,
+                textAlign: "left",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                transition: brand.motion.snap,
+              }}
+            >
+              <span style={{
+                fontSize: "9px", fontWeight: "700", letterSpacing: "0.12em",
+                textTransform: "uppercase", color: accent,
+              }}>
+                {mechLabel(card.mechanic)}
+              </span>
+              <span style={{
+                fontSize: "13px", fontWeight: "500", color: brand.text.secondary,
+                lineHeight: "1.4", display: "-webkit-box",
+                WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const,
+                overflow: "hidden",
+              }}>
+                {card.question}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
+
+export default function NuggetDeck({ openAnswered, onAnsweredClose }: { openAnswered?: boolean; onAnsweredClose?: () => void }) {
+  const [feed, setFeed] = useState<AnyCard[]>([]);
+  const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
+  const [answeredQuestions, setAnsweredQuestions] = useState<string[]>([]);
   const [loadingNugget, setLoadingNugget] = useState<string | null>(null);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [showAll, setShowAll] = useState(false);
   const [allGold, setAllGold] = useState<SequenceRecord[]>([]);
+  const [showAnswered, setShowAnswered] = useState(false);
   const { profile, recordCorrect } = useProfile();
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (openAnswered) setShowAnswered(true);
+  }, [openAnswered]);
 
   useEffect(() => {
     seedLibrary();
-    setAllGold(getGoldSequences());
+    const gold = getGoldSequences();
+    setAllGold(gold);
+
+    const answered = profile.history.map((h) => h.question);
+    // Feed starts with gold sequences only — game questions surface via venture strips
+    const goldCards: AnyCard[] = gold
+      .map((seq) => legacyToAny(recordToCard(seq)))
+      .filter((c) => !answered.includes(c.question));
+    setFeed(goldCards);
+    if (goldCards.length > 0) setActiveQuestion(goldCards[0].question);
   }, []);
 
-  function fetchNext(completedCards: LegacyCard[]) {
-    const lastCard = completedCards[completedCards.length - 1];
-    if (!lastCard) return;
-    const record = getSequenceByQuestion(lastCard.question);
-    const fromId = record?.id ?? "";
-    const excludeQuestions = completedCards.map((c) => c.question);
-    const recs = getRecommendations(fromId, excludeQuestions);
-    setNextCards(recs.map(recordToCard));
-    setLoadingNext(false);
-  }
-
-  async function handleStartWith(value: string) {
-    setTopic(value);
-    setLoadingStart(true);
-    try {
-      const cards = await fetchCards([], value);
-      if (cards[0]) {
-        setCard(legacyToAny(cards[0]));
-        setNextCards([]);
-        fetchNext([cards[0]]);
-      }
-    } finally {
-      setLoadingStart(false);
+  useEffect(() => {
+    if (profile.history.length > 0) {
+      setAnsweredQuestions(profile.history.map((h) => h.question));
     }
+  }, [profile.history.length]);
+
+  function scrollToCard(question: string) {
+    setTimeout(() => {
+      const el = cardRefs.current[question];
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
   }
 
-  async function handleSkip() {
-    if (!card || card.mechanic !== "sequence") return;
-    const newSkipped = [...skipped, card.question];
-    setSkipped(newSkipped);
-    setLoadingSkip(true);
-    setNextCards([]);
-    const legacyCompleted = completedQuestions
-      .map((q) => allGold.find((g) => g.question === q))
-      .filter(Boolean)
-      .map((r) => recordToCard(r!));
-    try {
-      const cards = await fetchCards(legacyCompleted, topic || undefined, newSkipped);
-      if (cards[0]) {
-        setCard(legacyToAny(cards[0]));
-        fetchNext([...legacyCompleted, cards[0]]);
-      }
-    } finally {
-      setLoadingSkip(false);
-    }
+  function handleTap(card: AnyCard) {
+    setActiveQuestion(card.question);
+    scrollToCard(card.question);
   }
 
-  function handleComplete() {
-    if (!card) return;
+  function handleComplete(card: AnyCard) {
     recordCorrect(card.question);
-    setCompletedQuestions((prev) => [...prev, card!.question]);
-    if (card.mechanic === "sequence" && nextCards.length === 0) {
-      const legacyCompleted = [...completedQuestions, card.question]
-        .map((q) => allGold.find((g) => g.question === q))
-        .filter(Boolean)
-        .map((r) => recordToCard(r!));
-      fetchNext(legacyCompleted);
+    const newAnswered = [...answeredQuestions, card.question];
+    setAnsweredQuestions(newAnswered);
+
+    // Remove solved card from feed after a short pause
+    setTimeout(() => {
+      setFeed((prev) => prev.filter((c) => c.question !== card.question));
+    }, 800);
+
+    // Get recommendations and append new unseen cards to the feed
+    if (card.mechanic === "sequence") {
+      const rec = getSequenceByQuestion(card.question);
+      const fromId = rec?.id ?? "";
+      const recs = getRecommendations(fromId, newAnswered);
+      const newCards: AnyCard[] = recs
+        .map(recordToCard)
+        .map(legacyToAny)
+        .filter((c) => !feed.some((f) => f.question === c.question) && !newAnswered.includes(c.question));
+      if (newCards.length > 0) {
+        setFeed((prev) => [...prev, ...newCards]);
+        const nextCard = newCards[0];
+        setActiveQuestion(nextCard.question);
+        scrollToCard(nextCard.question);
+      }
     }
   }
 
   async function handleSelectSuggestion(question: string) {
-    const selected = nextCards.find((c) => c.question === question);
-    if (selected) {
-      setCard(legacyToAny(selected));
-      setNextCards([]);
-      setCompletedQuestions((prev) => [...prev, card!.question]);
-      fetchNext([...completedQuestions.map((q) => ({ question: q, sequence: [] })), selected]);
+    // Check if already in feed
+    const existing = feed.find((c) => c.question === question);
+    if (existing) {
+      setActiveQuestion(question);
+      scrollToCard(question);
       return;
     }
     setLoadingNugget(question);
     try {
-      const legacyCompleted = completedQuestions
-        .map((q) => allGold.find((g) => g.question === q))
-        .filter(Boolean)
-        .map((r) => recordToCard(r!));
-      const cards = await fetchCards([...legacyCompleted, card as LegacyCard], question);
+      const cards = await fetchCards(question, answeredQuestions);
       if (cards[0]) {
-        setCard(legacyToAny(cards[0]));
-        setNextCards([]);
-        setCompletedQuestions((prev) => [...prev, card!.question]);
-        fetchNext([...legacyCompleted, card as LegacyCard, cards[0]]);
+        const newCard = legacyToAny(cards[0]);
+        setFeed((prev) => [...prev, newCard]);
+        setActiveQuestion(newCard.question);
+        scrollToCard(newCard.question);
       }
     } finally {
       setLoadingNugget(null);
     }
   }
 
-  function handleSelectFromAll(seq: SequenceRecord) {
-    setShowAll(false);
-    if (card) setCompletedQuestions((prev) => [...prev, card.question]);
-    const c = legacyToAny(recordToCard(seq));
-    setCard(c);
-    setNextCards([]);
-  }
-
-  function handleSelectGameQuestion(q: Question) {
-    setShowAll(false);
-    if (card) setCompletedQuestions((prev) => [...prev, card.question]);
-    setCard(gameQuestionToAny(q));
-    setNextCards([]);
-  }
-
-  const totalCount = allGold.length + GAME_QUESTIONS.length;
-
-  const scoreChip = (
-    <button
-      onClick={() => totalCount > 0 ? setShowAll(true) : setProfileOpen(true)}
-      style={{
-        position: "fixed",
-        top: "20px",
-        right: "20px",
-        background: brand.bg.raised,
-        border: `1px solid ${brand.border.item}`,
-        borderRadius: "99px",
-        padding: "6px 12px",
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        cursor: "pointer",
-        zIndex: 30,
-        transition: brand.motion.snap,
-      }}
-    >
-      {profile.score > 0 && (
-        <>
-          <span style={{ fontSize: "13px", fontWeight: "700", color: brand.text.primary }}>
-            {profile.score}
-          </span>
-          <span style={{ ...brand.type.label, color: brand.text.muted }}>
-            solved ·
-          </span>
-        </>
-      )}
-      <span style={{ ...brand.type.label, color: brand.text.muted }}>
-        all
-      </span>
-    </button>
-  );
-
-  const allQuestionsOverlay = showAll ? (
-    <div
-      onClick={() => setShowAll(false)}
-      style={{
-        position: "fixed", inset: 0, zIndex: 50,
-        background: "rgba(8,8,8,0.85)",
-        backdropFilter: "blur(8px)",
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        padding: "0",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          maxHeight: "80vh",
-          background: brand.bg.card,
-          border: `1px solid ${brand.border.card}`,
-          borderRadius: "24px 24px 0 0",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ padding: "16px 24px 0", flexShrink: 0 }}>
-          <div style={{ width: "32px", height: "3px", borderRadius: "2px", background: brand.border.accent, margin: "0 auto 20px" }} />
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "16px" }}>
-            <span style={{ ...brand.type.label, color: brand.text.muted }}>All questions</span>
-            <span style={{ fontSize: "11px", color: brand.text.muted }}>{totalCount}</span>
-          </div>
-        </div>
-
-        <div style={{ overflowY: "auto", padding: "0 24px 32px", display: "flex", flexDirection: "column", gap: "8px" }}>
-          {allGold.map((seq) => {
-            const isCurrent = card?.question === seq.question;
-            const isDone = completedQuestions.includes(seq.question);
-            return (
-              <button
-                key={seq.id}
-                onClick={() => !isCurrent && handleSelectFromAll(seq)}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: brand.radius.item,
-                  background: isCurrent ? brand.bg.hover : brand.bg.raised,
-                  border: `1px solid ${isCurrent ? brand.border.accent : brand.border.item}`,
-                  color: isCurrent ? brand.text.primary : isDone ? brand.text.muted : brand.text.secondary,
-                  fontSize: "13px", fontWeight: "500", lineHeight: "1.4",
-                  textAlign: "left",
-                  cursor: isCurrent ? "default" : "pointer",
-                  transition: brand.motion.snap,
-                  display: "flex", alignItems: "center", gap: "12px",
-                  opacity: isDone && !isCurrent ? 0.5 : 1,
-                }}
-              >
-                <AllThumb id={seq.id} />
-                <span style={{ flex: 1 }}>{seq.question}</span>
-                {isDone && <span style={{ fontSize: "11px", color: brand.status.correct.text, flexShrink: 0 }}>✓</span>}
-                {isCurrent && <span style={{ fontSize: "10px", ...brand.type.label, color: brand.text.muted, flexShrink: 0 }}>now</span>}
-              </button>
-            );
-          })}
-
-          {GAME_QUESTIONS.map((q) => {
-            const isCurrent = card?.question === q.question;
-            const isDone = completedQuestions.includes(q.question);
-            return (
-              <button
-                key={q.id}
-                onClick={() => !isCurrent && handleSelectGameQuestion(q)}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: brand.radius.item,
-                  background: isCurrent ? brand.bg.hover : brand.bg.raised,
-                  border: `1px solid ${isCurrent ? brand.border.accent : brand.border.item}`,
-                  color: isCurrent ? brand.text.primary : isDone ? brand.text.muted : brand.text.secondary,
-                  fontSize: "13px", fontWeight: "500", lineHeight: "1.4",
-                  textAlign: "left",
-                  cursor: isCurrent ? "default" : "pointer",
-                  transition: brand.motion.snap,
-                  display: "flex", alignItems: "center", gap: "12px",
-                  opacity: isDone && !isCurrent ? 0.5 : 1,
-                }}
-              >
-                <AllThumb id={q.id} />
-                <span style={{ flex: 1 }}>{q.question}</span>
-                {isDone && <span style={{ fontSize: "11px", color: brand.status.correct.text, flexShrink: 0 }}>✓</span>}
-                {isCurrent && <span style={{ fontSize: "10px", ...brand.type.label, color: brand.text.muted, flexShrink: 0 }}>now</span>}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  ) : null;
-
-  const TOPICS = ["WWII", "History", "Science", "Tech", "Economics", "Politics", "Culture", "Space", "Medicine"];
-  const QUESTIONS = [
-    "Why did the US enter WWI?",
-    "Why did the Soviet Union collapse?",
-    "How did Apple nearly go bankrupt?",
-    "How did the 2008 financial crisis happen?",
-    "Why did Hitler come to power?",
-    "How did humans land on the Moon?",
-  ];
-
-  if (!card) {
-    return (
-      <>
-        {scoreChip}
-        {allQuestionsOverlay}
-        <ProfilePanel profile={profile} open={profileOpen} onClose={() => setProfileOpen(false)} />
-        <div style={{ width: "100%", maxWidth: "320px", display: "flex", flexDirection: "column", gap: "36px" }}>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <h1 style={{ margin: 0, color: brand.text.primary, fontWeight: "700", fontSize: "28px", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
-              Sequence
-            </h1>
-            <p style={{ margin: 0, fontSize: "14px", color: brand.text.muted, lineHeight: "1.5" }}>
-              Pick anything. We&apos;ll turn it into a sequence.
-            </p>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <span style={{ ...brand.type.label, color: brand.text.muted }}>Topics</span>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {TOPICS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => !loadingStart && handleStartWith(t)}
-                  disabled={loadingStart}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: "99px",
-                    background: loadingStart && topic === t ? brand.bg.hover : brand.bg.raised,
-                    border: `1px solid ${loadingStart && topic === t ? brand.border.accent : brand.border.item}`,
-                    color: loadingStart && topic === t ? brand.text.primary : brand.text.secondary,
-                    fontSize: "13px", fontWeight: "500",
-                    cursor: loadingStart ? "default" : "pointer",
-                    transition: brand.motion.snap,
-                  }}
-                >
-                  {loadingStart && topic === t ? "Generating…" : t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <span style={{ ...brand.type.label, color: brand.text.muted }}>Or try one of these</span>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {QUESTIONS.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => !loadingStart && handleStartWith(q)}
-                  disabled={loadingStart}
-                  style={{
-                    width: "100%", padding: "12px 16px", borderRadius: brand.radius.item,
-                    background: loadingStart && topic === q ? brand.bg.hover : "transparent",
-                    border: `1px solid ${loadingStart && topic === q ? brand.border.accent : brand.border.item}`,
-                    color: loadingStart && topic === q ? brand.text.primary : brand.text.secondary,
-                    fontSize: "13px", fontWeight: "500",
-                    textAlign: "left", cursor: loadingStart ? "default" : "pointer",
-                    transition: brand.motion.snap,
-                  }}
-                >
-                  {loadingStart && topic === q ? "Generating…" : q}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <span style={{ ...brand.type.label, color: brand.text.muted }}>Something else</span>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <input
-                type="text"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && topic.trim() && handleStartWith(topic.trim())}
-                placeholder="e.g. Why did Rome fall?"
-                style={{
-                  flex: 1,
-                  padding: "12px 14px",
-                  borderRadius: brand.radius.item,
-                  background: brand.bg.raised,
-                  border: `1px solid ${topic.trim() ? brand.border.accent : brand.border.item}`,
-                  color: brand.text.primary,
-                  fontSize: "14px", fontWeight: "500",
-                  outline: "none",
-                  transition: brand.motion.snap,
-                }}
-              />
-              <button
-                onClick={() => topic.trim() && handleStartWith(topic.trim())}
-                disabled={!topic.trim() || loadingStart}
-                style={{
-                  padding: "12px 16px",
-                  borderRadius: brand.radius.button,
-                  background: topic.trim() && !loadingStart ? brand.text.primary : brand.bg.raised,
-                  border: `1px solid ${brand.border.item}`,
-                  color: topic.trim() && !loadingStart ? brand.bg.page : brand.text.muted,
-                  fontSize: "13px", fontWeight: "700",
-                  cursor: topic.trim() && !loadingStart ? "pointer" : "default",
-                  transition: brand.motion.snap,
-                  flexShrink: 0,
-                }}
-              >
-                →
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </>
-    );
-  }
-
-  const suggestions = nextCards.map((c) => ({
-    id: getSequenceByQuestion(c.question)?.id ?? c.question,
-    question: c.question,
-  }));
+  // Venture picks: game questions not already in the feed, different mechanic from current run
+  const venturePicks: AnyCard[] = GAME_QUESTIONS
+    .map(gameQuestionToAny)
+    .filter((q) => !feed.some((f) => f.question === q.question) && !answeredQuestions.includes(q.question));
 
   return (
-    <>
-      {scoreChip}
-      {allQuestionsOverlay}
-      <ProfilePanel profile={profile} open={profileOpen} onClose={() => setProfileOpen(false)} />
-      <div style={{ width: "100%", maxWidth: "340px", display: "flex", flexDirection: "column", gap: "32px" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <AllThumb id={card.thumbId} full />
-          <h1 style={{
-            margin: 0,
-            color: brand.text.primary,
-            fontWeight: "700",
-            fontSize: "clamp(1.5rem, 6vw, 1.9rem)",
-            letterSpacing: "-0.03em",
-            lineHeight: "1.15",
-          }}>
-            {card.question}
-          </h1>
+    <div style={{ width: "100%", maxWidth: "390px", display: "flex", flexDirection: "column" }}>
+
+      {/* Feed — venture cards injected every 3 items */}
+      {feed.map((card, i) => {
+        const isActive = activeQuestion === card.question;
+        const suggestions = isActive && card.mechanic === "sequence"
+          ? getRecommendations(getSequenceByQuestion(card.question)?.id ?? "", answeredQuestions)
+              .map(recordToCard)
+              .map((c) => ({ id: getSequenceByQuestion(c.question)?.id ?? c.question, question: c.question }))
+          : [];
+
+        const showVenture = (i + 1) % 3 === 0 && venturePicks.length > 0;
+
+        return (
+          <div key={card.question}>
+            <FeedCard
+              card={card}
+              isActive={isActive}
+              onTap={() => handleTap(card)}
+              onComplete={() => handleComplete(card)}
+              suggestions={suggestions}
+              loadingSuggestions={false}
+              onSelectSuggestion={handleSelectSuggestion}
+              loadingNugget={loadingNugget}
+              cardRef={(el) => { cardRefs.current[card.question] = el; }}
+            />
+            {showVenture && (
+              <VentureCard
+                picks={venturePicks.slice(0, 4)}
+                onSelect={(picked) => {
+                  setFeed((prev) => {
+                    if (prev.some((f) => f.question === picked.question)) {
+                      // Already in feed — just activate it
+                      setActiveQuestion(picked.question);
+                      scrollToCard(picked.question);
+                      return prev;
+                    }
+                    const next = [...prev];
+                    next.splice(i + 1, 0, picked);
+                    return next;
+                  });
+                  setActiveQuestion(picked.question);
+                  scrollToCard(picked.question);
+                }}
+              />
+            )}
+          </div>
+        );
+      })}
+
+      <div style={{ height: "80px" }} />
+
+      {/* Answered overlay */}
+      {showAnswered && (
+        <div
+          onClick={() => { setShowAnswered(false); onAnsweredClose?.(); }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 50,
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(8px)",
+            display: "flex", alignItems: "flex-end", justifyContent: "center",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: "420px", maxHeight: "75vh",
+              background: brand.bg.card,
+              border: `1px solid ${brand.border.card}`,
+              borderRadius: "24px 24px 0 0",
+              display: "flex", flexDirection: "column", overflow: "hidden",
+            }}
+          >
+            <div style={{ padding: "16px 24px 0", flexShrink: 0 }}>
+              <div style={{ width: "32px", height: "3px", borderRadius: "2px", background: brand.border.accent, margin: "0 auto 20px" }} />
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "16px" }}>
+                <span style={{ ...brand.type.label, color: brand.text.muted }}>Solved</span>
+                <span style={{ fontSize: "11px", color: brand.text.muted }}>{answeredQuestions.length}</span>
+              </div>
+            </div>
+            <div style={{ overflowY: "auto", padding: "0 24px 32px", display: "flex", flexDirection: "column", gap: "8px" }}>
+              {answeredQuestions.length === 0 && (
+                <span style={{ fontSize: "13px", color: brand.text.muted }}>Nothing solved yet.</span>
+              )}
+              {answeredQuestions.map((q) => {
+                const goldRec = allGold.find((g) => g.question === q);
+                const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
+                const id = goldRec?.id ?? gameQ?.id ?? "";
+                return (
+                  <div key={q} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 0", borderBottom: `1px solid ${brand.border.item}` }}>
+                    {id && (
+                      <img src={`/nuggets/thumbs/${id}.jpg`} alt="" style={{ width: 44, height: 34, borderRadius: "8px", objectFit: "cover", flexShrink: 0 }} />
+                    )}
+                    <span style={{ fontSize: "13px", color: brand.text.secondary, flex: 1, lineHeight: "1.4" }}>{q}</span>
+                    <span style={{ fontSize: "11px", color: brand.status.correct.text, flexShrink: 0 }}>✓</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
-
-        {card.mechanic === "sequence" && (
-          <SequenceGame
-            key={card.question}
-            question={card.question}
-            sequence={card.sequence}
-            onComplete={handleComplete}
-            onSkip={handleSkip}
-            loadingSkip={loadingSkip}
-            suggestions={suggestions}
-            loadingSuggestions={loadingNext}
-            onSelectSuggestion={handleSelectSuggestion}
-            loadingNugget={loadingNugget}
-          />
-        )}
-
-        {card.mechanic === "grouping" && (
-          <GroupingGame
-            key={card.question}
-            question={card.question}
-            zones={card.zones}
-            items={card.items}
-            onComplete={handleComplete}
-          />
-        )}
-
-        {card.mechanic === "matching" && (
-          <MatchingGame
-            key={card.question}
-            question={card.question}
-            pairs={card.pairs}
-            onComplete={handleComplete}
-          />
-        )}
-
-        {card.mechanic === "ranked" && (
-          <RankedListGame
-            key={card.question}
-            question={card.question}
-            items={card.items}
-            onComplete={handleComplete}
-          />
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 }
