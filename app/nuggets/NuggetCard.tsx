@@ -57,8 +57,8 @@ const TOPIC_LABEL: Record<string, string> = {
   history: "History",
   "Cold War": "History",
   WWII: "History",
-  "K-pop": "Pop Culture",
-  "Korean culture": "Pop Culture",
+  "K-pop": "Pop",
+  "Korean culture": "Culture",
 };
 function topicLabel(t: string) { return TOPIC_LABEL[t] ?? t; }
 function mechLabel(m: string) {
