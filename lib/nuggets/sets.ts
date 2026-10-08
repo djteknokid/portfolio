@@ -42,8 +42,7 @@ export const NUGGET_SETS: NuggetSet[] = [
     name: "Wine Essentials",
     description: "Know enough about wine to order confidently and sound like you mean it.",
     topics: ["wine"],
-    thumbId: "",
-    cardCount: 6,
+    thumbId: "wine-regions",
   },
 ];
 
