@@ -56,7 +56,7 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
             color: brand.text.muted,
             letterSpacing: "0.04em", textTransform: "uppercase",
           }}>
-            {nuggetSet.label}
+            {nuggetSet.name}
           </span>
         </div>
 

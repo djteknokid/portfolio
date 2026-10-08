@@ -6,11 +6,13 @@ import { brand } from "./brand";
 import { NUGGET_SETS } from "@/lib/nuggets/sets";
 import { useProfile } from "./useProfile";
 
-function SetRow({ slug, label, thumbId, solvedCount }: {
+function PackCard({ slug, label, name, description, thumbId, cardCount }: {
   slug: string;
   label: string;
+  name: string;
+  description: string;
   thumbId: string;
-  solvedCount: number;
+  cardCount: number;
 }) {
   const router = useRouter();
   const [imgFailed, setImgFailed] = useState(false);
@@ -19,27 +21,25 @@ function SetRow({ slug, label, thumbId, solvedCount }: {
     <button
       onClick={() => router.push(`/nuggets/${slug}`)}
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "16px",
-        padding: "12px",
-        borderRadius: "16px",
-        background: brand.bg.raised,
-        border: `1px solid ${brand.border.item}`,
-        textAlign: "left",
-        cursor: "pointer",
         width: "100%",
-        transition: brand.motion.snap,
+        borderRadius: "20px",
+        overflow: "hidden",
+        border: `1px solid ${brand.border.card}`,
+        background: "transparent",
+        cursor: "pointer",
+        textAlign: "left",
+        padding: 0,
+        display: "block",
+        position: "relative",
       }}
     >
-      {/* Thumbnail */}
+      {/* Hero image */}
       <div style={{
-        width: "72px",
-        height: "54px",
-        borderRadius: "10px",
+        width: "100%",
+        aspectRatio: "16 / 9",
+        background: brand.bg.raised,
+        position: "relative",
         overflow: "hidden",
-        flexShrink: 0,
-        background: brand.bg.page,
       }}>
         {!imgFailed && (
           <img
@@ -49,27 +49,72 @@ function SetRow({ slug, label, thumbId, solvedCount }: {
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
         )}
+        {/* Scrim */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,0.75) 100%)",
+        }} />
+
+        {/* Label pill */}
+        <div style={{
+          position: "absolute",
+          top: "14px",
+          left: "16px",
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(8px)",
+          borderRadius: "99px",
+          padding: "4px 10px",
+          fontSize: "10px",
+          fontWeight: "600",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: "rgba(255,255,255,0.6)",
+        }}>
+          {label}
+        </div>
+
+        {/* Card count pill */}
+        <div style={{
+          position: "absolute",
+          top: "14px",
+          right: "16px",
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(8px)",
+          borderRadius: "99px",
+          padding: "4px 10px",
+          fontSize: "10px",
+          fontWeight: "600",
+          color: "rgba(255,255,255,0.45)",
+        }}>
+          {cardCount} cards
+        </div>
       </div>
 
-      {/* Label */}
-      <span style={{
-        flex: 1,
-        fontSize: "17px",
-        fontWeight: "600",
-        color: brand.text.primary,
-        letterSpacing: "-0.01em",
+      {/* Pack info */}
+      <div style={{
+        padding: "16px 18px 18px",
+        background: brand.bg.raised,
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
       }}>
-        {label}
-      </span>
-
-      {/* Solved count + arrow */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-        {solvedCount > 0 && (
-          <span style={{ fontSize: "12px", color: brand.status.correct.text, fontWeight: "600" }}>
-            {solvedCount} ✓
-          </span>
-        )}
-        <span style={{ fontSize: "16px", color: brand.text.muted, opacity: 0.4 }}>›</span>
+        <span style={{
+          fontSize: "20px",
+          fontWeight: "800",
+          color: brand.text.primary,
+          letterSpacing: "-0.025em",
+          lineHeight: 1.1,
+        }}>
+          {name}
+        </span>
+        <span style={{
+          fontSize: "13px",
+          fontWeight: "400",
+          color: brand.text.muted,
+          lineHeight: 1.5,
+        }}>
+          {description}
+        </span>
       </div>
     </button>
   );
@@ -77,10 +122,6 @@ function SetRow({ slug, label, thumbId, solvedCount }: {
 
 export default function NuggetsPage() {
   const { profile } = useProfile();
-
-  // Count solved per set based on profile history
-  // We don't have per-card topic in history, so just show total for now
-  const totalSolved = profile.score;
 
   return (
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
@@ -107,12 +148,9 @@ export default function NuggetsPage() {
         }}>
           Sequence
         </span>
-        {totalSolved > 0 && (
-          <span style={{
-            fontSize: "12px", fontWeight: "600",
-            color: brand.status.correct.text,
-          }}>
-            {totalSolved} solved
+        {profile.score > 0 && (
+          <span style={{ fontSize: "12px", fontWeight: "600", color: brand.status.correct.text }}>
+            {profile.score} solved
           </span>
         )}
       </div>
@@ -123,34 +161,36 @@ export default function NuggetsPage() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        paddingTop: "72px",
+        paddingTop: "64px",
         paddingBottom: "48px",
-        paddingLeft: "24px",
-        paddingRight: "24px",
+        paddingLeft: "20px",
+        paddingRight: "20px",
       }}>
         <div style={{ width: "100%", maxWidth: "390px", display: "flex", flexDirection: "column", gap: "24px" }}>
 
-          <div>
+          <div style={{ paddingTop: "8px" }}>
             <h1 style={{
               margin: 0,
-              fontSize: "28px",
+              fontSize: "26px",
               fontWeight: "800",
               color: brand.text.primary,
               letterSpacing: "-0.03em",
-              lineHeight: 1.1,
+              lineHeight: 1.15,
             }}>
-              What do you<br />want to learn?
+              Choose a pack
             </h1>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {NUGGET_SETS.map((set) => (
-              <SetRow
+              <PackCard
                 key={set.slug}
                 slug={set.slug}
                 label={set.label}
+                name={set.name}
+                description={set.description}
                 thumbId={set.thumbId}
-                solvedCount={0}
+                cardCount={set.cardCount}
               />
             ))}
           </div>
