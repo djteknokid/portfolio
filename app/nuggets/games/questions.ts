@@ -260,4 +260,24 @@ export const GAME_QUESTIONS: Question[] = [
       { id: "4", text: "America Dances to Swing — Radio, ballrooms, and dances like the Lindy Hop make swing a defining sound of the 1930s and early 1940s." },
     ],
   },
+  {
+    id: "jazz-swing-vs-other",
+    question: "How Is Swing Different From Other Jazz?",
+    mechanic: "grouping",
+    topic: "jazz",
+    zones: [
+      { id: "swing",      label: "Swing",            color: "#f59e0b" },
+      { id: "other-jazz", label: "Other Jazz Styles", color: "#a78bfa" },
+    ],
+    items: [
+      { id: "big-bands",   label: "Big Bands",           emoji: "", correctGroup: "swing"      },
+      { id: "dance-music", label: "Dance Music",         emoji: "", correctGroup: "swing"      },
+      { id: "steady-beat", label: "Steady Beat",         emoji: "", correctGroup: "swing"      },
+      { id: "lindy-hop",   label: "Lindy Hop",           emoji: "", correctGroup: "swing"      },
+      { id: "small-combos",label: "Small Combos",        emoji: "", correctGroup: "other-jazz" },
+      { id: "complex-solo",label: "Complex Solos",       emoji: "", correctGroup: "other-jazz" },
+      { id: "exp-harmony", label: "Experimental Harmony",emoji: "", correctGroup: "other-jazz" },
+      { id: "free-rhythm", label: "Free Rhythm",         emoji: "", correctGroup: "other-jazz" },
+    ],
+  },
 ];
