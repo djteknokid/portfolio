@@ -207,14 +207,7 @@ function SequenceGameOrOther({ card, onComplete, suggestions, loadingSuggestions
   return null;
 }
 
-// ── Venture card — "try something different" break in the feed ────
-
-const MECHANIC_ACCENT: Record<string, string> = {
-  sequence: "#a78bfa",  // violet
-  matching: "#38bdf8",  // sky
-  grouping: "#fb923c",  // orange
-  ranked:   "#f472b6",  // pink
-};
+// ── Venture strip — stacked horizontal rows ────────────────────────
 
 function VentureCard({ picks, onSelect }: {
   picks: AnyCard[];
@@ -230,47 +223,72 @@ function VentureCard({ picks, onSelect }: {
       }}>
         Try something different
       </div>
-      <div style={{ display: "flex", gap: "10px", overflowX: "auto", scrollbarWidth: "none", paddingBottom: "4px" }}>
-        {picks.map((card) => {
-          const accent = MECHANIC_ACCENT[card.mechanic] ?? brand.text.muted;
-          return (
-            <button
-              key={card.question}
-              onClick={() => onSelect(card)}
-              style={{
-                flexShrink: 0,
-                width: "160px",
-                padding: "14px",
-                borderRadius: "14px",
-                background: brand.bg.raised,
-                border: `1px solid ${brand.border.item}`,
-                textAlign: "left",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-                transition: brand.motion.snap,
-              }}
-            >
-              <span style={{
-                fontSize: "9px", fontWeight: "700", letterSpacing: "0.12em",
-                textTransform: "uppercase", color: accent,
-              }}>
-                {mechLabel(card.mechanic)}
-              </span>
-              <span style={{
-                fontSize: "13px", fontWeight: "500", color: brand.text.secondary,
-                lineHeight: "1.4", display: "-webkit-box",
-                WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const,
-                overflow: "hidden",
-              }}>
-                {card.question}
-              </span>
-            </button>
-          );
-        })}
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+        {picks.map((card) => (
+          <VentureRow key={card.question} card={card} onSelect={onSelect} />
+        ))}
       </div>
     </div>
+  );
+}
+
+function VentureRow({ card, onSelect }: { card: AnyCard; onSelect: (card: AnyCard) => void }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  return (
+    <button
+      onClick={() => onSelect(card)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        padding: "10px 12px 10px 10px",
+        borderRadius: "14px",
+        background: "transparent",
+        border: "none",
+        textAlign: "left",
+        cursor: "pointer",
+        width: "100%",
+        transition: brand.motion.snap,
+      }}
+    >
+      {/* Thumbnail */}
+      <div style={{
+        width: "52px",
+        height: "40px",
+        borderRadius: "8px",
+        overflow: "hidden",
+        flexShrink: 0,
+        background: brand.bg.raised,
+        border: `1px solid ${brand.border.item}`,
+      }}>
+        {!imgFailed && (
+          <img
+            src={`/nuggets/thumbs/${card.thumbId}.jpg`}
+            alt=""
+            onError={() => setImgFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        )}
+      </div>
+
+      {/* Question */}
+      <span style={{
+        fontSize: "14px",
+        fontWeight: "500",
+        color: brand.text.secondary,
+        lineHeight: "1.35",
+        flex: 1,
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical" as const,
+        overflow: "hidden",
+      }}>
+        {card.question}
+      </span>
+
+      {/* Arrow */}
+      <span style={{ fontSize: "14px", color: brand.text.muted, flexShrink: 0, opacity: 0.5 }}>›</span>
+    </button>
   );
 }
 
