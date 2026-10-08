@@ -314,13 +314,23 @@ export default function NuggetDeck({ openAnswered, onAnsweredClose, topics }: { 
     setAllGold(gold);
 
     const answered = profile.history.map((h) => h.question);
-    // Feed starts with gold sequences only — filtered by topics if provided
+
+    // Gold sequence cards filtered by topics
     const goldCards: AnyCard[] = gold
       .map((seq) => legacyToAny(recordToCard(seq)))
       .filter((c) => !answered.includes(c.question))
       .filter((c) => !topics || topics.includes(c.topic ?? ""));
-    setFeed(goldCards);
-    if (goldCards.length > 0) setActiveQuestion(goldCards[0].question);
+
+    // Game question cards filtered by topics (always included in feed when topics are set)
+    const gameCards: AnyCard[] = topics
+      ? GAME_QUESTIONS
+          .map(gameQuestionToAny)
+          .filter((c) => topics.includes(c.topic ?? "") && !answered.includes(c.question))
+      : [];
+
+    const initialFeed = [...goldCards, ...gameCards];
+    setFeed(initialFeed);
+    if (initialFeed.length > 0) setActiveQuestion(initialFeed[0].question);
   }, []);
 
   useEffect(() => {
