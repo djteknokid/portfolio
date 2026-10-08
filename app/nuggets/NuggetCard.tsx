@@ -224,7 +224,11 @@ function VentureCard({ picks, onSelect }: {
         Try something different
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-        {picks.map((card) => (
+        {picks.reduce<AnyCard[]>((acc, card) => {
+          const label = topicLabel(card.topic ?? "");
+          if (!acc.some((c) => topicLabel(c.topic ?? "") === label)) acc.push(card);
+          return acc;
+        }, []).map((card) => (
           <VentureRow key={card.question} card={card} onSelect={onSelect} />
         ))}
       </div>
