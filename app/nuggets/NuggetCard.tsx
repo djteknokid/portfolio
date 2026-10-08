@@ -271,19 +271,15 @@ function VentureRow({ card, onSelect }: { card: AnyCard; onSelect: (card: AnyCar
         )}
       </div>
 
-      {/* Question */}
+      {/* Category */}
       <span style={{
         fontSize: "14px",
         fontWeight: "500",
         color: brand.text.secondary,
         lineHeight: "1.35",
         flex: 1,
-        display: "-webkit-box",
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: "vertical" as const,
-        overflow: "hidden",
       }}>
-        {card.question}
+        {topicLabel(card.topic ?? "")}
       </span>
 
       {/* Arrow */}
