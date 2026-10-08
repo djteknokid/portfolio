@@ -511,5 +511,24 @@
       { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
       { "id": "hiroshima-nagasaki-chosen", "question": "Why were Hiroshima and Nagasaki chosen?" }
     ]
+  },
+  {
+    "id": "nato-expansion",
+    "question": "How was NATO created?",
+    "beat_1": "After World War II, Europe is devastated, and Western European countries fear growing Soviet influence and expansion.",
+    "beat_2": "The Soviet Union tightens its control over Eastern Europe, while a Soviet blockade of West Berlin deepens fears of another conflict.",
+    "beat_3": "Western European countries realize they need a stronger defense alliance, backed by the United States and Canada.",
+    "beat_4": "Twelve countries sign the North Atlantic Treaty in 1949, creating NATO and promising collective defense if a member is attacked.",
+    "topic": "history",
+    "tags": ["nato", "cold war", "soviet union", "usa", "western europe", "collective defense", "1949"],
+    "story_engine": "survival_comeback",
+    "scores": { "must_know": 10, "story": 9, "order_matters": 10, "revelation": 8 },
+    "eval_notes": "Key revelation: the Berlin Blockade was the concrete trigger — it transformed abstract fear of the Soviet Union into an urgent military reality that forced the alliance into existence.",
+    "next": [
+      { "id": "berlin-wall-built", "question": "Why was the Berlin Wall built?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "germany-divided", "question": "Why was Germany divided after World War II?" },
+      { "id": "nuclear-arms-race", "question": "Why did the nuclear arms race begin?" }
+    ]
   }
 ]
