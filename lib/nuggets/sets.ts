@@ -33,8 +33,7 @@ export const NUGGET_SETS: NuggetSet[] = [
     name: "Jazz Essentials",
     description: "Things everyone should know about jazz, even if they're not a fan.",
     topics: ["jazz"],
-    thumbId: "",
-    cardCount: 9,
+    thumbId: "jazz-origins",
   },
   {
     slug: "wine",
