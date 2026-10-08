@@ -57,7 +57,7 @@ const TOPIC_LABEL: Record<string, string> = {
   history: "History",
   "Cold War": "History",
   WWII: "History",
-  "K-pop": "Pop",
+  "K-pop": "Music",
   "Korean culture": "Culture",
 };
 function topicLabel(t: string) { return TOPIC_LABEL[t] ?? t; }
