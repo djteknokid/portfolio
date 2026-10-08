@@ -34,7 +34,7 @@ export const NUGGET_SETS: NuggetSet[] = [
     description: "Things everyone should know about jazz, even if they're not a fan.",
     topics: ["jazz"],
     thumbId: "",
-    cardCount: 5,
+    cardCount: 6,
   },
 ];
 

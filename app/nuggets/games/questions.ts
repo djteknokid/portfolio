@@ -236,4 +236,16 @@ export const GAME_QUESTIONS: Question[] = [
       { id: "harmonic",      label: "Harmonic exploration",     emoji: "", correctGroup: "jazz"  },
     ],
   },
+  {
+    id: "jazz-new-orleans",
+    question: "Why Was New Orleans the Birthplace of Jazz?",
+    mechanic: "sequence",
+    topic: "jazz",
+    sequence: [
+      { id: "1", text: "A French Colonial Port — Founded in 1718, New Orleans becomes a major Mississippi River trading center." },
+      { id: "2", text: "African Musical Traditions — Enslaved Africans bring rhythms, songs, and musical traditions to the city." },
+      { id: "3", text: "Caribbean Influence — Refugees from Haiti and Caribbean trade introduce additional musical styles and rhythms." },
+      { id: "4", text: "A Unique Musical Melting Pot — Black musicians blend African, Caribbean, and European influences, giving birth to jazz around 1900." },
+    ],
+  },
 ];
