@@ -131,9 +131,13 @@ export default function GroupingGame({
   }
 
   function handleSubmit() {
-    const allPlaced = items.every((i) => placement[i.id] !== null);
+    const allPlaced = items.every((i) => i.correctGroup === "none" || placement[i.id] !== null);
     if (!allPlaced) return;
-    const ok = items.every((i) => placement[i.id] === i.correctGroup);
+    const ok = items.every((i) =>
+      i.correctGroup === "none"
+        ? placement[i.id] === null
+        : placement[i.id] === i.correctGroup
+    );
     setIsCorrect(ok);
     setSubmitted(true);
     if (ok) onComplete();
@@ -144,7 +148,8 @@ export default function GroupingGame({
     setPlacement((prev) => {
       const next = { ...prev };
       items.forEach((i) => {
-        if (prev[i.id] !== i.correctGroup) next[i.id] = null;
+        const correct = i.correctGroup === "none" ? null : i.correctGroup;
+        if (prev[i.id] !== correct) next[i.id] = null;
       });
       return next;
     });
@@ -152,26 +157,32 @@ export default function GroupingGame({
     setIsCorrect(false);
   }
 
-  const allPlaced = items.every((i) => placement[i.id] !== null);
+  const mustPlace = items.filter((i) => i.correctGroup !== "none");
+  const allPlaced = mustPlace.every((i) => placement[i.id] !== null);
+  const placedCount = mustPlace.filter((i) => placement[i.id] !== null).length;
   const pool = shuffled.filter((i) => placement[i.id] === null);
+  const isSingleZone = zones.length === 1;
 
   function itemColor(item: GroupingItem) {
     if (!submitted) return brand.text.primary;
-    return placement[item.id] === item.correctGroup
+    const correct = item.correctGroup === "none" ? null : item.correctGroup;
+    return placement[item.id] === correct
       ? brand.status.correct.text
       : brand.status.wrong.text;
   }
 
   function itemBorder(item: GroupingItem) {
     if (!submitted) return brand.border.item;
-    return placement[item.id] === item.correctGroup
+    const correct = item.correctGroup === "none" ? null : item.correctGroup;
+    return placement[item.id] === correct
       ? brand.status.correct.border
       : brand.status.wrong.border;
   }
 
   function itemBg(item: GroupingItem) {
     if (!submitted) return brand.bg.raised;
-    return placement[item.id] === item.correctGroup
+    const correct = item.correctGroup === "none" ? null : item.correctGroup;
+    return placement[item.id] === correct
       ? brand.status.correct.bg
       : brand.status.wrong.bg;
   }
@@ -238,7 +249,7 @@ export default function GroupingGame({
       {pool.length > 0 && (
         <div>
           <div style={{ ...brand.type.label, fontSize: brand.type.label.size, color: brand.text.muted, marginBottom: "8px" }}>
-            Sort these
+            {isSingleZone ? "Drag communist countries up" : "Sort these"}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {pool.map((item) => (
@@ -276,7 +287,7 @@ export default function GroupingGame({
               transition: brand.motion.snap,
             }}
           >
-            {allPlaced ? "I'm done" : `${pool.length} left to sort`}
+            {allPlaced ? "I'm done" : `${mustPlace.length - placedCount} left to place`}
           </button>
           {onSkip && (
             <button

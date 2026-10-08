@@ -58,6 +58,23 @@ const CAPITALS_DATA = {
   ],
 };
 
+const ASIAN_COMMUNISM_DATA = {
+  question: "Which Asian countries were communist during the Cold War?",
+  zones: [
+    { id: "communist", label: "Communist Countries", color: "#f87171" },
+  ],
+  items: [
+    { id: "china",       label: "China",        emoji: "🇨🇳", correctGroup: "communist" },
+    { id: "north-korea", label: "North Korea",  emoji: "🇰🇵", correctGroup: "communist" },
+    { id: "mongolia",    label: "Mongolia",     emoji: "🇲🇳", correctGroup: "communist" },
+    { id: "north-viet",  label: "North Vietnam",emoji: "🇻🇳", correctGroup: "communist" },
+    { id: "japan",       label: "Japan",        emoji: "🇯🇵", correctGroup: "none"      },
+    { id: "south-korea", label: "South Korea",  emoji: "🇰🇷", correctGroup: "none"      },
+    { id: "philippines", label: "Philippines",  emoji: "🇵🇭", correctGroup: "none"      },
+    { id: "thailand",    label: "Thailand",     emoji: "🇹🇭", correctGroup: "none"      },
+  ],
+};
+
 const SEQUENCE_DATA = {
   question: "How did World War II begin?",
   sequence: [
@@ -68,25 +85,27 @@ const SEQUENCE_DATA = {
   ],
 };
 
-type GameType = "axis-allies" | "nato" | "matching" | "sequence";
+type GameType = "axis-allies" | "nato" | "asian-communism" | "matching" | "sequence";
 
 export default function GamesDemo() {
   const [active, setActive] = useState<GameType>("axis-allies");
   const [done, setDone] = useState<Record<GameType, boolean>>({
-    "axis-allies": false, nato: false, matching: false, sequence: false,
+    "axis-allies": false, nato: false, "asian-communism": false, matching: false, sequence: false,
   });
 
   const tabs: { id: GameType; label: string }[] = [
-    { id: "axis-allies", label: "Axis / Allies" },
-    { id: "nato",        label: "NATO 1949"     },
-    { id: "matching",    label: "Capitals"      },
-    { id: "sequence",    label: "Sequence"      },
+    { id: "axis-allies",      label: "Axis / Allies"   },
+    { id: "nato",             label: "NATO 1949"        },
+    { id: "asian-communism",  label: "Cold War Asia"    },
+    { id: "matching",         label: "Capitals"         },
+    { id: "sequence",         label: "Sequence"         },
   ];
 
   const question =
-    active === "axis-allies" ? AXIS_ALLIES_DATA.question :
-    active === "nato"        ? NATO_DATA.question :
-    active === "matching"    ? CAPITALS_DATA.question :
+    active === "axis-allies"     ? AXIS_ALLIES_DATA.question :
+    active === "nato"            ? NATO_DATA.question :
+    active === "asian-communism" ? ASIAN_COMMUNISM_DATA.question :
+    active === "matching"        ? CAPITALS_DATA.question :
     SEQUENCE_DATA.question;
 
   return (
@@ -171,6 +190,13 @@ export default function GamesDemo() {
             key="nato"
             {...NATO_DATA}
             onComplete={() => setDone((d) => ({ ...d, nato: true }))}
+          />
+        )}
+        {active === "asian-communism" && (
+          <GroupingGame
+            key="asian-communism"
+            {...ASIAN_COMMUNISM_DATA}
+            onComplete={() => setDone((d) => ({ ...d, "asian-communism": true }))}
           />
         )}
         {active === "matching" && (
