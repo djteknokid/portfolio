@@ -280,4 +280,24 @@ export const GAME_QUESTIONS: Question[] = [
       { id: "free-rhythm", label: "Free Rhythm",         emoji: "", correctGroup: "other-jazz" },
     ],
   },
+  {
+    id: "jazz-instruments",
+    question: "Which Instruments Are Used in Jazz?",
+    mechanic: "grouping",
+    topic: "jazz",
+    zones: [
+      { id: "jazz", label: "Jazz Instruments", color: "#f59e0b" },
+    ],
+    items: [
+      { id: "saxophone",   label: "Saxophone",   emoji: "", correctGroup: "jazz" },
+      { id: "trumpet",     label: "Trumpet",     emoji: "", correctGroup: "jazz" },
+      { id: "drum-kit",    label: "Drum Kit",    emoji: "", correctGroup: "jazz" },
+      { id: "piano",       label: "Piano",       emoji: "", correctGroup: "jazz" },
+      { id: "double-bass", label: "Double Bass", emoji: "", correctGroup: "jazz" },
+      { id: "bagpipes",    label: "Bagpipes",    emoji: "", correctGroup: "none" },
+      { id: "sitar",       label: "Sitar",       emoji: "", correctGroup: "none" },
+      { id: "harpsichord", label: "Harpsichord", emoji: "", correctGroup: "none" },
+      { id: "pan-flute",   label: "Pan Flute",   emoji: "", correctGroup: "none" },
+    ],
+  },
 ];
