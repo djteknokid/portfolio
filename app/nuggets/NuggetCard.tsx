@@ -294,7 +294,7 @@ function VentureRow({ card, onSelect }: { card: AnyCard; onSelect: (card: AnyCar
 
 
 
-export default function NuggetDeck({ openAnswered, onAnsweredClose }: { openAnswered?: boolean; onAnsweredClose?: () => void }) {
+export default function NuggetDeck({ openAnswered, onAnsweredClose, topics }: { openAnswered?: boolean; onAnsweredClose?: () => void; topics?: string[] }) {
   const [feed, setFeed] = useState<AnyCard[]>([]);
   const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
   const [answeredQuestions, setAnsweredQuestions] = useState<string[]>([]);
@@ -314,10 +314,11 @@ export default function NuggetDeck({ openAnswered, onAnsweredClose }: { openAnsw
     setAllGold(gold);
 
     const answered = profile.history.map((h) => h.question);
-    // Feed starts with gold sequences only — game questions surface via venture strips
+    // Feed starts with gold sequences only — filtered by topics if provided
     const goldCards: AnyCard[] = gold
       .map((seq) => legacyToAny(recordToCard(seq)))
-      .filter((c) => !answered.includes(c.question));
+      .filter((c) => !answered.includes(c.question))
+      .filter((c) => !topics || topics.includes(c.topic ?? ""));
     setFeed(goldCards);
     if (goldCards.length > 0) setActiveQuestion(goldCards[0].question);
   }, []);
@@ -391,10 +392,11 @@ export default function NuggetDeck({ openAnswered, onAnsweredClose }: { openAnsw
     }
   }
 
-  // Venture picks: game questions not already in the feed, different mechanic from current run
+  // Venture picks: game questions not already in the feed, filtered by topics if set
   const venturePicks: AnyCard[] = GAME_QUESTIONS
     .map(gameQuestionToAny)
-    .filter((q) => !feed.some((f) => f.question === q.question) && !answeredQuestions.includes(q.question));
+    .filter((q) => !feed.some((f) => f.question === q.question) && !answeredQuestions.includes(q.question))
+    .filter((q) => !topics || topics.includes(q.topic ?? ""));
 
   return (
     <div style={{ width: "100%", maxWidth: "390px", display: "flex", flexDirection: "column" }}>
