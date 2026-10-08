@@ -7,7 +7,7 @@ import MatchingGame from "../MatchingGame";
 import SequenceGame from "../SequenceGame";
 
 const AXIS_ALLIES_DATA = {
-  question: "Sort these countries into Axis or Allied powers",
+  question: "Which countries fought on which side in World War II?",
   zones: [
     { id: "allies", label: "Allied Powers", color: "#60a5fa" },
     { id: "axis",   label: "Axis Powers",   color: "#f87171" },
@@ -25,7 +25,7 @@ const AXIS_ALLIES_DATA = {
 };
 
 const CAPITALS_DATA = {
-  question: "Match each country to its capital city",
+  question: "What were the capital cities of the major World War II powers?",
   pairs: [
     { id: "germany-pair", left: "Germany",        right: "Berlin"    },
     { id: "japan-pair",   left: "Japan",           right: "Tokyo"     },
