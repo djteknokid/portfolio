@@ -362,8 +362,8 @@ export default function NuggetDeck({ openAnswered, onAnsweredClose, topics }: { 
       setActiveQuestion((prev) => prev === card.question ? null : prev);
     }, 900);
 
-    // Get recommendations and append new unseen cards to the feed
-    if (card.mechanic === "sequence") {
+    // Get recommendations and append new unseen cards to the feed (only within same topic set)
+    if (card.mechanic === "sequence" && !topics) {
       const rec = getSequenceByQuestion(card.question);
       const fromId = rec?.id ?? "";
       const recs = getRecommendations(fromId, newAnswered);
