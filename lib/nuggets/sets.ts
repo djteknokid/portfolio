@@ -19,22 +19,13 @@ export const NUGGET_SETS: NuggetSet[] = [
     cardCount: 45,
   },
   {
-    slug: "music",
-    number: "002",
-    name: "K-Pop Essentials",
-    description: "Know the artists, songs, and culture.",
-    topics: ["K-pop"],
-    thumbId: "south-korea-global-rise",
-    cardCount: 2,
-  },
-  {
     slug: "culture",
-    number: "003",
+    number: "002",
     name: "Korean Culture Essentials",
-    description: "The soft power behind the global wave.",
-    topics: ["Korean culture"],
+    description: "K-pop, dramas, food, and the wave that went global.",
+    topics: ["Korean culture", "K-pop"],
     thumbId: "korean-culture-appeal",
-    cardCount: 1,
+    cardCount: 3,
   },
 ];
 
