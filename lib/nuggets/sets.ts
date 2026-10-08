@@ -1,7 +1,7 @@
 export interface NuggetSet {
   slug: string;
-  number: string;       // "001", "002", etc.
-  name: string;         // "WWII Essentials"
+  number: string;
+  name: string;
   description: string;
   topics: string[];
   thumbId: string;
@@ -10,35 +10,17 @@ export interface NuggetSet {
 
 export const NUGGET_SETS: NuggetSet[] = [
   {
-    slug: "history",
+    slug: "world-history",
     number: "001",
-    name: "History Essentials",
-    description: "The events everyone should know.",
-    topics: ["history"],
+    name: "1900s World History",
+    description: "The wars, revolutions, and rivalries that made the modern world.",
+    topics: ["history", "WWII", "Cold War"],
     thumbId: "berlin-wall-fall",
-    cardCount: 40,
-  },
-  {
-    slug: "wwii",
-    number: "002",
-    name: "WWII Essentials",
-    description: "The war everyone should understand.",
-    topics: ["WWII"],
-    thumbId: "wwii-beginning",
-    cardCount: 3,
-  },
-  {
-    slug: "cold-war",
-    number: "003",
-    name: "Cold War Essentials",
-    description: "The rivalry that shaped our world.",
-    topics: ["Cold War"],
-    thumbId: "cold-war-begin",
-    cardCount: 2,
+    cardCount: 45,
   },
   {
     slug: "music",
-    number: "004",
+    number: "002",
     name: "K-Pop Essentials",
     description: "Know the artists, songs, and culture.",
     topics: ["K-pop"],
@@ -47,7 +29,7 @@ export const NUGGET_SETS: NuggetSet[] = [
   },
   {
     slug: "culture",
-    number: "005",
+    number: "003",
     name: "Korean Culture Essentials",
     description: "The soft power behind the global wave.",
     topics: ["Korean culture"],
