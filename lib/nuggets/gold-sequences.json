@@ -473,5 +473,43 @@
       { "id": "nato-response-ukraine", "question": "How did NATO react?" },
       { "id": "russia-sanctions", "question": "How did sanctions affect Russia?" }
     ]
+  },
+  {
+    "id": "dday-success",
+    "question": "What was D-Day?",
+    "beat_1": "Nazi Germany occupies France, and the Allies need a way to liberate Western Europe.",
+    "beat_2": "The Allies secretly prepare a massive invasion across the English Channel, targeting Normandy, France.",
+    "beat_3": "Thousands of ships, aircraft, and soldiers launch a surprise assault on five beaches, despite fierce German resistance.",
+    "beat_4": "The Allies establish a foothold in France, opening a Western Front that helps lead to Nazi Germany's defeat.",
+    "topic": "history",
+    "tags": ["d-day", "normandy", "world war 2", "wwii", "france", "allies", "germany", "western front"],
+    "story_engine": "heroes_journey",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 10, "revelation": 8 },
+    "eval_notes": "Key revelation: D-Day was not the final blow but the opening of the Western Front that forced Germany into a two-front war it couldn't survive.",
+    "next": [
+      { "id": "nazi-germany-fall", "question": "How did Nazi Germany fall?" },
+      { "id": "germany-invades-soviet-union", "question": "Why did Germany invade the Soviet Union?" },
+      { "id": "wwii-end", "question": "How did World War II end?" },
+      { "id": "stalingrad", "question": "Why did Germany lose the Battle of Stalingrad?" }
+    ]
+  },
+  {
+    "id": "manhattan-project",
+    "question": "What was the Manhattan Project?",
+    "beat_1": "Scientists discover that splitting uranium atoms can release enormous energy, raising fears of a powerful new weapon.",
+    "beat_2": "Worried that Nazi Germany might build an atomic bomb first, the U.S. launches a secret research program.",
+    "beat_3": "Thousands of scientists and workers, including J. Robert Oppenheimer, develop the first atomic bombs at secret facilities.",
+    "beat_4": "The first nuclear test succeeds in New Mexico. Weeks later, the U.S. drops atomic bombs on Hiroshima and Nagasaki.",
+    "topic": "history",
+    "tags": ["manhattan project", "atomic bomb", "oppenheimer", "nuclear", "world war 2", "usa", "hiroshima", "nagasaki"],
+    "story_engine": "discovery",
+    "scores": { "must_know": 10, "story": 10, "order_matters": 10, "revelation": 9 },
+    "eval_notes": "Key revelation: the program was launched out of fear Germany would get there first — the Nazi threat drove the invention of the weapon that ended the Pacific war.",
+    "next": [
+      { "id": "atomic-bomb", "question": "Why did the U.S. drop the atomic bomb?" },
+      { "id": "nuclear-arms-race", "question": "Why did the nuclear arms race begin?" },
+      { "id": "cold-war-begin", "question": "How did the Cold War begin?" },
+      { "id": "hiroshima-nagasaki-chosen", "question": "Why were Hiroshima and Nagasaki chosen?" }
+    ]
   }
 ]
