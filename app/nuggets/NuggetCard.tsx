@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import SequenceGame from "./SequenceGame";
 import ProfilePanel from "./ProfilePanel";
 import { brand } from "./brand";
 import { useProfile } from "./useProfile";
 import { seedLibrary } from "@/lib/nuggets/seed";
-import { findGoldByTopic, getNextSequences, saveDrafts, recordToCard, getSequenceByQuestion } from "@/lib/nuggets/library";
+import { findGoldByTopic, getRecommendations, saveDrafts, recordToCard, getSequenceByQuestion } from "@/lib/nuggets/library";
 
 interface Card {
   question: string;
@@ -56,37 +56,21 @@ export default function NuggetDeck() {
   const [loadingSkip, setLoadingSkip] = useState(false);
   const [loadingNugget, setLoadingNugget] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
-  const fetchGen = useRef(0);
   const { profile, recordCorrect } = useProfile();
 
   useEffect(() => { seedLibrary(); }, []);
 
-  async function fetchNext(completedCards: Card[]) {
+  function fetchNext(completedCards: Card[]) {
     const lastCard = completedCards[completedCards.length - 1];
     if (!lastCard) return;
 
-    // Check gold relationships first (client-side, instant)
-    const goldRecord = getSequenceByQuestion(lastCard.question);
-    const goldNext = goldRecord
-      ? getNextSequences(goldRecord.id).filter(
-          (s) => s.status === "gold" && !completedCards.some((c) => c.question === s.question)
-        )
-      : [];
-    if (goldNext.length >= 1) {
-      setNextCards(goldNext.slice(0, 4).map(recordToCard));
-      return;
-    }
+    const record = getSequenceByQuestion(lastCard.question);
+    const fromId = record?.id ?? "";
+    const excludeQuestions = completedCards.map((c) => c.question);
 
-    const gen = ++fetchGen.current;
-    setLoadingNext(true);
-    try {
-      const fresh = await fetchCards(completedCards);
-      if (gen === fetchGen.current) setNextCards(fresh.length ? fresh : []);
-    } catch {
-      if (gen === fetchGen.current) setNextCards([]);
-    } finally {
-      if (gen === fetchGen.current) setLoadingNext(false);
-    }
+    const recs = getRecommendations(fromId, excludeQuestions);
+    setNextCards(recs.map(recordToCard));
+    setLoadingNext(false);
   }
 
   async function handleStartWith(value: string) {

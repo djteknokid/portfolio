@@ -105,6 +105,83 @@ export function getNextSequences(fromId: string): SequenceRecord[] {
     .filter(Boolean) as SequenceRecord[];
 }
 
+// Gold-only recommendation engine with three fallback tiers.
+// Tier 1: direct gold nexts from the sequence's relationship graph.
+// Tier 2: gold sequences sharing the same topic/tags (broaden).
+// Tier 3: any remaining gold not already seen.
+// Side effect: stubs in the next[] array are recorded as candidate demand.
+export function getRecommendations(fromId: string, exclude: string[] = []): SequenceRecord[] {
+  const lib = loadLibrary();
+  const gold = lib.sequences.filter((s) => s.status === "gold");
+  const goldIds = new Set(gold.map((s) => s.id));
+
+  const isExcluded = (s: SequenceRecord) => exclude.includes(s.question);
+
+  // Tier 1: direct gold nexts in editorial rank order
+  const links = lib.relationships
+    .filter((r) => r.from_id === fromId && r.relationship === "next")
+    .sort((a, b) => a.rank - b.rank);
+
+  const seen = new Set<string>();
+  const results: SequenceRecord[] = [];
+
+  for (const link of links) {
+    const seq = lib.sequences.find((s) => s.id === link.to_id);
+    if (seq && seq.status === "gold" && !isExcluded(seq) && !seen.has(seq.id)) {
+      results.push(seq);
+      seen.add(seq.id);
+    } else if (!goldIds.has(link.to_id)) {
+      // Record demand for missing/draft questions (silent, best-effort)
+      recordCandidateDemand(link.to_id);
+    }
+    if (results.length === 4) return results;
+  }
+
+  // Tier 2: same-topic gold (broaden)
+  const source = lib.sequences.find((s) => s.id === fromId);
+  if (source && results.length < 4) {
+    const sourceTags = new Set([
+      ...(source.tags ?? []).map((t) => t.toLowerCase()),
+      source.topic?.toLowerCase() ?? "",
+    ]);
+    for (const seq of gold) {
+      if (seen.has(seq.id) || seq.id === fromId || isExcluded(seq)) continue;
+      const seqTags = new Set([
+        ...(seq.tags ?? []).map((t) => t.toLowerCase()),
+        seq.topic?.toLowerCase() ?? "",
+      ]);
+      const overlaps = [...sourceTags].some((t) => t && seqTags.has(t));
+      if (overlaps) {
+        results.push(seq);
+        seen.add(seq.id);
+        if (results.length === 4) return results;
+      }
+    }
+  }
+
+  // Tier 3: any gold not already seen
+  for (const seq of gold) {
+    if (seen.has(seq.id) || seq.id === fromId || isExcluded(seq)) continue;
+    results.push(seq);
+    seen.add(seq.id);
+    if (results.length === 4) return results;
+  }
+
+  return results;
+}
+
+// Track which question IDs were requested but not yet gold — demand signal for content production
+function recordCandidateDemand(questionId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const key = "sequence_candidate_demand";
+    const raw = localStorage.getItem(key);
+    const demand: Record<string, number> = raw ? JSON.parse(raw) : {};
+    demand[questionId] = (demand[questionId] ?? 0) + 1;
+    localStorage.setItem(key, JSON.stringify(demand));
+  } catch {}
+}
+
 // Find gold sequences relevant to a topic/seed — used by suggest orchestrator
 export function findGoldByTopic(seed: string, exclude: string[] = []): SequenceRecord[] {
   const terms = seed.toLowerCase().split(/\s+/);
