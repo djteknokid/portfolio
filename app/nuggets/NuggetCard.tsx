@@ -463,49 +463,83 @@ export default function NuggetDeck({ openAnswered, onAnsweredClose, topics }: { 
 
       <div style={{ height: "80px" }} />
 
-      {/* Answered overlay */}
+      {/* Answered — full page */}
       {showAnswered && (
-        <div
-          onClick={() => { setShowAnswered(false); onAnsweredClose?.(); }}
-          style={{
-            position: "fixed", inset: 0, zIndex: 50,
-            background: "rgba(0,0,0,0.7)",
-            backdropFilter: "blur(8px)",
-            display: "flex", alignItems: "flex-end", justifyContent: "center",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%", maxWidth: "420px", maxHeight: "75vh",
-              background: brand.bg.card,
-              border: `1px solid ${brand.border.card}`,
-              borderRadius: "24px 24px 0 0",
-              display: "flex", flexDirection: "column", overflow: "hidden",
-            }}
-          >
-            <div style={{ padding: "16px 24px 0", flexShrink: 0 }}>
-              <div style={{ width: "32px", height: "3px", borderRadius: "2px", background: brand.border.accent, margin: "0 auto 20px" }} />
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "16px" }}>
-                <span style={{ ...brand.type.label, color: brand.text.muted }}>Solved</span>
-                <span style={{ fontSize: "11px", color: brand.text.muted }}>{answeredQuestions.length}</span>
-              </div>
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 50,
+          background: brand.bg.page,
+          display: "flex", flexDirection: "column",
+          overflowY: "auto",
+        }}>
+          {/* Header */}
+          <div style={{
+            position: "sticky", top: 0,
+            background: "rgba(10,10,10,0.9)",
+            backdropFilter: "blur(12px)",
+            borderBottom: `1px solid ${brand.border.item}`,
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "0 20px",
+            height: "48px",
+            flexShrink: 0,
+            zIndex: 1,
+          }}>
+            <span style={{ fontSize: "13px", fontWeight: "700", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+              Solved
+            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <span style={{ fontSize: "12px", color: brand.text.muted }}>{answeredQuestions.length}</span>
+              <button
+                onClick={() => { setShowAnswered(false); onAnsweredClose?.(); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: brand.text.muted, fontSize: "20px", lineHeight: 1, padding: "4px" }}
+              >
+                ×
+              </button>
             </div>
-            <div style={{ overflowY: "auto", padding: "0 24px 32px", display: "flex", flexDirection: "column", gap: "8px" }}>
-              {answeredQuestions.length === 0 && (
-                <span style={{ fontSize: "13px", color: brand.text.muted }}>Nothing solved yet.</span>
-              )}
+          </div>
+
+          {/* Grid */}
+          <div style={{ padding: "16px 16px 48px" }}>
+            {answeredQuestions.length === 0 && (
+              <span style={{ fontSize: "13px", color: brand.text.muted, padding: "8px 4px", display: "block" }}>Nothing solved yet.</span>
+            )}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
               {answeredQuestions.map((q) => {
                 const goldRec = allGold.find((g) => g.question === q);
                 const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
                 const id = goldRec?.id ?? gameQ?.id ?? "";
                 return (
-                  <div key={q} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 0", borderBottom: `1px solid ${brand.border.item}` }}>
-                    {id && (
-                      <img src={`/nuggets/thumbs/${id}.jpg`} alt="" style={{ width: 44, height: 34, borderRadius: "8px", objectFit: "cover", flexShrink: 0 }} />
-                    )}
-                    <span style={{ fontSize: "13px", color: brand.text.secondary, flex: 1, lineHeight: "1.4" }}>{q}</span>
-                    <span style={{ fontSize: "11px", color: brand.status.correct.text, flexShrink: 0 }}>✓</span>
+                  <div key={q} style={{
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    background: brand.bg.raised,
+                    border: `1px solid ${brand.border.item}`,
+                    position: "relative",
+                  }}>
+                    {/* Thumbnail */}
+                    <div style={{ width: "100%", aspectRatio: "1 / 1", background: brand.bg.raised }}>
+                      {id && (
+                        <img
+                          src={`/nuggets/thumbs/${id}.jpg`}
+                          alt=""
+                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }}
+                        />
+                      )}
+                    </div>
+                    {/* Check badge */}
+                    <div style={{
+                      position: "absolute", top: "6px", right: "6px",
+                      background: brand.status.correct.text,
+                      borderRadius: "99px",
+                      width: "18px", height: "18px",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "10px", color: "#000", fontWeight: "700",
+                    }}>✓</div>
+                    {/* Label */}
+                    <div style={{ padding: "6px 8px 8px" }}>
+                      <span style={{ fontSize: "10px", color: brand.text.muted, lineHeight: "1.3",
+                        overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                      }}>{q}</span>
+                    </div>
                   </div>
                 );
               })}
