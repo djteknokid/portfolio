@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 
 export interface HistoryEntry {
   question: string;
+  id?: string;        // card ID — used for dedup; falls back to question for legacy entries
   completedAt: number;
 }
 
@@ -56,11 +57,11 @@ export function useProfile() {
     });
   }, []);
 
-  const recordCorrect = useCallback((question: string, setId?: string) => {
+  const recordCorrect = useCallback((question: string, setId?: string, cardId?: string) => {
     setProfile((prev) => {
       const next: Profile = {
         score: prev.score + 1,
-        history: [{ question, completedAt: Date.now() }, ...prev.history],
+        history: [{ question, id: cardId, completedAt: Date.now() }, ...prev.history],
       };
       save(next);
 

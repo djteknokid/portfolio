@@ -461,7 +461,7 @@ export const GAME_QUESTIONS: Question[] = [
   // Louis Armstrong — What a Wonderful World
   {
     id: "louis-armstrong-wwlw",
-    question: "Who performed this, and what is the song called?",
+    question: "Name the artist and song title.",
     mechanic: "multiple-choice",
     topic: "jazz",
     mediaUrl: "https://www.youtube.com/embed/CaCSuzR4DwM?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
@@ -481,7 +481,7 @@ export const GAME_QUESTIONS: Question[] = [
   // Miles Davis — So What
   {
     id: "miles-davis-so-what",
-    question: "Who performed this, and what is the song called?",
+    question: "Name the artist and song title. (Hint: Kind of Blue, 1959)",
     mechanic: "multiple-choice",
     topic: "jazz",
     mediaUrl: "https://www.youtube.com/embed/zqNTltOGh5c?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
@@ -501,7 +501,7 @@ export const GAME_QUESTIONS: Question[] = [
   // John Coltrane — My Favorite Things
   {
     id: "coltrane-my-favorite-things",
-    question: "Who performed this, and what is the song called?",
+    question: "Name the artist and song title. (Hint: recorded in 1960)",
     mechanic: "multiple-choice",
     topic: "jazz",
     mediaUrl: "https://www.youtube.com/embed/qWG2dsXV5HI?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
@@ -521,7 +521,7 @@ export const GAME_QUESTIONS: Question[] = [
   // Dave Brubeck — Take Five
   {
     id: "brubeck-take-five",
-    question: "Who performed this, and what is the song called?",
+    question: "Name the artist and song title. (Hint: unusual time signature)",
     mechanic: "multiple-choice",
     topic: "jazz",
     mediaUrl: "https://www.youtube.com/embed/vmDDOFXSgAs?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
@@ -541,7 +541,7 @@ export const GAME_QUESTIONS: Question[] = [
   // Chet Baker — My Funny Valentine
   {
     id: "chet-baker-my-funny-valentine",
-    question: "Who performed this, and what is the song called?",
+    question: "Name the artist and song title. (Hint: West Coast cool jazz)",
     mechanic: "multiple-choice",
     topic: "jazz",
     mediaUrl: "https://www.youtube.com/embed/ni9Cp9mOOOg?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
@@ -561,7 +561,7 @@ export const GAME_QUESTIONS: Question[] = [
   // Thelonious Monk — Round Midnight
   {
     id: "monk-round-midnight",
-    question: "Who performed this, and what is the song called?",
+    question: "Name the artist and song title. (Hint: bebop pioneer)",
     mechanic: "multiple-choice",
     topic: "jazz",
     mediaUrl: "https://www.youtube.com/embed/IrAfjW5qiyo?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",

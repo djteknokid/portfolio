@@ -195,7 +195,13 @@ export default function NuggetsPage() {
     }).length;
   }
 
-  const incompleteSets = NUGGET_SETS.filter((set) => solvedCountForSet(set) < set.cardCount);
+  function totalCardsForSet(set: typeof NUGGET_SETS[0]) {
+    const goldCount = allGold.filter((g) => set.topics.includes(g.topic ?? "")).length;
+    const gameCount = GAME_QUESTIONS.filter((g) => set.topics.includes(g.topic ?? "")).length;
+    return goldCount + gameCount;
+  }
+
+  const incompleteSets = NUGGET_SETS.filter((set) => solvedCountForSet(set) < totalCardsForSet(set));
 
   const scoreButton = (
     <button
@@ -240,7 +246,7 @@ export default function NuggetsPage() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {incompleteSets.map((set) => (
-              <PackCard key={set.slug} slug={set.slug} number={set.number} name={set.name} description={set.description} thumbId={set.thumbId} cardCount={set.cardCount} solvedCount={solvedCountForSet(set)} />
+              <PackCard key={set.slug} slug={set.slug} number={set.number} name={set.name} description={set.description} thumbId={set.thumbId} cardCount={totalCardsForSet(set)} solvedCount={solvedCountForSet(set)} />
             ))}
           </div>
         </div>

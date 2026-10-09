@@ -1,0 +1,358 @@
+/* learnlog — mobile-first, portrait, light theme */
+
+.learnlog-root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  background: #ffffff;
+  color: #111111;
+  min-height: 100dvh;
+}
+
+/* ── Screen shell ── */
+.learnlog-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  background: #ffffff;
+}
+
+/* ── Top bar ── */
+.learnlog-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.learnlog-topbar-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #555;
+}
+
+.learnlog-streak {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f07020;
+}
+
+.learnlog-streak svg {
+  color: #f07020;
+}
+
+/* ── Bottom nav ── */
+.learnlog-bottomnav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  border-top: 1px solid #ebebeb;
+  background: #ffffff;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+}
+
+.learnlog-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 0 12px;
+  text-decoration: none;
+  color: #c0c0c0;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: color 0.15s;
+}
+
+.learnlog-tab.active {
+  color: #111111;
+}
+
+/* ── Create screen ── */
+.learnlog-create-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 0;
+  overflow: hidden;
+}
+
+.learnlog-textarea {
+  flex: 1;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: #111111;
+  font-size: 17px;
+  line-height: 1.65;
+  font-family: inherit;
+  caret-color: #f07020;
+}
+
+.learnlog-textarea::placeholder {
+  color: #c8c8c8;
+}
+
+.learnlog-create-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 80px;
+}
+
+.learnlog-save-btn {
+  background: #111111;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 28px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.learnlog-save-btn:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.learnlog-hint {
+  font-size: 11px;
+  color: #c8c8c8;
+}
+
+/* ── Toast ── */
+.learnlog-toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: #111111;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 20px;
+  border-radius: 20px;
+  z-index: 200;
+  opacity: 1;
+  transition: opacity 0.4s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.learnlog-toast.hide {
+  opacity: 0;
+}
+
+/* ── Library screen ── */
+.learnlog-library-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0 80px;
+}
+
+.learnlog-empty {
+  text-align: center;
+  color: #c8c8c8;
+  font-size: 14px;
+  margin-top: 60px;
+}
+
+.learnlog-day-group {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.learnlog-day-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #111111;
+}
+
+.learnlog-day-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #999999;
+  letter-spacing: 0.03em;
+}
+
+.learnlog-day-chevron {
+  font-size: 18px;
+  color: #cccccc;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.learnlog-day-chevron.open {
+  transform: rotate(90deg);
+}
+
+.learnlog-day-entries {
+  padding: 0 0 8px;
+}
+
+.learnlog-entry-row {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #f6f6f6;
+}
+
+.learnlog-entry-row:last-child {
+  border-bottom: none;
+}
+
+.learnlog-entry-preview {
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #333333;
+}
+
+.learnlog-new-tag {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #f07020;
+  background: #fff4ec;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-top: 2px;
+}
+
+/* ── Entry / Notepad screen ── */
+.learnlog-entry-screen {
+  background: #ffffff;
+}
+
+.learnlog-entry-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.learnlog-back-btn {
+  background: none;
+  border: none;
+  color: #999999;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.learnlog-entry-date {
+  font-size: 12px;
+  color: #bbbbbb;
+  font-weight: 500;
+}
+
+.learnlog-entry-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 0;
+  overflow: hidden;
+}
+
+.learnlog-entry-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px 32px;
+  flex-shrink: 0;
+  border-top: 1px solid #f0f0f0;
+}
+
+.learnlog-delete-btn {
+  background: none;
+  border: 1px solid #e8e8e8;
+  color: #aaaaaa;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 20px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.learnlog-confirm-text {
+  font-size: 13px;
+  color: #888888;
+  flex: 1;
+}
+
+.learnlog-delete-confirm-btn {
+  background: #d63030;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.learnlog-cancel-btn {
+  background: none;
+  border: 1px solid #e8e8e8;
+  color: #aaaaaa;
+  border-radius: 8px;
+  font-size: 14px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+/* ── Settings screen ── */
+.learnlog-settings-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 80px;
+}

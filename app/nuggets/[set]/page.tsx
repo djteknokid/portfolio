@@ -218,23 +218,25 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
 
     // Read localStorage directly — profile state may not have loaded yet at mount time
     let historicAnswered: string[] = [];
+    let historicAnsweredIds: string[] = [];
     try {
       const raw = localStorage.getItem("sequence_profile");
       if (raw) {
         const parsed = JSON.parse(raw);
         historicAnswered = (parsed.history ?? []).map((h: { question: string }) => h.question);
+        historicAnsweredIds = (parsed.history ?? []).map((h: { id?: string; question: string }) => h.id ?? h.question);
       }
     } catch {}
     setAnswered(historicAnswered);
 
     const goldCards: AnyCard[] = gold
       .map((seq) => legacyToAny(recordToCard(seq)))
-      .filter((c) => !historicAnswered.includes(c.question))
+      .filter((c) => !historicAnsweredIds.includes(c.thumbId) && !historicAnswered.includes(c.question))
       .filter((c) => nuggetSet.topics.includes(c.topic ?? ""));
 
     const gameCards: AnyCard[] = GAME_QUESTIONS
       .map(gameQuestionToAny)
-      .filter((c) => nuggetSet.topics.includes(c.topic ?? "") && !historicAnswered.includes(c.question));
+      .filter((c) => nuggetSet.topics.includes(c.topic ?? "") && !historicAnsweredIds.includes(c.thumbId) && !historicAnswered.includes(c.question));
 
     const initial = [...goldCards, ...gameCards];
     setQueue(initial);
@@ -276,7 +278,7 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
 
   function handleComplete() {
     if (!currentCard) return;
-    recordCorrect(currentCard.question, slug);
+    recordCorrect(currentCard.question, slug, currentCard.thumbId);
     setAnswered((prev) => [...prev, currentCard.question]);
     setTimeout(() => advanceQueue(currentCard.question), 900);
   }
