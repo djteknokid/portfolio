@@ -142,7 +142,7 @@ export default function NuggetsPage() {
           color: brand.text.muted,
           letterSpacing: "0.04em", textTransform: "uppercase",
         }}>
-          Sequence
+          Basic Knowledge
         </span>
       </div>
 
