@@ -196,7 +196,15 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
     const gold = getGoldSequences();
     setAllGold(gold);
 
-    const historicAnswered = profile.history.map((h) => h.question);
+    // Read localStorage directly — profile state may not have loaded yet at mount time
+    let historicAnswered: string[] = [];
+    try {
+      const raw = localStorage.getItem("sequence_profile");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        historicAnswered = (parsed.history ?? []).map((h: { question: string }) => h.question);
+      }
+    } catch {}
     setAnswered(historicAnswered);
 
     const goldCards: AnyCard[] = gold
