@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { brand } from "./brand";
 import { NUGGET_SETS } from "@/lib/nuggets/sets";
 import { useProfile } from "./useProfile";
+import ShellBar from "./ShellBar";
+import UserMenu from "./UserMenu";
 
 function PackCard({ slug, number, name, description, thumbId, cardCount }: {
   slug: string;
@@ -121,37 +123,17 @@ function PackCard({ slug, number, name, description, thumbId, cardCount }: {
 
 export default function NuggetsPage() {
   const { profile } = useProfile();
+
+  const scoreRight = profile.score > 0 ? (
+    <span style={{ fontSize: "12px", fontWeight: "600", color: brand.status.correct.text }}>
+      {profile.score} solved
+    </span>
+  ) : undefined;
+
   return (
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
 
-      {/* Shell bar */}
-      <div style={{
-        position: "fixed",
-        top: 0, left: 0, right: 0,
-        zIndex: 40,
-        height: "48px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingLeft: "20px",
-        paddingRight: "20px",
-        background: "rgba(10,10,10,0.85)",
-        backdropFilter: "blur(12px)",
-        borderBottom: `1px solid ${brand.border.item}`,
-      }}>
-        <span style={{
-          fontSize: "13px", fontWeight: "700",
-          color: brand.text.muted,
-          letterSpacing: "0.04em", textTransform: "uppercase",
-        }}>
-          Basic Knowledge
-        </span>
-        {profile.score > 0 && (
-          <span style={{ fontSize: "12px", fontWeight: "600", color: brand.status.correct.text }}>
-            {profile.score} solved
-          </span>
-        )}
-      </div>
+      <ShellBar title="Basic Knowledge" right={scoreRight} />
 
       {/* Content */}
       <main style={{

@@ -8,6 +8,7 @@ import MatchingGame from "../MatchingGame";
 import RankedListGame from "../RankedListGame";
 import { brand } from "../brand";
 import { useProfile } from "../useProfile";
+import ShellBar from "../ShellBar";
 import { seedLibrary } from "@/lib/nuggets/seed";
 import { getGoldSequences, getRecommendations, recordToCard, getSequenceByQuestion } from "@/lib/nuggets/library";
 import type { SequenceRecord } from "@/lib/nuggets/library";
@@ -278,16 +279,16 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
 
       {/* Shell bar */}
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 40, height: "48px", display: "flex", alignItems: "center", justifyContent: "space-between", paddingLeft: "16px", paddingRight: "20px", background: "rgba(10,10,10,0.85)", backdropFilter: "blur(12px)", borderBottom: `1px solid ${brand.border.item}` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <button onClick={() => router.push("/nuggets")} style={{ background: "none", border: "none", padding: "4px 8px 4px 0", cursor: "pointer", display: "flex", alignItems: "center", color: brand.text.muted, fontSize: "20px", lineHeight: 1, WebkitTapHighlightColor: "transparent" }}>‹</button>
-          <span style={{ fontSize: "13px", fontWeight: "700", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>{nuggetSet.name}</span>
-        </div>
-        <button onClick={() => setShowSolved(true)} style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}>
-          <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{totalSolved}</span>
-          <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>solved</span>
-        </button>
-      </div>
+      <ShellBar
+        title={nuggetSet.name}
+        backHref="/nuggets"
+        right={
+          <button onClick={() => setShowSolved(true)} style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}>
+            <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{totalSolved}</span>
+            <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>solved</span>
+          </button>
+        }
+      />
 
       {/* Content */}
       <main
