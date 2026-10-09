@@ -53,14 +53,17 @@ function SolvedPage({
   allGold,
   setTopics,
   setName,
+  setCardCount,
   onClose,
 }: {
   answeredQuestions: string[];
   allGold: SequenceRecord[];
   setTopics: string[];
   setName: string;
+  setCardCount: number;
   onClose: () => void;
 }) {
+  const totalCards = NUGGET_SETS.reduce((sum, s) => sum + s.cardCount, 0);
   // Count how many answered questions belong to this pack's topics
   const inPack = answeredQuestions.filter((q) => {
     const goldRec = allGold.find((g) => g.question === q);
@@ -82,11 +85,17 @@ function SolvedPage({
         {/* Summary */}
         <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
           <div style={{ flex: 1, background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px" }}>
-            <div style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{inPack}</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+              <span style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{inPack}</span>
+              <span style={{ fontSize: "13px", fontWeight: "500", color: brand.text.muted }}>/ {setCardCount}</span>
+            </div>
             <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px" }}>{setName}</div>
           </div>
           <div style={{ flex: 1, background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px" }}>
-            <div style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{answeredQuestions.length}</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+              <span style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{answeredQuestions.length}</span>
+              <span style={{ fontSize: "13px", fontWeight: "500", color: brand.text.muted }}>/ {totalCards}</span>
+            </div>
             <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px" }}>Total solved</div>
           </div>
         </div>
@@ -347,7 +356,7 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
 
       {/* Solved history */}
       {showSolved && (
-        <SolvedPage answeredQuestions={profile.history.map((h) => h.question)} allGold={allGold} setTopics={nuggetSet.topics} setName={nuggetSet.name} onClose={() => setShowSolved(false)} />
+        <SolvedPage answeredQuestions={profile.history.map((h) => h.question)} allGold={allGold} setTopics={nuggetSet.topics} setName={nuggetSet.name} setCardCount={nuggetSet.cardCount} onClose={() => setShowSolved(false)} />
       )}
     </div>
   );

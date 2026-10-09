@@ -98,6 +98,7 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
   allGold: SequenceRecord[];
   onClose: () => void;
 }) {
+  const totalCards = NUGGET_SETS.reduce((sum, s) => sum + s.cardCount, 0);
   // Count solved per pack
   const packCounts = NUGGET_SETS.map((s) => {
     const count = answeredQuestions.filter((q) => {
@@ -107,7 +108,7 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
       if (gameQ) return s.topics.includes(gameQ.topic ?? "");
       return false;
     }).length;
-    return { name: s.name, count };
+    return { name: s.name, count, cardCount: s.cardCount };
   }).filter((p) => p.count > 0);
 
   return (
@@ -122,12 +123,18 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
         {/* Summary */}
         <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
           <div style={{ flex: "1 1 auto", minWidth: "120px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px" }}>
-            <div style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{answeredQuestions.length}</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+              <span style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{answeredQuestions.length}</span>
+              <span style={{ fontSize: "13px", fontWeight: "500", color: brand.text.muted }}>/ {totalCards}</span>
+            </div>
             <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px" }}>Total solved</div>
           </div>
           {packCounts.map((p) => (
             <div key={p.name} style={{ flex: "1 1 auto", minWidth: "120px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px" }}>
-              <div style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{p.count}</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+                <span style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{p.count}</span>
+                <span style={{ fontSize: "13px", fontWeight: "500", color: brand.text.muted }}>/ {p.cardCount}</span>
+              </div>
               <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</div>
             </div>
           ))}
