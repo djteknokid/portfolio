@@ -315,7 +315,7 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
 
       {/* Solved history */}
       {showSolved && (
-        <SolvedPage answeredQuestions={answered} allGold={allGold} onClose={() => setShowSolved(false)} />
+        <SolvedPage answeredQuestions={profile.history.map((h) => h.question)} allGold={allGold} onClose={() => setShowSolved(false)} />
       )}
     </div>
   );
