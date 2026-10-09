@@ -9,6 +9,7 @@ import RankedListGame from "../RankedListGame";
 import { brand } from "../brand";
 import { useProfile } from "../useProfile";
 import ShellBar from "../ShellBar";
+import UserMenu from "../UserMenu";
 import { seedLibrary } from "@/lib/nuggets/seed";
 import { getGoldSequences, getRecommendations, recordToCard, getSequenceByQuestion } from "@/lib/nuggets/library";
 import type { SequenceRecord } from "@/lib/nuggets/library";
@@ -58,18 +59,16 @@ function SolvedPage({
 }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 50, background: brand.bg.page, display: "flex", flexDirection: "column", overflowY: "auto" }}>
-      <div style={{
-        position: "sticky", top: 0, background: "rgba(10,10,10,0.9)", backdropFilter: "blur(12px)",
-        borderBottom: `1px solid ${brand.border.item}`, display: "flex", alignItems: "center",
-        justifyContent: "space-between", padding: "0 20px", height: "48px", flexShrink: 0, zIndex: 1,
-      }}>
-        <span style={{ fontSize: "13px", fontWeight: "700", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>Solved</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "12px", color: brand.text.muted }}>{answeredQuestions.length}</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: brand.text.muted, fontSize: "20px", lineHeight: 1, padding: "4px", WebkitTapHighlightColor: "transparent" }}>×</button>
-        </div>
-      </div>
-      <div style={{ padding: "16px 16px 48px" }}>
+      <ShellBar
+        title="Solved"
+        right={
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "12px", color: brand.text.muted }}>{answeredQuestions.length}</span>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: brand.text.muted, fontSize: "20px", lineHeight: 1, padding: "4px", WebkitTapHighlightColor: "transparent" }}>×</button>
+          </div>
+        }
+      />
+      <div style={{ padding: "64px 16px 48px" }}>
         {answeredQuestions.length === 0 && (
           <span style={{ fontSize: "13px", color: brand.text.muted, padding: "8px 4px", display: "block" }}>Nothing solved yet.</span>
         )}
@@ -283,10 +282,13 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
         title={nuggetSet.name}
         backHref="/nuggets"
         right={
-          <button onClick={() => setShowSolved(true)} style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}>
-            <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{totalSolved}</span>
-            <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>solved</span>
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <button onClick={() => setShowSolved(true)} style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}>
+              <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{totalSolved}</span>
+              <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>solved</span>
+            </button>
+            <UserMenu />
+          </div>
         }
       />
 

@@ -125,15 +125,20 @@ export default function NuggetsPage() {
   const { profile } = useProfile();
 
   const scoreRight = profile.score > 0 ? (
-    <span style={{ fontSize: "12px", fontWeight: "600", color: brand.status.correct.text }}>
-      {profile.score} solved
-    </span>
+    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+      <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>
+        {profile.score}
+      </span>
+      <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+        solved
+      </span>
+    </div>
   ) : undefined;
 
   return (
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
 
-      <ShellBar title="Basic Knowledge" right={scoreRight} />
+      <ShellBar title="Basic Knowledge" right={<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>{scoreRight}<UserMenu /></div>} />
 
       {/* Content */}
       <main style={{
