@@ -45,6 +45,15 @@ export const NUGGET_SETS: NuggetSet[] = [
     thumbId: "wine-regions",
     cardCount: 6,
   },
+  {
+    slug: "pop-culture",
+    number: "005",
+    name: "Pop Culture",
+    description: "The artists, moments, and movements that defined modern popular culture.",
+    topics: ["pop culture"],
+    thumbId: "mj-hits",
+    cardCount: 4,
+  },
 ];
 
 export function getSet(slug: string): NuggetSet | undefined {

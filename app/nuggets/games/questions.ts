@@ -372,6 +372,62 @@ export const GAME_QUESTIONS: Question[] = [
       { id: "men", left: "Mendoza",     right: "Argentina"     },
     ],
   },
+  // ── Pop Culture ───────────────────────────────────────────────────
+  {
+    id: "mj-hits",
+    question: "Greatest Michael Jackson Hits — in order",
+    mechanic: "sequence",
+    topic: "pop culture",
+    sequence: [
+      { id: "1", text: "Don't Stop 'Til You Get Enough (1979)" },
+      { id: "2", text: "Billie Jean (1983)" },
+      { id: "3", text: "Thriller (1983)" },
+      { id: "4", text: "Bad (1987)" },
+      { id: "5", text: "Smooth Criminal (1988)" },
+      { id: "6", text: "Black or White (1991)" },
+    ],
+  },
+  {
+    id: "madonna-hits",
+    question: "Greatest Madonna Hits — in order",
+    mechanic: "sequence",
+    topic: "pop culture",
+    sequence: [
+      { id: "1", text: "Holiday (1983)" },
+      { id: "2", text: "Like a Virgin (1984)" },
+      { id: "3", text: "Papa Don't Preach (1986)" },
+      { id: "4", text: "Like a Prayer (1989)" },
+      { id: "5", text: "Vogue (1990)" },
+      { id: "6", text: "Hung Up (2005)" },
+    ],
+  },
+  {
+    id: "madonna-queen-of-pop",
+    question: "How Did Madonna Become the Queen of Pop?",
+    mechanic: "sequence",
+    topic: "pop culture",
+    sequence: [
+      { id: "1", text: "Moves to New York to pursue dancing and music." },
+      { id: "2", text: "Breaks into the club scene with hits like Holiday." },
+      { id: "3", text: "Like a Virgin becomes a global hit, making her a superstar." },
+      { id: "4", text: "Reinvents pop music through provocative videos, fashion, and performances." },
+      { id: "5", text: "Like a Prayer and Vogue become massive hits, cementing her Queen of Pop status." },
+    ],
+  },
+  {
+    id: "elvis-king-of-rock",
+    question: "How Did Elvis Become the King of Rock and Roll?",
+    mechanic: "sequence",
+    topic: "pop culture",
+    sequence: [
+      { id: "1", text: "Grows up in the South, influenced by gospel, blues, and country music." },
+      { id: "2", text: "Records at Sun Records, blending musical styles into a new rockabilly sound." },
+      { id: "3", text: "Heartbreak Hotel becomes a massive hit, launching him into national stardom." },
+      { id: "4", text: "TV performances electrify teenagers, with his voice, dancing, and rebellious image." },
+      { id: "5", text: "Hit songs and Hollywood movies turn Elvis into a global cultural icon." },
+    ],
+  },
+
   {
     id: "wine-cab-vs-merlot",
     question: "What's the Difference Between Cabernet and Merlot?",
