@@ -5,6 +5,7 @@ import SequenceGame from "./SequenceGame";
 import GroupingGame from "./GroupingGame";
 import MatchingGame from "./MatchingGame";
 import RankedListGame from "./RankedListGame";
+import MultipleChoiceGame from "./MultipleChoiceGame";
 import { brand } from "./brand";
 import { useProfile } from "./useProfile";
 import { seedLibrary } from "@/lib/nuggets/seed";
@@ -69,6 +70,7 @@ function mechLabel(m: string) {
   if (m === "matching") return "Matching";
   if (m === "grouping") return "Grouping";
   if (m === "ranked") return "Ranked";
+  if (m === "multiple-choice") return "Quiz";
   return m;
 }
 
@@ -206,6 +208,9 @@ function SequenceGameOrOther({ card, onComplete, suggestions, loadingSuggestions
   }
   if (card.mechanic === "ranked") {
     return <RankedListGame key={card.question} question={card.question} items={card.items} onComplete={onComplete} />;
+  }
+  if (card.mechanic === "multiple-choice") {
+    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onComplete} />;
   }
   return null;
 }

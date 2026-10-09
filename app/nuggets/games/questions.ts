@@ -1,4 +1,4 @@
-export type MechanicType = "grouping" | "matching" | "sequence" | "ranked";
+export type MechanicType = "grouping" | "matching" | "sequence" | "ranked" | "multiple-choice";
 
 interface BaseQuestion {
   id: string;
@@ -28,7 +28,14 @@ export interface RankedQuestion extends BaseQuestion {
   items: { id: string; title: string; emoji: string; description: string }[];
 }
 
-export type Question = GroupingQuestion | MatchingQuestion | SequenceQuestion | RankedQuestion;
+export interface MultipleChoiceQuestion extends BaseQuestion {
+  mechanic: "multiple-choice";
+  mediaUrl?: string;
+  options: { id: string; text: string }[];
+  correctIds: string[];
+}
+
+export type Question = GroupingQuestion | MatchingQuestion | SequenceQuestion | RankedQuestion | MultipleChoiceQuestion;
 
 export const GAME_QUESTIONS: Question[] = [
   {
@@ -379,12 +386,12 @@ export const GAME_QUESTIONS: Question[] = [
     mechanic: "sequence",
     topic: "pop culture",
     sequence: [
-      { id: "1", text: "Don't Stop 'Til You Get Enough (1979)" },
-      { id: "2", text: "Billie Jean (1983)" },
-      { id: "3", text: "Thriller (1983)" },
-      { id: "4", text: "Bad (1987)" },
-      { id: "5", text: "Smooth Criminal (1988)" },
-      { id: "6", text: "Black or White (1991)" },
+      { id: "1", text: "Don't Stop 'Til You Get Enough" },
+      { id: "2", text: "Billie Jean" },
+      { id: "3", text: "Thriller" },
+      { id: "4", text: "Bad" },
+      { id: "5", text: "Smooth Criminal" },
+      { id: "6", text: "Black or White" },
     ],
   },
   {
@@ -393,12 +400,12 @@ export const GAME_QUESTIONS: Question[] = [
     mechanic: "sequence",
     topic: "pop culture",
     sequence: [
-      { id: "1", text: "Holiday (1983)" },
-      { id: "2", text: "Like a Virgin (1984)" },
-      { id: "3", text: "Papa Don't Preach (1986)" },
-      { id: "4", text: "Like a Prayer (1989)" },
-      { id: "5", text: "Vogue (1990)" },
-      { id: "6", text: "Hung Up (2005)" },
+      { id: "1", text: "Holiday" },
+      { id: "2", text: "Like a Virgin" },
+      { id: "3", text: "Papa Don't Preach" },
+      { id: "4", text: "Like a Prayer" },
+      { id: "5", text: "Vogue" },
+      { id: "6", text: "Hung Up" },
     ],
   },
   {
@@ -447,5 +454,127 @@ export const GAME_QUESTIONS: Question[] = [
       { id: "plum",          label: "Plum flavors",               emoji: "", correctGroup: "merlot" },
       { id: "approachable",  label: "Often approachable younger", emoji: "", correctGroup: "merlot" },
     ],
+  },
+
+  // ── Jazz: multiple-choice ─────────────────────────────────────────
+
+  // Louis Armstrong — What a Wonderful World
+  {
+    id: "louis-armstrong-wwlw",
+    question: "Who performed this, and what is the song called?",
+    mechanic: "multiple-choice",
+    topic: "jazz",
+    mediaUrl: "https://www.youtube.com/embed/CaCSuzR4DwM?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
+    options: [
+      { id: "louis-armstrong",  text: "Louis Armstrong" },
+      { id: "miles-davis",      text: "Miles Davis" },
+      { id: "nat-king-cole",    text: "Nat King Cole" },
+      { id: "frank-sinatra",    text: "Frank Sinatra" },
+      { id: "what-a-wonderful", text: "What a Wonderful World" },
+      { id: "la-vie-en-rose",   text: "La Vie en Rose" },
+      { id: "summertime",       text: "Summertime" },
+      { id: "fly-me-to-moon",   text: "Fly Me to the Moon" },
+    ],
+    correctIds: ["louis-armstrong", "what-a-wonderful"],
+  },
+
+  // Miles Davis — So What
+  {
+    id: "miles-davis-so-what",
+    question: "Who performed this, and what is the song called?",
+    mechanic: "multiple-choice",
+    topic: "jazz",
+    mediaUrl: "https://www.youtube.com/embed/zqNTltOGh5c?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
+    options: [
+      { id: "miles-davis",       text: "Miles Davis" },
+      { id: "john-coltrane",     text: "John Coltrane" },
+      { id: "dave-brubeck",      text: "Dave Brubeck" },
+      { id: "thelonious-monk",   text: "Thelonious Monk" },
+      { id: "so-what",           text: "So What" },
+      { id: "round-midnight",    text: "Round Midnight" },
+      { id: "take-five",         text: "Take Five" },
+      { id: "blue-in-green",     text: "Blue in Green" },
+    ],
+    correctIds: ["miles-davis", "so-what"],
+  },
+
+  // John Coltrane — My Favorite Things
+  {
+    id: "coltrane-my-favorite-things",
+    question: "Who performed this, and what is the song called?",
+    mechanic: "multiple-choice",
+    topic: "jazz",
+    mediaUrl: "https://www.youtube.com/embed/qWG2dsXV5HI?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
+    options: [
+      { id: "john-coltrane",       text: "John Coltrane" },
+      { id: "miles-davis-2",       text: "Miles Davis" },
+      { id: "charlie-parker",      text: "Charlie Parker" },
+      { id: "sonny-rollins",       text: "Sonny Rollins" },
+      { id: "my-favorite-things",  text: "My Favorite Things" },
+      { id: "a-love-supreme",      text: "A Love Supreme" },
+      { id: "giant-steps",         text: "Giant Steps" },
+      { id: "autumn-leaves",       text: "Autumn Leaves" },
+    ],
+    correctIds: ["john-coltrane", "my-favorite-things"],
+  },
+
+  // Dave Brubeck — Take Five
+  {
+    id: "brubeck-take-five",
+    question: "Who performed this, and what is the song called?",
+    mechanic: "multiple-choice",
+    topic: "jazz",
+    mediaUrl: "https://www.youtube.com/embed/vmDDOFXSgAs?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
+    options: [
+      { id: "dave-brubeck",       text: "Dave Brubeck" },
+      { id: "oscar-peterson",     text: "Oscar Peterson" },
+      { id: "bill-evans",         text: "Bill Evans" },
+      { id: "thelonious-monk-2",  text: "Thelonious Monk" },
+      { id: "take-five",          text: "Take Five" },
+      { id: "all-blues",          text: "All Blues" },
+      { id: "time-out",           text: "Time Out" },
+      { id: "blue-rondo",         text: "Blue Rondo à la Turk" },
+    ],
+    correctIds: ["dave-brubeck", "take-five"],
+  },
+
+  // Chet Baker — My Funny Valentine
+  {
+    id: "chet-baker-my-funny-valentine",
+    question: "Who performed this, and what is the song called?",
+    mechanic: "multiple-choice",
+    topic: "jazz",
+    mediaUrl: "https://www.youtube.com/embed/ni9Cp9mOOOg?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
+    options: [
+      { id: "chet-baker",          text: "Chet Baker" },
+      { id: "frank-sinatra-2",     text: "Frank Sinatra" },
+      { id: "nat-king-cole-2",     text: "Nat King Cole" },
+      { id: "louis-armstrong-2",   text: "Louis Armstrong" },
+      { id: "my-funny-valentine",  text: "My Funny Valentine" },
+      { id: "almost-blue",         text: "Almost Blue" },
+      { id: "but-not-for-me",      text: "But Not for Me" },
+      { id: "the-thrill-is-gone",  text: "The Thrill Is Gone" },
+    ],
+    correctIds: ["chet-baker", "my-funny-valentine"],
+  },
+
+  // Thelonious Monk — Round Midnight
+  {
+    id: "monk-round-midnight",
+    question: "Who performed this, and what is the song called?",
+    mechanic: "multiple-choice",
+    topic: "jazz",
+    mediaUrl: "https://www.youtube.com/embed/IrAfjW5qiyo?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
+    options: [
+      { id: "thelonious-monk-q",   text: "Thelonious Monk" },
+      { id: "duke-ellington",      text: "Duke Ellington" },
+      { id: "bill-evans-2",        text: "Bill Evans" },
+      { id: "herbie-hancock",      text: "Herbie Hancock" },
+      { id: "round-midnight-q",    text: "Round Midnight" },
+      { id: "straight-no-chaser",  text: "Straight No Chaser" },
+      { id: "blue-monk",           text: "Blue Monk" },
+      { id: "in-walked-bud",       text: "In Walked Bud" },
+    ],
+    correctIds: ["thelonious-monk-q", "round-midnight-q"],
   },
 ];

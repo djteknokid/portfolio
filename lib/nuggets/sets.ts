@@ -34,7 +34,7 @@ export const NUGGET_SETS: NuggetSet[] = [
     description: "Things everyone should know about jazz, even if they're not a fan.",
     topics: ["jazz"],
     thumbId: "jazz-origins",
-    cardCount: 9,
+    cardCount: 15,
   },
   {
     slug: "wine",

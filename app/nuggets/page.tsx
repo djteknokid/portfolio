@@ -12,13 +12,14 @@ import { getGoldSequences } from "@/lib/nuggets/library";
 import type { SequenceRecord } from "@/lib/nuggets/library";
 import { GAME_QUESTIONS } from "./games/questions";
 
-function PackCard({ slug, number, name, description, thumbId, cardCount }: {
+function PackCard({ slug, number, name, description, thumbId, cardCount, solvedCount }: {
   slug: string;
   number: string;
   name: string;
   description: string;
   thumbId: string;
   cardCount: number;
+  solvedCount: number;
 }) {
   const router = useRouter();
   const [imgFailed, setImgFailed] = useState(false);
@@ -70,8 +71,14 @@ function PackCard({ slug, number, name, description, thumbId, cardCount }: {
           padding: "4px 10px",
           fontSize: "10px", fontWeight: "600",
           color: "rgba(255,255,255,0.45)",
+          display: "flex", alignItems: "center", gap: "6px",
         }}>
-          {cardCount} cards
+          {solvedCount > 0 ? `${solvedCount} / ${cardCount}` : `${cardCount} cards`}
+          {cardCount - solvedCount <= 2 && cardCount - solvedCount > 0 && (
+            <span style={{ color: brand.status.correct.text }}>
+              {cardCount - solvedCount === 1 ? "1 left!" : "2 left!"}
+            </span>
+          )}
         </div>
       </div>
 
@@ -176,6 +183,20 @@ export default function NuggetsPage() {
     setAllGold(getGoldSequences());
   }, []);
 
+  const answeredQuestions = profile.history.map((h) => h.question);
+
+  function solvedCountForSet(set: typeof NUGGET_SETS[0]) {
+    return answeredQuestions.filter((q) => {
+      const goldRec = allGold.find((g) => g.question === q);
+      if (goldRec) return set.topics.includes(goldRec.topic ?? "");
+      const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
+      if (gameQ) return set.topics.includes(gameQ.topic ?? "");
+      return false;
+    }).length;
+  }
+
+  const incompleteSets = NUGGET_SETS.filter((set) => solvedCountForSet(set) < set.cardCount);
+
   const scoreButton = (
     <button
       onClick={() => setShowSolved(true)}
@@ -218,8 +239,8 @@ export default function NuggetsPage() {
             </h1>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {NUGGET_SETS.map((set) => (
-              <PackCard key={set.slug} slug={set.slug} number={set.number} name={set.name} description={set.description} thumbId={set.thumbId} cardCount={set.cardCount} />
+            {incompleteSets.map((set) => (
+              <PackCard key={set.slug} slug={set.slug} number={set.number} name={set.name} description={set.description} thumbId={set.thumbId} cardCount={set.cardCount} solvedCount={solvedCountForSet(set)} />
             ))}
           </div>
         </div>

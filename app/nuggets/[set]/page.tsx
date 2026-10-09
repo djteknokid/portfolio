@@ -6,6 +6,7 @@ import SequenceGame from "../SequenceGame";
 import GroupingGame from "../GroupingGame";
 import MatchingGame from "../MatchingGame";
 import RankedListGame from "../RankedListGame";
+import MultipleChoiceGame from "../MultipleChoiceGame";
 import { brand } from "../brand";
 import { useProfile } from "../useProfile";
 import ShellBar from "../ShellBar";
@@ -34,6 +35,7 @@ function mechLabel(m: string) {
   if (m === "matching") return "Matching";
   if (m === "grouping") return "Grouping";
   if (m === "ranked") return "Ranked";
+  if (m === "multiple-choice") return "Quiz";
   return m;
 }
 
@@ -127,36 +129,21 @@ function SolvedPage({
 
 // ── Done screen ────────────────────────────────────────────────────
 
-function DoneScreen({ setSlug, solvedCount }: { setSlug: string; solvedCount: number }) {
+function DoneScreen({ solvedCount }: { setSlug: string; solvedCount: number }) {
   const router = useRouter();
-  const others = NUGGET_SETS.filter((s) => s.slug !== setSlug);
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", gap: "32px" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", gap: "24px" }}>
       <div style={{ textAlign: "center" }}>
         <div style={{ fontSize: "48px", marginBottom: "16px" }}>🎉</div>
         <div style={{ fontSize: "22px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.025em", marginBottom: "8px" }}>Pack complete!</div>
         <div style={{ fontSize: "13px", color: brand.text.muted }}>{solvedCount} question{solvedCount !== 1 ? "s" : ""} solved</div>
       </div>
-      {others.length > 0 && (
-        <div style={{ width: "100%", maxWidth: "390px" }}>
-          <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: brand.text.muted, marginBottom: "12px" }}>Try another pack</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {others.map((s) => (
-              <button key={s.slug} onClick={() => router.push(`/nuggets/${s.slug}`)}
-                style={{ display: "flex", alignItems: "center", gap: "14px", padding: "12px 14px", borderRadius: "16px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, cursor: "pointer", textAlign: "left", WebkitTapHighlightColor: "transparent" }}>
-                <div style={{ width: "52px", height: "40px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: brand.bg.page }}>
-                  <img src={`/nuggets/thumbs/${s.thumbId}.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: brand.text.primary, letterSpacing: "-0.01em" }}>{s.name}</div>
-                  <div style={{ fontSize: "11px", color: brand.text.muted, marginTop: "2px" }}>{s.cardCount} cards</div>
-                </div>
-                <span style={{ fontSize: "16px", color: brand.text.muted, opacity: 0.5 }}>›</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <button
+        onClick={() => router.push("/nuggets")}
+        style={{ padding: "12px 24px", borderRadius: brand.radius.button, background: "rgba(255,255,255,0.07)", border: `1px solid ${brand.border.accent}`, color: brand.text.primary, fontSize: "14px", fontWeight: "600", cursor: "pointer", WebkitTapHighlightColor: "transparent" }}
+      >
+        Back to packs
+      </button>
     </div>
   );
 }
@@ -175,6 +162,9 @@ function GameRenderer({ card, onComplete }: { card: AnyCard; onComplete: () => v
   }
   if (card.mechanic === "ranked") {
     return <RankedListGame key={card.question} question={card.question} items={card.items} onComplete={onComplete} />;
+  }
+  if (card.mechanic === "multiple-choice") {
+    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onComplete} />;
   }
   return null;
 }
@@ -286,7 +276,7 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
 
   function handleComplete() {
     if (!currentCard) return;
-    recordCorrect(currentCard.question);
+    recordCorrect(currentCard.question, slug);
     setAnswered((prev) => [...prev, currentCard.question]);
     setTimeout(() => advanceQueue(currentCard.question), 900);
   }
