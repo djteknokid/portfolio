@@ -175,17 +175,17 @@ function GameRenderer({ card, onComplete }: { card: AnyCard; onComplete: () => v
 function CardHero({ card }: { card: AnyCard }) {
   const [imgFailed, setImgFailed] = useState(false);
   return (
-    <div style={{ width: "100%", aspectRatio: "4 / 3", borderRadius: "18px", overflow: "hidden", background: brand.bg.raised, position: "relative", marginBottom: "20px", flexShrink: 0 }}>
+    <div style={{ width: "100%", height: "160px", borderRadius: "18px", overflow: "hidden", background: brand.bg.raised, position: "relative", marginBottom: "20px", flexShrink: 0 }}>
       {!imgFailed && (
         <img src={`/nuggets/thumbs/${card.thumbId}.jpg`} alt="" onError={() => setImgFailed(true)}
-          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }} />
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }} />
       )}
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.0) 20%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0.82) 100%)" }} />
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px 22px 24px" }}>
-        <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "7px" }}>
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.85) 100%)" }} />
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "14px 18px 16px" }}>
+        <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "5px" }}>
           {topicLabel(card.topic ?? "")} · {mechLabel(card.mechanic)}
         </div>
-        <div style={{ fontSize: "clamp(1.25rem, 5.5vw, 1.5rem)", fontWeight: "800", color: "#ffffff", lineHeight: "1.18", letterSpacing: "-0.025em", textShadow: "0 1px 8px rgba(0,0,0,0.3)" }}>
+        <div style={{ fontSize: "clamp(1.1rem, 5vw, 1.3rem)", fontWeight: "800", color: "#ffffff", lineHeight: "1.18", letterSpacing: "-0.025em", textShadow: "0 1px 8px rgba(0,0,0,0.3)" }}>
           {card.question}
         </div>
       </div>
@@ -330,7 +330,7 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
         {done ? (
           <DoneScreen setSlug={slug} solvedCount={answered.length} />
         ) : currentCard ? (
-          <div key={cardKey} style={{ width: "100%", maxWidth: "390px", margin: "0 auto", padding: "16px 24px 48px", display: "flex", flexDirection: "column" }}>
+          <div key={cardKey} style={{ width: "100%", maxWidth: "390px", margin: "0 auto", padding: "8px 16px 48px", display: "flex", flexDirection: "column" }}>
             <CardHero card={currentCard} />
             <GameRenderer card={currentCard} onComplete={handleComplete} />
             {/* Skip */}
