@@ -51,40 +51,61 @@ function gameQuestionToAny(q: Question): AnyCard {
 function SolvedPage({
   answeredQuestions,
   allGold,
+  setTopics,
+  setName,
   onClose,
 }: {
   answeredQuestions: string[];
   allGold: SequenceRecord[];
+  setTopics: string[];
+  setName: string;
   onClose: () => void;
 }) {
+  // Count how many answered questions belong to this pack's topics
+  const inPack = answeredQuestions.filter((q) => {
+    const goldRec = allGold.find((g) => g.question === q);
+    if (goldRec) return setTopics.includes(goldRec.topic ?? "");
+    const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
+    if (gameQ) return setTopics.includes(gameQ.topic ?? "");
+    return false;
+  }).length;
+
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 50, background: brand.bg.page, display: "flex", flexDirection: "column", overflowY: "auto" }}>
       <ShellBar
         title="Solved"
         right={
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "12px", color: brand.text.muted }}>{answeredQuestions.length}</span>
-            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: brand.text.muted, fontSize: "20px", lineHeight: 1, padding: "4px", WebkitTapHighlightColor: "transparent" }}>×</button>
-          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: brand.text.muted, fontSize: "20px", lineHeight: 1, padding: "4px", WebkitTapHighlightColor: "transparent" }}>×</button>
         }
       />
       <div style={{ padding: "64px 16px 48px" }}>
+        {/* Summary */}
+        <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+          <div style={{ flex: 1, background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px" }}>
+            <div style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{inPack}</div>
+            <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px" }}>{setName}</div>
+          </div>
+          <div style={{ flex: 1, background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px" }}>
+            <div style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{answeredQuestions.length}</div>
+            <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px" }}>Total solved</div>
+          </div>
+        </div>
         {answeredQuestions.length === 0 && (
           <span style={{ fontSize: "13px", color: brand.text.muted, padding: "8px 4px", display: "block" }}>Nothing solved yet.</span>
         )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
           {answeredQuestions.map((q) => {
             const goldRec = allGold.find((g) => g.question === q);
             const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
             const id = goldRec?.id ?? gameQ?.id ?? "";
             return (
-              <div key={q} style={{ borderRadius: "12px", overflow: "hidden", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, position: "relative" }}>
-                <div style={{ width: "100%", aspectRatio: "1 / 1", background: brand.bg.raised }}>
+              <div key={q} style={{ borderRadius: "14px", overflow: "hidden", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, position: "relative" }}>
+                <div style={{ width: "100%", aspectRatio: "4 / 3", background: brand.bg.raised }}>
                   {id && <img src={`/nuggets/thumbs/${id}.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }} />}
                 </div>
-                <div style={{ position: "absolute", top: "6px", right: "6px", background: brand.status.correct.text, borderRadius: "99px", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "#000", fontWeight: "700" }}>✓</div>
-                <div style={{ padding: "6px 8px 8px" }}>
-                  <span style={{ fontSize: "10px", color: brand.text.muted, lineHeight: "1.3", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{q}</span>
+                <div style={{ position: "absolute", top: "8px", right: "8px", background: brand.status.correct.text, borderRadius: "99px", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#000", fontWeight: "700" }}>✓</div>
+                <div style={{ padding: "8px 10px 10px" }}>
+                  <span style={{ fontSize: "11px", color: brand.text.muted, lineHeight: "1.35", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{q}</span>
                 </div>
               </div>
             );
@@ -326,7 +347,7 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
 
       {/* Solved history */}
       {showSolved && (
-        <SolvedPage answeredQuestions={profile.history.map((h) => h.question)} allGold={allGold} onClose={() => setShowSolved(false)} />
+        <SolvedPage answeredQuestions={profile.history.map((h) => h.question)} allGold={allGold} setTopics={nuggetSet.topics} setName={nuggetSet.name} onClose={() => setShowSolved(false)} />
       )}
     </div>
   );
