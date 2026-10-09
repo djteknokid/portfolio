@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 
 export interface HistoryEntry {
   question: string;
-  id?: string;        // card ID — used for dedup; falls back to question for legacy entries
+  id?: string;
   completedAt: number;
 }
 
@@ -40,25 +40,64 @@ export function useProfile() {
   useEffect(() => {
     const local = load();
     setProfile(local);
+
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
       setUserId(user.id);
-      // Sync total score from localStorage on first load
-      if (local.score > 0) {
-        supabase.from("user_set_progress").upsert({
+
+      // Push all local history to Supabase
+      if (local.history.length > 0) {
+        const rows = local.history.map((h) => ({
           user_id: user.id,
-          set_id: "all",
-          total_score: local.score,
-          cards_solved: local.history.length,
-          last_played_at: new Date().toISOString(),
-        }, { onConflict: "user_id,set_id" }).then(() => {});
+          question: h.question,
+          completed_at: new Date(h.completedAt).toISOString(),
+        }));
+        await supabase.from("user_history")
+          .upsert(rows, { onConflict: "user_id,question" });
       }
+
+      // Pull full history from Supabase
+      const { data: remote } = await supabase
+        .from("user_history")
+        .select("question, completed_at")
+        .eq("user_id", user.id)
+        .order("completed_at", { ascending: false });
+
+      if (!remote || remote.length === 0) return;
+
+      // Merge: remote is source of truth, keep local entries not yet in remote
+      const remoteQuestions = new Set(remote.map((r) => r.question));
+      const localOnly = local.history.filter((h) => !remoteQuestions.has(h.question));
+
+      const merged: HistoryEntry[] = [
+        ...remote.map((r) => ({
+          question: r.question,
+          completedAt: new Date(r.completed_at).getTime(),
+        })),
+        ...localOnly,
+      ].sort((a, b) => b.completedAt - a.completedAt);
+
+      const merged_profile: Profile = { score: merged.length, history: merged };
+      save(merged_profile);
+      setProfile(merged_profile);
+
+      // Sync total score
+      supabase.from("user_set_progress").upsert({
+        user_id: user.id,
+        set_id: "all",
+        total_score: merged.length,
+        cards_solved: merged.length,
+        last_played_at: new Date().toISOString(),
+      }, { onConflict: "user_id,set_id" }).then(() => {});
     });
   }, []);
 
   const recordCorrect = useCallback((question: string, setId?: string, cardId?: string) => {
     setProfile((prev) => {
+      // Deduplicate
+      if (prev.history.some((h) => h.question === question)) return prev;
+
       const next: Profile = {
         score: prev.score + 1,
         history: [{ question, id: cardId, completedAt: Date.now() }, ...prev.history],
@@ -67,7 +106,13 @@ export function useProfile() {
 
       if (userId) {
         const supabase = createClient();
-        const bucket = setId ?? "all";
+
+        // Write to user_history (source of truth)
+        supabase.from("user_history").upsert({
+          user_id: userId,
+          question,
+          completed_at: new Date().toISOString(),
+        }, { onConflict: "user_id,question" }).then(() => {});
 
         if (setId) {
           supabase.from("user_solved_cards").upsert({
@@ -79,14 +124,11 @@ export function useProfile() {
           }, { onConflict: "user_id,set_id,card_id" }).then(() => {});
         }
 
-        const solvedInBucket = setId
-          ? next.history.filter((h) => h.question.startsWith(setId)).length
-          : next.history.length;
         supabase.from("user_set_progress").upsert({
           user_id: userId,
-          set_id: bucket,
+          set_id: setId ?? "all",
           total_score: next.score,
-          cards_solved: solvedInBucket,
+          cards_solved: next.history.length,
           last_played_at: new Date().toISOString(),
         }, { onConflict: "user_id,set_id" }).then(() => {});
       }
