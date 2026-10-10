@@ -159,7 +159,7 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
             return (
               <div key={q} style={{ display: "flex", alignItems: "center", gap: "14px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "16px", padding: "12px 14px", minHeight: "80px" }}>
                 <div style={{ width: "56px", height: "56px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, background: brand.bg.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {id && <img src={`/nuggets/thumbs/${id}.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "none", objectPosition: "center", display: "block" }} />}
+                  {id && <div style={{ width: "100%", height: "100%", backgroundImage: `url(/nuggets/thumbs/${id}.jpg)`, backgroundSize: "50%", backgroundPosition: "center", backgroundRepeat: "no-repeat" }} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {packName && <div style={{ fontSize: "9px", fontWeight: "700", letterSpacing: "0.12em", textTransform: "uppercase", color: brand.text.muted, marginBottom: "4px" }}>{packName}</div>}
