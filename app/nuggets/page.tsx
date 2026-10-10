@@ -149,20 +149,18 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
         {answeredQuestions.length === 0 && (
           <span style={{ fontSize: "13px", color: brand.text.muted, padding: "8px 4px", display: "block" }}>Nothing solved yet.</span>
         )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {answeredQuestions.map((q) => {
             const goldRec = allGold.find((g) => g.question === q);
             const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
             const id = goldRec?.id ?? gameQ?.id ?? "";
             return (
-              <div key={q} style={{ borderRadius: "14px", overflow: "hidden", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, position: "relative" }}>
-                <div style={{ width: "100%", aspectRatio: "4 / 3", background: brand.bg.raised }}>
+              <div key={q} style={{ display: "flex", alignItems: "center", gap: "14px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "16px", padding: "12px 14px", minHeight: "80px" }}>
+                <div style={{ width: "56px", height: "56px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, background: brand.bg.page }}>
                   {id && <img src={`/nuggets/thumbs/${id}.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }} />}
                 </div>
-                <div style={{ position: "absolute", top: "8px", right: "8px", background: brand.status.correct.text, borderRadius: "99px", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#000", fontWeight: "700" }}>✓</div>
-                <div style={{ padding: "8px 10px 10px" }}>
-                  <span style={{ fontSize: "11px", color: brand.text.muted, lineHeight: "1.35", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{q}</span>
-                </div>
+                <span style={{ flex: 1, fontSize: "13px", fontWeight: "500", color: brand.text.secondary, lineHeight: "1.4" }}>{q}</span>
+                <div style={{ width: "20px", height: "20px", borderRadius: "99px", background: brand.status.correct.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#000", fontWeight: "700", flexShrink: 0 }}>✓</div>
               </div>
             );
           })}
@@ -226,7 +224,7 @@ export default function NuggetsPage() {
   return (
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
 
-      <ShellBar title="Basic Knowledge" right={<div style={{ display: "flex", alignItems: "center", gap: "4px" }}>{leaderboardButton}{scoreButton}<UserMenu /></div>} />
+      <ShellBar title="Table Topics" right={<div style={{ display: "flex", alignItems: "center", gap: "4px" }}>{leaderboardButton}{scoreButton}<UserMenu /></div>} />
 
       <main style={{
         flex: 1,
@@ -241,7 +239,7 @@ export default function NuggetsPage() {
         <div style={{ width: "100%", maxWidth: "390px", display: "flex", flexDirection: "column", gap: "24px" }}>
           <div style={{ paddingTop: "8px" }}>
             <h1 style={{ margin: 0, fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1.15 }}>
-              Choose a pack
+              Things you should already know
             </h1>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>

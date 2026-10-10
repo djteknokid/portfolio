@@ -7,6 +7,8 @@ import GroupingGame from "../GroupingGame";
 import MatchingGame from "../MatchingGame";
 import RankedListGame from "../RankedListGame";
 import MultipleChoiceGame from "../MultipleChoiceGame";
+import PronunciationGame from "../PronunciationGame";
+import VisualRecognitionGame from "../VisualRecognitionGame";
 import { brand } from "../brand";
 import { useProfile } from "../useProfile";
 import ShellBar from "../ShellBar";
@@ -36,6 +38,8 @@ function mechLabel(m: string) {
   if (m === "grouping") return "Grouping";
   if (m === "ranked") return "Ranked";
   if (m === "multiple-choice") return "Quiz";
+  if (m === "pronunciation") return "Pronunciation";
+  if (m === "visual-recognition") return "Visual";
   return m;
 }
 
@@ -45,7 +49,10 @@ function legacyToAny(c: { question: string; sequence: { id: string; text: string
 }
 
 function gameQuestionToAny(q: Question): AnyCard {
-  return { ...q, thumbId: q.id } as AnyCard;
+  const thumbId = "thumbId" in q && typeof (q as { thumbId?: unknown }).thumbId === "string"
+    ? (q as { thumbId: string }).thumbId
+    : q.id;
+  return { ...q, thumbId } as AnyCard;
 }
 
 // ── Solved history grid ────────────────────────────────────────────
@@ -104,20 +111,18 @@ function SolvedPage({
         {answeredQuestions.length === 0 && (
           <span style={{ fontSize: "13px", color: brand.text.muted, padding: "8px 4px", display: "block" }}>Nothing solved yet.</span>
         )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {answeredQuestions.map((q) => {
             const goldRec = allGold.find((g) => g.question === q);
             const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
             const id = goldRec?.id ?? gameQ?.id ?? "";
             return (
-              <div key={q} style={{ borderRadius: "14px", overflow: "hidden", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, position: "relative" }}>
-                <div style={{ width: "100%", aspectRatio: "4 / 3", background: brand.bg.raised }}>
+              <div key={q} style={{ display: "flex", alignItems: "center", gap: "14px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "16px", padding: "12px 14px", minHeight: "80px" }}>
+                <div style={{ width: "56px", height: "56px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, background: brand.bg.page }}>
                   {id && <img src={`/nuggets/thumbs/${id}.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }} />}
                 </div>
-                <div style={{ position: "absolute", top: "8px", right: "8px", background: brand.status.correct.text, borderRadius: "99px", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#000", fontWeight: "700" }}>✓</div>
-                <div style={{ padding: "8px 10px 10px" }}>
-                  <span style={{ fontSize: "11px", color: brand.text.muted, lineHeight: "1.35", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{q}</span>
-                </div>
+                <span style={{ flex: 1, fontSize: "13px", fontWeight: "500", color: brand.text.secondary, lineHeight: "1.4" }}>{q}</span>
+                <div style={{ width: "20px", height: "20px", borderRadius: "99px", background: brand.status.correct.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#000", fontWeight: "700", flexShrink: 0 }}>✓</div>
               </div>
             );
           })}
@@ -165,6 +170,15 @@ function GameRenderer({ card, onComplete }: { card: AnyCard; onComplete: () => v
   }
   if (card.mechanic === "multiple-choice") {
     return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onComplete} />;
+  }
+  if (card.mechanic === "pronunciation") {
+    const pc = card as import("../games/questions").PronunciationQuestion & { thumbId: string };
+    const displayWord = pc.question.startsWith("Pronounce: ") ? pc.question.slice("Pronounce: ".length) : pc.id.replace(/^wine-/, "").replace(/-/g, " ");
+    return <PronunciationGame key={pc.question} word={displayWord} audioUrl={pc.audioUrl} phonetic={pc.phonetic} definition={pc.definition} onComplete={onComplete} />;
+  }
+  if (card.mechanic === "visual-recognition") {
+    const vr = card as import("../games/questions").VisualRecognitionQuestion & { thumbId: string };
+    return <VisualRecognitionGame key={vr.question} imageIds={vr.imageIds} options={vr.options} correctId={vr.correctId} explanation={vr.explanation} onComplete={onComplete} />;
   }
   return null;
 }
