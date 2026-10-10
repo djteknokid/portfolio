@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { brand } from "./brand";
-import SuggestionList, { type Suggestion } from "./SuggestionList";
+import WhatsNext from "./WhatsNext";
+import type { Suggestion } from "./SuggestionList";
+import { playCorrectBeep, playVictory } from "./sounds";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -12,6 +14,8 @@ function shuffle<T>(arr: T[]): T[] {
   }
   return a;
 }
+
+interface EvalResult { id: string; isCorrect: boolean }
 
 interface Props {
   question: string;
@@ -25,26 +29,22 @@ interface Props {
   loadingNugget?: string | null;
 }
 
-import { playCorrectBeep, playVictory } from "./sounds";
-
 export default function SequenceGame({ question: _question, sequence, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
   const correct = Array.isArray(sequence) ? sequence : [];
   const [items, setItems] = useState(() => shuffle(correct));
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
-  // lockedSlots: which slot indices are confirmed correct
-  const [lockedSlots, setLockedSlots] = useState<Set<number>>(new Set());
+  const [evalResults, setEvalResults] = useState<EvalResult[] | null>(null);
+  const [allDone, setAllDone] = useState(false);
+  const [showReveal, setShowReveal] = useState(false);
   const [justDropped, setJustDropped] = useState<string | null>(null);
   const [itemHeight, setItemHeight] = useState(0);
-  const [allDone, setAllDone] = useState(false);
 
   const dragging = useRef(false);
   const dragIdx = useRef<number | null>(null);
   const ghostRef = useRef<HTMLDivElement | null>(null);
   const pointerOffset = useRef({ x: 0, y: 0 });
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  function isLocked(i: number) { return lockedSlots.has(i); }
 
   useEffect(() => {
     const el = itemRefs.current[0];
@@ -98,7 +98,7 @@ export default function SequenceGame({ question: _question, sequence, onComplete
   }
 
   function onPointerDown(i: number, e: React.PointerEvent) {
-    if (allDone || isLocked(i)) return;
+    if (allDone) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     dragging.current = true;
     dragIdx.current = i;
@@ -113,7 +113,7 @@ export default function SequenceGame({ question: _question, sequence, onComplete
     e.preventDefault();
     moveGhost(e.clientX, e.clientY);
     const over = getIndexAtPoint(e.clientX, e.clientY);
-    if (over !== null && !isLocked(over)) setDropIndex(over);
+    if (over !== null) setDropIndex(over);
   }
 
   function onPointerUp(e: React.PointerEvent) {
@@ -126,33 +126,13 @@ export default function SequenceGame({ question: _question, sequence, onComplete
 
     if (from !== null && to !== null && from !== to) {
       const droppedId = items[from].id;
-
       const newItems = [...items];
       const [moved] = newItems.splice(from, 1);
       newItems.splice(to, 0, moved);
       setItems(newItems);
-
-      // Check which slots are now correct and lock them
-      const newLocked = new Set<number>();
-      newItems.forEach((item, i) => {
-        if (item.id === correct[i].id) newLocked.add(i);
-      });
-      const prevLocked = lockedSlots;
-      setLockedSlots(newLocked);
-
-      // Beep for each newly locked slot
-      const newlyLocked = [...newLocked].filter(i => !prevLocked.has(i));
-      if (newlyLocked.length > 0) playCorrectBeep();
-
+      setEvalResults(null); // clear feedback whenever arrangement changes
       setJustDropped(droppedId);
       setTimeout(() => setJustDropped(null), 500);
-
-      // All slots locked = done
-      if (newLocked.size === correct.length) {
-        setAllDone(true);
-        playVictory();
-        setTimeout(() => onComplete(), 700);
-      }
     }
 
     dragIdx.current = null;
@@ -174,6 +154,26 @@ export default function SequenceGame({ question: _question, sequence, onComplete
     return () => window.removeEventListener("pointercancel", cleanup);
   }, []);
 
+  function handleSubmit() {
+    const results: EvalResult[] = items.map((item, i) => ({
+      id: item.id,
+      isCorrect: item.id === correct[i].id,
+    }));
+    setEvalResults(results);
+
+    const isComplete = results.every((r) => r.isCorrect);
+    if (isComplete) {
+      setAllDone(true);
+      setShowReveal(true);
+      playCorrectBeep();
+      playVictory();
+    }
+  }
+
+  function handleDone() {
+    onComplete();
+  }
+
   function getTranslateY(i: number): number {
     if (dragIndex === null || dropIndex === null) return 0;
     if (i === dragIndex) return 0;
@@ -187,8 +187,10 @@ export default function SequenceGame({ question: _question, sequence, onComplete
     return 0;
   }
 
+  const correctCount = evalResults ? evalResults.filter((r) => r.isCorrect).length : 0;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <div style={{ display: "flex", flexDirection: "column", position: "relative", paddingLeft: "40px" }}>
 
         {/* Subway map */}
@@ -214,7 +216,9 @@ export default function SequenceGame({ question: _question, sequence, onComplete
 
             {/* Stop circles */}
             {correct.map((_, i) => {
-              const lit = lockedSlots.has(i);
+              const result = evalResults?.[i];
+              const lit = result?.isCorrect === true;
+              const wrong = result?.isCorrect === false;
               return (
                 <div
                   key={`stop-${i}`}
@@ -225,18 +229,18 @@ export default function SequenceGame({ question: _question, sequence, onComplete
                     width: "18px",
                     height: "18px",
                     borderRadius: "50%",
-                    background: lit ? brand.status.correct.bg : brand.bg.raised,
-                    border: `1.5px solid ${lit ? brand.status.correct.text : brand.border.accent}`,
+                    background: lit ? brand.status.correct.bg : wrong ? brand.status.wrong.bg : brand.bg.raised,
+                    border: `1.5px solid ${lit ? brand.status.correct.text : wrong ? brand.status.wrong.text : brand.border.accent}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "9px",
                     fontWeight: "600",
-                    color: lit ? brand.status.correct.text : brand.text.muted,
+                    color: lit ? brand.status.correct.text : wrong ? brand.status.wrong.text : brand.text.muted,
                     fontVariantNumeric: "tabular-nums",
                     letterSpacing: "0",
                     transition: "background 300ms ease, border-color 300ms ease, color 300ms ease",
-                    boxShadow: lit ? `0 0 8px ${brand.status.correct.border}` : "none",
+                    boxShadow: lit ? `0 0 8px ${brand.status.correct.border}` : wrong ? `0 0 6px ${brand.status.wrong.border}` : "none",
                   }}
                 >
                   {i + 1}
@@ -249,9 +253,24 @@ export default function SequenceGame({ question: _question, sequence, onComplete
         {items.map((item, i) => {
           const isDragging    = dragIndex === i;
           const isJustDropped = justDropped === item.id;
-          const locked        = isLocked(i);
           const translateY    = getTranslateY(i);
           const isDropSlot    = dropIndex === i && dragIndex !== null && dragIndex !== i;
+          const result        = evalResults?.[i];
+          const isCorrectPos  = result?.isCorrect === true;
+          const isWrongPos    = result?.isCorrect === false;
+
+          const borderColor = isCorrectPos ? brand.status.correct.border
+            : isWrongPos ? brand.status.wrong.border
+            : brand.border.item;
+          const bg = isCorrectPos ? brand.status.correct.bg
+            : isWrongPos ? brand.status.wrong.bg
+            : brand.bg.raised;
+          const textColor = isCorrectPos ? brand.status.correct.text
+            : isWrongPos ? brand.status.wrong.text
+            : brand.text.primary;
+          const boxShadow = isCorrectPos ? `0 0 12px ${brand.status.correct.border}`
+            : isWrongPos ? `0 0 8px ${brand.status.wrong.border}`
+            : ["0 2px 6px rgba(0,0,0,0.45)", "0 1px 2px rgba(0,0,0,0.3)", "inset 0 1px 0 rgba(255,255,255,0.045)"].join(", ");
 
           return (
             <div
@@ -297,14 +316,10 @@ export default function SequenceGame({ question: _question, sequence, onComplete
                   gap: "12px",
                   padding: "14px 16px",
                   borderRadius: "10px",
-                  border: `1px solid ${locked ? brand.status.correct.border : brand.border.item}`,
-                  background: locked ? brand.status.correct.bg : brand.bg.raised,
-                  boxShadow: locked ? `0 0 12px ${brand.status.correct.border}` : [
-                    "0 2px 6px rgba(0,0,0,0.45)",
-                    "0 1px 2px rgba(0,0,0,0.3)",
-                    "inset 0 1px 0 rgba(255,255,255,0.045)",
-                  ].join(", "),
-                  cursor: allDone || locked ? "default" : isDragging ? "grabbing" : "grab",
+                  border: `1px solid ${borderColor}`,
+                  background: bg,
+                  boxShadow,
+                  cursor: allDone ? "default" : isDragging ? "grabbing" : "grab",
                   userSelect: "none",
                   touchAction: "none",
                   transition: "border-color 300ms ease, background 300ms ease, box-shadow 300ms ease",
@@ -313,7 +328,7 @@ export default function SequenceGame({ question: _question, sequence, onComplete
                 <p style={{
                   fontSize: "15px",
                   fontWeight: "400",
-                  color: locked ? brand.status.correct.text : brand.text.primary,
+                  color: textColor,
                   lineHeight: "1.5",
                   margin: 0,
                   flex: 1,
@@ -323,9 +338,8 @@ export default function SequenceGame({ question: _question, sequence, onComplete
                   {item.text}
                 </p>
 
-                {locked && (
-                  <span style={{ fontSize: "12px", color: brand.status.correct.text, opacity: 0.7, flexShrink: 0 }}>✓</span>
-                )}
+                {isCorrectPos && <span style={{ fontSize: "12px", color: brand.status.correct.text, opacity: 0.8, flexShrink: 0 }}>✓</span>}
+                {isWrongPos   && <span style={{ fontSize: "12px", color: brand.status.wrong.text,   opacity: 0.8, flexShrink: 0 }}>✗</span>}
               </div>
             </div>
           );
@@ -339,28 +353,59 @@ export default function SequenceGame({ question: _question, sequence, onComplete
         }
       `}</style>
 
-      {allDone ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div style={{ width: "100%", height: "1px", background: brand.border.item }} />
-          <span style={{ fontSize: "13px", color: brand.text.muted }}>You got it.</span>
-          {loadingSuggestions ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {[1,2,3,4].map((i) => (
-                <div key={i} style={{ height: "48px", borderRadius: brand.radius.item, background: brand.bg.raised, border: `1px solid ${brand.border.item}`, opacity: 0.3 }} />
-              ))}
+      {/* Bottom action area */}
+      {!allDone ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {/* Feedback summary — shown after incorrect submission */}
+          {evalResults && !allDone && (
+            <div style={{
+              padding: "12px 16px",
+              borderRadius: "10px",
+              border: `1px solid ${brand.border.item}`,
+              background: brand.bg.raised,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}>
+              <span style={{ fontSize: "13px", color: brand.text.muted }}>
+                <span style={{ fontWeight: "600", color: brand.text.secondary }}>{correctCount} of {correct.length}</span> cards in the right position.
+              </span>
             </div>
-          ) : (
-            <SuggestionList suggestions={suggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} />
+          )}
+
+          {/* Submit */}
+          <button
+            onClick={handleSubmit}
+            style={{
+              width: "100%",
+              padding: "14px 20px",
+              borderRadius: brand.radius.button,
+              background: brand.bg.hover,
+              border: `1px solid ${brand.border.accent}`,
+              color: brand.text.primary,
+              fontSize: "14px",
+              fontWeight: "600",
+              letterSpacing: "-0.01em",
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+              boxShadow: `0 0 0 1px ${brand.border.accent}`,
+            }}
+          >
+            Submit
+          </button>
+
+          {onSkip && (
+            <button
+              onClick={onSkip}
+              disabled={loadingSkip}
+              style={{ width: "100%", padding: "12px", borderRadius: brand.radius.button, background: "transparent", border: "none", color: brand.text.muted, fontSize: "11px", fontWeight: "500", letterSpacing: "0.06em", cursor: loadingSkip ? "default" : "pointer", opacity: loadingSkip ? 0.4 : 0.5, transition: brand.motion.snap }}
+            >
+              {loadingSkip ? "Finding next…" : "Skip"}
+            </button>
           )}
         </div>
-      ) : onSkip && (
-        <button
-          onClick={onSkip}
-          disabled={loadingSkip}
-          style={{ width: "100%", padding: "12px", borderRadius: brand.radius.button, background: "transparent", border: "none", color: brand.text.muted, fontSize: "11px", fontWeight: "500", letterSpacing: "0.06em", cursor: loadingSkip ? "default" : "pointer", opacity: loadingSkip ? 0.4 : 0.5, transition: brand.motion.snap }}
-        >
-          {loadingSkip ? "Finding next…" : "Skip"}
-        </button>
+      ) : (
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={handleDone} />
       )}
     </div>
   );

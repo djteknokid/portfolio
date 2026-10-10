@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { brand } from "./brand";
 import { playCorrectBeep, playVictory } from "./sounds";
+import WhatsNext from "./WhatsNext";
+import type { Suggestion } from "./SuggestionList";
 
 export interface MatchPair {
   id: string;
@@ -16,6 +18,10 @@ interface Props {
   onComplete: () => void;
   onSkip?: () => void;
   loadingSkip?: boolean;
+  suggestions?: Suggestion[];
+  loadingSuggestions?: boolean;
+  onSelectSuggestion?: (q: string) => void;
+  loadingNugget?: string | null;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -27,10 +33,12 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = false }: Props) {
+interface EvalResult { id: string; isCorrect: boolean }
+
+export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
   const [shuffledRight] = useState(() => shuffle(pairs.map((p) => ({ id: p.id, text: p.right }))));
   const [connections, setConnections] = useState<Record<string, string>>({});
-  const [lockedPairs, setLockedPairs] = useState<Set<string>>(new Set());
+  const [evalResults, setEvalResults] = useState<EvalResult[] | null>(null);
   const [allDone, setAllDone] = useState(false);
 
   const dragging = useRef(false);
@@ -61,7 +69,7 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
   }
 
   function onPointerDownLeft(leftId: string, e: React.PointerEvent) {
-    if (allDone || lockedPairs.has(leftId)) return;
+    if (allDone) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     dragging.current = true;
     dragLeftId.current = leftId;
@@ -93,11 +101,9 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
     const rightId = getRightAtPoint(e.clientX, e.clientY);
     if (!rightId) {
       setConnections((prev) => { const next = { ...prev }; delete next[leftId]; return next; });
+      setEvalResults(null);
       return;
     }
-
-    // Check correctness immediately
-    const isCorrect = rightId === leftId;
 
     setConnections((prev) => {
       const next = { ...prev };
@@ -105,32 +111,55 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
       next[leftId] = rightId;
       return next;
     });
+    setEvalResults(null); // clear feedback on any move
+  }
 
-    if (isCorrect) {
+  function handleSubmit() {
+    const results: EvalResult[] = pairs.map((p) => ({
+      id: p.id,
+      isCorrect: connections[p.id] === p.id,
+    }));
+    setEvalResults(results);
+
+    const isComplete = results.every((r) => r.isCorrect);
+    if (isComplete) {
+      setAllDone(true);
       playCorrectBeep();
-      const newLocked = new Set([...lockedPairs, leftId]);
-      setLockedPairs(newLocked);
-      if (newLocked.size === pairs.length) {
-        setAllDone(true);
-        playVictory();
-        setTimeout(() => onComplete(), 700);
-      }
+      playVictory();
     }
   }
 
+  const allConnected = pairs.every((p) => connections[p.id] !== undefined);
+  const correctCount = evalResults ? evalResults.filter((r) => r.isCorrect).length : 0;
+
   function lineColor(leftId: string) {
-    if (lockedPairs.has(leftId)) return brand.status.correct.border;
+    const result = evalResults?.find((r) => r.id === leftId);
+    if (result?.isCorrect) return brand.status.correct.border;
+    if (result?.isCorrect === false) return brand.status.wrong.border;
     return "rgba(255,255,255,0.15)";
   }
 
   function chipStyle(id: string, side: "left" | "right") {
     const leftId = side === "left" ? id : Object.entries(connections).find(([, v]) => v === id)?.[0];
-    const locked = leftId ? lockedPairs.has(leftId) : false;
+    const result = leftId ? evalResults?.find((r) => r.id === leftId) : undefined;
+    if (result?.isCorrect) return {
+      text: brand.status.correct.text,
+      border: brand.status.correct.border,
+      bg: brand.status.correct.bg,
+      shadow: `0 0 10px ${brand.status.correct.border}`,
+    };
+    if (result?.isCorrect === false) return {
+      text: brand.status.wrong.text,
+      border: brand.status.wrong.border,
+      bg: brand.status.wrong.bg,
+      shadow: `0 0 8px ${brand.status.wrong.border}`,
+    };
+    const connected = side === "left" ? connections[id] !== undefined : Object.values(connections).includes(id);
     return {
-      text: locked ? brand.status.correct.text : brand.text.primary,
-      border: locked ? brand.status.correct.border : connections[id] || Object.values(connections).includes(id) ? brand.border.accent : brand.border.item,
-      bg: locked ? brand.status.correct.bg : brand.bg.raised,
-      shadow: locked ? `0 0 10px ${brand.status.correct.border}` : "0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+      text: brand.text.primary,
+      border: connected ? brand.border.accent : brand.border.item,
+      bg: brand.bg.raised,
+      shadow: "0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
     };
   }
 
@@ -169,7 +198,7 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px", zIndex: 2 }}>
           {pairs.map((p) => {
             const c = chipStyle(p.id, "left");
-            const locked = lockedPairs.has(p.id);
+            const result = evalResults?.find((r) => r.id === p.id);
             return (
               <div key={p.id} ref={(el) => { leftRefs.current[p.id] = el; }}
                 onPointerDown={(e) => onPointerDownLeft(p.id, e)}
@@ -178,11 +207,20 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
                   padding: "10px 12px", borderRadius: brand.radius.item,
                   background: c.bg, border: `1px solid ${c.border}`,
                   boxShadow: c.shadow,
-                  cursor: allDone || locked ? "default" : "crosshair",
+                  cursor: allDone ? "default" : "crosshair",
                   userSelect: "none", touchAction: "none",
                   transition: "border-color 300ms ease, background 300ms ease, box-shadow 300ms ease",
+                  position: "relative",
                 }}>
                 <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4, transition: "color 300ms ease" }}>{p.left}</span>
+                <div style={{
+                  position: "absolute", right: "-5px", top: "50%", transform: "translateY(-50%)",
+                  width: "9px", height: "9px", borderRadius: "50%",
+                  background: result?.isCorrect ? brand.status.correct.text : result?.isCorrect === false ? brand.status.wrong.text : brand.bg.page,
+                  border: `2px solid ${result?.isCorrect ? brand.status.correct.border : result?.isCorrect === false ? brand.status.wrong.border : brand.border.accent}`,
+                  zIndex: 3, pointerEvents: "none",
+                  transition: "border-color 300ms ease, background 300ms ease",
+                }} />
               </div>
             );
           })}
@@ -194,8 +232,6 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px", zIndex: 2 }}>
           {shuffledRight.map((r) => {
             const c = chipStyle(r.id, "right");
-            const leftId = Object.entries(connections).find(([, v]) => v === r.id)?.[0];
-            const locked = leftId ? lockedPairs.has(leftId) : false;
             return (
               <div key={r.id} ref={(el) => { rightRefs.current[r.id] = el; }}
                 style={{
@@ -204,7 +240,15 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
                   boxShadow: c.shadow,
                   userSelect: "none",
                   transition: "border-color 300ms ease, background 300ms ease, box-shadow 300ms ease",
+                  position: "relative",
                 }}>
+                <div style={{
+                  position: "absolute", left: "-5px", top: "50%", transform: "translateY(-50%)",
+                  width: "9px", height: "9px", borderRadius: "50%",
+                  background: brand.bg.page,
+                  border: `2px solid ${brand.border.accent}`,
+                  zIndex: 3, pointerEvents: "none",
+                }} />
                 <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4, transition: "color 300ms ease" }}>{r.text}</span>
               </div>
             );
@@ -212,16 +256,53 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
         </div>
       </div>
 
-      {allDone ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div style={{ width: "100%", height: "1px", background: brand.border.item }} />
-          <span style={{ fontSize: "13px", color: brand.text.muted }}>You got it.</span>
+      {!allDone ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {evalResults && (
+            <div style={{
+              padding: "12px 16px",
+              borderRadius: "10px",
+              border: `1px solid ${brand.border.item}`,
+              background: brand.bg.raised,
+            }}>
+              <span style={{ fontSize: "13px", color: brand.text.muted }}>
+                <span style={{ fontWeight: "600", color: brand.text.secondary }}>{correctCount} of {pairs.length}</span> matched correctly.
+              </span>
+            </div>
+          )}
+
+          <button
+            onClick={handleSubmit}
+            disabled={!allConnected}
+            style={{
+              width: "100%",
+              padding: "14px 20px",
+              borderRadius: brand.radius.button,
+              background: brand.bg.hover,
+              border: `1px solid ${brand.border.accent}`,
+              color: !allConnected ? brand.text.muted : brand.text.primary,
+              fontSize: "14px",
+              fontWeight: "600",
+              letterSpacing: "-0.01em",
+              cursor: !allConnected ? "default" : "pointer",
+              opacity: !allConnected ? 0.4 : 1,
+              WebkitTapHighlightColor: "transparent",
+              boxShadow: `0 0 0 1px ${brand.border.accent}`,
+              transition: brand.motion.snap,
+            }}
+          >
+            Submit
+          </button>
+
+          {onSkip && (
+            <button onClick={onSkip} disabled={loadingSkip}
+              style={{ width: "100%", padding: "12px", borderRadius: brand.radius.button, background: "transparent", border: "none", color: brand.text.muted, fontSize: "11px", fontWeight: "500", letterSpacing: "0.06em", cursor: loadingSkip ? "default" : "pointer", opacity: loadingSkip ? 0.4 : 0.5, transition: brand.motion.snap }}>
+              {loadingSkip ? "Finding next…" : "Skip"}
+            </button>
+          )}
         </div>
-      ) : onSkip && (
-        <button onClick={onSkip} disabled={loadingSkip}
-          style={{ width: "100%", padding: "12px", borderRadius: brand.radius.button, background: "transparent", border: "none", color: brand.text.muted, fontSize: "11px", fontWeight: "500", letterSpacing: "0.06em", cursor: loadingSkip ? "default" : "pointer", opacity: loadingSkip ? 0.4 : 0.5, transition: brand.motion.snap }}>
-          {loadingSkip ? "Finding next…" : "Skip"}
-        </button>
+      ) : (
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} />
       )}
     </div>
   );

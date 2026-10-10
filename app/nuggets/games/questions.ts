@@ -500,7 +500,7 @@ export const GAME_QUESTIONS: Question[] = [
     question: "Name the artist and song title. (Hint: Kind of Blue)",
     mechanic: "multiple-choice",
     topic: "jazz",
-    mediaUrl: "https://www.youtube.com/embed/zqNTltOGh5c?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
+    mediaUrl: "https://www.youtube.com/embed/zqNTltOGh5c?autoplay=1&start=60&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
     options: [
       { id: "miles-davis",       text: "Miles Davis" },
       { id: "john-coltrane",     text: "John Coltrane" },
@@ -520,7 +520,7 @@ export const GAME_QUESTIONS: Question[] = [
     question: "Name the artist and song title. (Hint: a jazz reimagining of a show tune)",
     mechanic: "multiple-choice",
     topic: "jazz",
-    mediaUrl: "https://www.youtube.com/embed/qWG2dsXV5HI?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
+    mediaUrl: "https://www.youtube.com/embed/XVw3A6VjsOE?autoplay=1&start=238&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1",
     options: [
       { id: "john-coltrane",       text: "John Coltrane" },
       { id: "miles-davis-2",       text: "Miles Davis" },
@@ -784,14 +784,14 @@ export const GAME_QUESTIONS: Question[] = [
   {
     id: "coffee-per-capita",
     question: "Rank these countries by annual coffee consumption per person, highest to lowest.",
-    mechanic: "ranked",
+    mechanic: "sequence",
     topic: "coffee",
-    items: [
-      { id: "finland", title: "Finland", emoji: "🇫🇮", description: "#1 per person" },
-      { id: "norway",  title: "Norway",  emoji: "🇳🇴", description: "#2 per person" },
-      { id: "iceland", title: "Iceland", emoji: "🇮🇸", description: "#3 per person" },
-      { id: "denmark", title: "Denmark", emoji: "🇩🇰", description: "#4 per person" },
-      { id: "sweden",  title: "Sweden",  emoji: "🇸🇪", description: "#5 per person" },
+    sequence: [
+      { id: "finland", text: "🇫🇮 Finland" },
+      { id: "norway",  text: "🇳🇴 Norway" },
+      { id: "iceland", text: "🇮🇸 Iceland" },
+      { id: "denmark", text: "🇩🇰 Denmark" },
+      { id: "sweden",  text: "🇸🇪 Sweden" },
     ],
   },
 
@@ -826,20 +826,6 @@ export const GAME_QUESTIONS: Question[] = [
     ],
   },
 
-  // 15 — What's the Best Water Temperature for Brewing Coffee?
-  {
-    id: "coffee-temp",
-    question: "Arrange these brewing temperatures from coldest to hottest.",
-    mechanic: "ranked",
-    topic: "coffee",
-    items: [
-      { id: "t-fridge",  title: "40°F / 4°C",   emoji: "🧊", description: "Refrigerated water" },
-      { id: "t-room",    title: "70°F / 21°C",   emoji: "🌡️", description: "Room temperature" },
-      { id: "t-cool",    title: "175°F / 79°C",  emoji: "♨️", description: "Cooler hot brewing" },
-      { id: "t-filter",  title: "200°F / 93°C",  emoji: "☕", description: "Typical filter-coffee brewing" },
-      { id: "t-boiling", title: "212°F / 100°C", emoji: "💧", description: "Boiling water at sea level" },
-    ],
-  },
 
   // 16 — How Is Cold Brew Actually Made?
   {
@@ -876,14 +862,14 @@ export const GAME_QUESTIONS: Question[] = [
   {
     id: "coffee-importers",
     question: "Rank these countries by green coffee imports in 2025, highest to lowest.",
-    mechanic: "ranked",
+    mechanic: "sequence",
     topic: "coffee",
-    items: [
-      { id: "imp-usa",     title: "United States", emoji: "🇺🇸", description: "#1 importer" },
-      { id: "imp-germany", title: "Germany",       emoji: "🇩🇪", description: "#2 importer" },
-      { id: "imp-italy",   title: "Italy",         emoji: "🇮🇹", description: "#3 importer" },
-      { id: "imp-japan",   title: "Japan",         emoji: "🇯🇵", description: "#4 importer" },
-      { id: "imp-spain",   title: "Spain",         emoji: "🇪🇸", description: "#5 importer" },
+    sequence: [
+      { id: "imp-usa",     text: "🇺🇸 United States" },
+      { id: "imp-germany", text: "🇩🇪 Germany" },
+      { id: "imp-italy",   text: "🇮🇹 Italy" },
+      { id: "imp-japan",   text: "🇯🇵 Japan" },
+      { id: "imp-spain",   text: "🇪🇸 Spain" },
     ],
   },
 
@@ -1166,14 +1152,14 @@ export const GAME_QUESTIONS: Question[] = [
   {
     id: "art-timeline",
     question: "Rank these iconic works from oldest to most recent.",
-    mechanic: "ranked",
+    mechanic: "sequence",
     topic: "art",
-    items: [
-      { id: "last-supper-yr",  title: "The Last Supper",            emoji: "✝️",  description: "Leonardo da Vinci" },
-      { id: "girl-pearl-yr",   title: "Girl with a Pearl Earring",  emoji: "💎", description: "Vermeer" },
-      { id: "scream-yr",       title: "The Scream",                 emoji: "😱", description: "Munch" },
-      { id: "starry-yr",       title: "The Starry Night",          emoji: "🌌", description: "Van Gogh" },
-      { id: "water-lily-yr",   title: "Water Lilies series",       emoji: "🌸", description: "Monet" },
+    sequence: [
+      { id: "last-supper-yr",  text: "The Last Supper" },
+      { id: "girl-pearl-yr",   text: "Girl with a Pearl Earring" },
+      { id: "starry-yr",       text: "The Starry Night" },
+      { id: "scream-yr",       text: "The Scream" },
+      { id: "water-lily-yr",   text: "Water Lilies series" },
     ],
   },
 

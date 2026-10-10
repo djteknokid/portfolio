@@ -6,7 +6,12 @@ function getCtx(): AudioContext {
   return ctx;
 }
 
+export function haptic(pattern: number | number[] = 30) {
+  try { navigator.vibrate?.(pattern); } catch {}
+}
+
 export function playCorrectBeep() {
+  haptic(30);
   try {
     const c = getCtx();
     const osc = c.createOscillator();

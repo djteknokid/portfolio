@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { brand } from "./brand";
 import { playCorrectBeep, playVictory } from "./sounds";
+import WhatsNext from "./WhatsNext";
+import type { Suggestion } from "./SuggestionList";
 
 export interface MCOption {
   id: string;
@@ -15,9 +17,13 @@ interface Props {
   options: MCOption[];
   correctIds: string[];    // 1 id = single-select, >1 = multi-select
   onComplete: () => void;
+  suggestions?: Suggestion[];
+  loadingSuggestions?: boolean;
+  onSelectSuggestion?: (q: string) => void;
+  loadingNugget?: string | null;
 }
 
-export default function MultipleChoiceGame({ question: _q, mediaUrl, options, correctIds, onComplete }: Props) {
+export default function MultipleChoiceGame({ question: _q, mediaUrl, options, correctIds, onComplete, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
   const isMulti = correctIds.length > 1;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
@@ -47,7 +53,6 @@ export default function MultipleChoiceGame({ question: _q, mediaUrl, options, co
         if (correctIds.every((cid) => nextRevealed.has(cid))) {
           setAllDone(true);
           playVictory();
-          setTimeout(() => onComplete(), 700);
         }
       }
       // wrong selection in multi: keep chip selected so user sees their mistake, don't lock
@@ -61,7 +66,6 @@ export default function MultipleChoiceGame({ question: _q, mediaUrl, options, co
         playCorrectBeep();
         setAllDone(true);
         playVictory();
-        setTimeout(() => onComplete(), 700);
       }
     }
   }
@@ -170,10 +174,7 @@ export default function MultipleChoiceGame({ question: _q, mediaUrl, options, co
       </div>
 
       {allDone && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <div style={{ width: "100%", height: "1px", background: brand.border.item }} />
-          <span style={{ fontSize: "13px", color: brand.text.muted }}>You got it.</span>
-        </div>
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} />
       )}
     </div>
   );

@@ -8,9 +8,85 @@ import { useProfile } from "./useProfile";
 import ShellBar from "./ShellBar";
 import UserMenu from "./UserMenu";
 import { seedLibrary } from "@/lib/nuggets/seed";
-import { getGoldSequences } from "@/lib/nuggets/library";
+import { getGoldSequences, recordToCard, getSequenceByQuestion } from "@/lib/nuggets/library";
 import type { SequenceRecord } from "@/lib/nuggets/library";
 import { GAME_QUESTIONS } from "./games/questions";
+import type { Question } from "./games/questions";
+import SequenceGame from "./SequenceGame";
+import GroupingGame from "./GroupingGame";
+import MatchingGame from "./MatchingGame";
+import RankedListGame from "./RankedListGame";
+import MultipleChoiceGame from "./MultipleChoiceGame";
+import PronunciationGame from "./PronunciationGame";
+import VisualRecognitionGame from "./VisualRecognitionGame";
+
+type AnyCard =
+  | { mechanic: "sequence"; question: string; sequence: { id: string; text: string }[]; thumbId: string; topic: string }
+  | (Question & { thumbId: string });
+
+function legacyToAny(c: { question: string; sequence: { id: string; text: string }[] }): AnyCard {
+  const rec = getSequenceByQuestion(c.question);
+  return { mechanic: "sequence", question: c.question, sequence: c.sequence, thumbId: rec?.id ?? "", topic: rec?.topic ?? "history" };
+}
+
+function gameQuestionToAny(q: Question): AnyCard {
+  const thumbId = "thumbId" in q && typeof (q as { thumbId?: unknown }).thumbId === "string"
+    ? (q as { thumbId: string }).thumbId
+    : q.id;
+  return { ...q, thumbId } as AnyCard;
+}
+
+function buildAnyCard(q: string, allGold: SequenceRecord[]): AnyCard | null {
+  const goldRec = allGold.find((g) => g.question === q);
+  if (goldRec) return legacyToAny(recordToCard(goldRec));
+  const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
+  if (gameQ) return gameQuestionToAny(gameQ);
+  return null;
+}
+
+function ReviewGame({ card, onBack }: { card: AnyCard; onBack: () => void }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const topicLabel = card.topic ?? "";
+  const mechLabel = card.mechanic === "sequence" ? "Sequence" : card.mechanic === "matching" ? "Matching" : card.mechanic === "grouping" ? "Grouping" : card.mechanic === "ranked" ? "Ranked" : card.mechanic === "multiple-choice" ? "Quiz" : card.mechanic === "pronunciation" ? "Pronunciation" : "Visual";
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 60, background: brand.bg.page, display: "flex", flexDirection: "column" }}>
+      <ShellBar title="Review" onBack={onBack} />
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", paddingTop: "48px", overflowY: "auto" }}>
+        <div style={{ width: "100%", maxWidth: "390px", margin: "0 auto", padding: "8px 16px 48px", display: "flex", flexDirection: "column" }}>
+          {/* Hero */}
+          <div style={{ width: "100%", height: "160px", borderRadius: "18px", overflow: "hidden", background: brand.bg.raised, position: "relative", marginBottom: "20px", flexShrink: 0 }}>
+            {!imgFailed && (
+              <img src={`/nuggets/thumbs/${card.thumbId}.jpg`} alt="" onError={() => setImgFailed(true)}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }} />
+            )}
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.85) 100%)" }} />
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "14px 18px 16px" }}>
+              <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "5px" }}>{topicLabel} · {mechLabel}</div>
+              <div style={{ fontSize: "clamp(1.1rem, 5vw, 1.3rem)", fontWeight: "800", color: "#ffffff", lineHeight: "1.18", letterSpacing: "-0.025em", textShadow: "0 1px 8px rgba(0,0,0,0.3)" }}>{card.question}</div>
+            </div>
+          </div>
+          {/* Game */}
+          {card.mechanic === "sequence" && <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={onBack} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} />}
+          {card.mechanic === "grouping" && <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={onBack} />}
+          {card.mechanic === "matching" && <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={onBack} />}
+          {card.mechanic === "ranked" && <RankedListGame key={card.question} question={card.question} items={card.items} onComplete={onBack} />}
+          {card.mechanic === "multiple-choice" && <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onBack} />}
+          {card.mechanic === "pronunciation" && (() => {
+            const pc = card as import("./games/questions").PronunciationQuestion & { thumbId: string };
+            const displayWord = pc.question.startsWith("Pronounce: ") ? pc.question.slice("Pronounce: ".length) : pc.id.replace(/^wine-/, "").replace(/-/g, " ");
+            return <PronunciationGame key={pc.question} word={displayWord} audioUrl={pc.audioUrl} phonetic={pc.phonetic} definition={pc.definition} onComplete={onBack} />;
+          })()}
+          {card.mechanic === "visual-recognition" && (() => {
+            const vr = card as import("./games/questions").VisualRecognitionQuestion & { thumbId: string };
+            return <VisualRecognitionGame key={vr.question} imageIds={vr.imageIds} options={vr.options} correctId={vr.correctId} explanation={vr.explanation} onComplete={onBack} />;
+          })()}
+        </div>
+      </main>
+    </div>
+  );
+}
+
 
 function PackCard({ slug, number, name, description, thumbId, cardCount, solvedCount }: {
   slug: string;
@@ -105,6 +181,7 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
   allGold: SequenceRecord[];
   onClose: () => void;
 }) {
+  const [reviewCard, setReviewCard] = useState<AnyCard | null>(null);
   const totalCards = NUGGET_SETS.reduce((sum, s) => sum + s.cardCount, 0);
   // Count solved per pack
   const packCounts = NUGGET_SETS.map((s) => {
@@ -117,6 +194,10 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
     }).length;
     return { name: s.name, count, cardCount: s.cardCount };
   }).filter((p) => p.count > 0);
+
+  if (reviewCard) {
+    return <ReviewGame card={reviewCard} onBack={() => setReviewCard(null)} />;
+  }
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 50, background: brand.bg.page, display: "flex", flexDirection: "column", overflowY: "auto" }}>
@@ -157,7 +238,14 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
             const topic = goldRec?.topic ?? (gameQ as { topic?: string } | undefined)?.topic ?? "";
             const packName = NUGGET_SETS.find((s) => s.topics.includes(topic))?.name ?? "";
             return (
-              <div key={q} style={{ display: "flex", alignItems: "center", gap: "14px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "16px", padding: "12px 14px", minHeight: "80px" }}>
+              <button
+                key={q}
+                onClick={() => {
+                  const card = buildAnyCard(q, allGold);
+                  if (card) setReviewCard(card);
+                }}
+                style={{ display: "flex", alignItems: "center", gap: "14px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "16px", padding: "12px 14px", minHeight: "80px", width: "100%", textAlign: "left", cursor: "pointer", WebkitTapHighlightColor: "transparent" }}
+              >
                 <div style={{ width: "56px", height: "56px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, background: brand.bg.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {id && <div style={{ width: "100%", height: "100%", backgroundImage: `url(/nuggets/thumbs/${id}.jpg)`, backgroundSize: "200%", backgroundPosition: "center", backgroundRepeat: "no-repeat" }} />}
                 </div>
@@ -166,7 +254,7 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
                   <span style={{ fontSize: "13px", fontWeight: "500", color: brand.text.secondary, lineHeight: "1.4" }}>{q}</span>
                 </div>
                 <div style={{ width: "20px", height: "20px", borderRadius: "99px", background: brand.status.correct.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#000", fontWeight: "700", flexShrink: 0 }}>✓</div>
-              </div>
+              </button>
             );
           })}
         </div>

@@ -43,7 +43,7 @@ export const NUGGET_SETS: NuggetSet[] = [
     description: "Know enough about wine to order confidently and sound like you mean it.",
     topics: ["wine"],
     thumbId: "wine-regions",
-    cardCount: 6,
+    cardCount: 18,
   },
   {
     slug: "pop-culture",
@@ -53,6 +53,24 @@ export const NUGGET_SETS: NuggetSet[] = [
     topics: ["pop culture"],
     thumbId: "mj-hits",
     cardCount: 4,
+  },
+  {
+    slug: "coffee",
+    number: "006",
+    name: "Coffee Essentials",
+    description: "Everything you need to know to order confidently and sound like you mean it.",
+    topics: ["coffee"],
+    thumbId: "coffee-espresso",
+    cardCount: 19,
+  },
+  {
+    slug: "art",
+    number: "007",
+    name: "Art Essentials — Vol. 1",
+    description: "Recognize major artists and movements. Have something interesting to say at a museum.",
+    topics: ["art"],
+    thumbId: "art-vangogh-starry-night",
+    cardCount: 20,
   },
 ];
 

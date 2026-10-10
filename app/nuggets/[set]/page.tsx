@@ -57,6 +57,14 @@ function gameQuestionToAny(q: Question): AnyCard {
 
 // ── Solved history grid ────────────────────────────────────────────
 
+function buildAnyCard(q: string, allGold: SequenceRecord[]): AnyCard | null {
+  const goldRec = allGold.find((g) => g.question === q);
+  if (goldRec) return legacyToAny(recordToCard(goldRec));
+  const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
+  if (gameQ) return gameQuestionToAny(gameQ);
+  return null;
+}
+
 function SolvedPage({
   answeredQuestions,
   allGold,
@@ -72,8 +80,8 @@ function SolvedPage({
   setCardCount: number;
   onClose: () => void;
 }) {
+  const [reviewCard, setReviewCard] = useState<AnyCard | null>(null);
   const totalCards = NUGGET_SETS.reduce((sum, s) => sum + s.cardCount, 0);
-  // Count how many answered questions belong to this pack's topics
   const inPack = answeredQuestions.filter((q) => {
     const goldRec = allGold.find((g) => g.question === q);
     if (goldRec) return setTopics.includes(goldRec.topic ?? "");
@@ -81,6 +89,28 @@ function SolvedPage({
     if (gameQ) return setTopics.includes(gameQ.topic ?? "");
     return false;
   }).length;
+
+  if (reviewCard) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 60, background: brand.bg.page, display: "flex", flexDirection: "column" }}>
+        <ShellBar
+          title="Review"
+          onBack={() => setReviewCard(null)}
+        />
+        <main style={{ flex: 1, display: "flex", flexDirection: "column", paddingTop: "48px", overflowY: "auto" }}>
+          <div style={{ width: "100%", maxWidth: "390px", margin: "0 auto", padding: "8px 16px 48px", display: "flex", flexDirection: "column" }}>
+            <CardHero card={reviewCard} />
+            <GameRenderer
+              card={reviewCard}
+              onComplete={() => setReviewCard(null)}
+              nextCards={[]}
+              onSelectNext={() => {}}
+            />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 50, background: brand.bg.page, display: "flex", flexDirection: "column", overflowY: "auto" }}>
@@ -119,7 +149,14 @@ function SolvedPage({
             const topic = goldRec?.topic ?? (gameQ as { topic?: string } | undefined)?.topic ?? "";
             const packName = NUGGET_SETS.find((s) => s.topics.includes(topic))?.name ?? "";
             return (
-              <div key={q} style={{ display: "flex", alignItems: "center", gap: "14px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "16px", padding: "12px 14px", minHeight: "80px" }}>
+              <button
+                key={q}
+                onClick={() => {
+                  const card = buildAnyCard(q, allGold);
+                  if (card) setReviewCard(card);
+                }}
+                style={{ display: "flex", alignItems: "center", gap: "14px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "16px", padding: "12px 14px", minHeight: "80px", width: "100%", textAlign: "left", cursor: "pointer", WebkitTapHighlightColor: "transparent" }}
+              >
                 <div style={{ width: "56px", height: "56px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, background: brand.bg.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {id && <div style={{ width: "100%", height: "100%", backgroundImage: `url(/nuggets/thumbs/${id}.jpg)`, backgroundSize: "200%", backgroundPosition: "center", backgroundRepeat: "no-repeat" }} />}
                 </div>
@@ -128,7 +165,7 @@ function SolvedPage({
                   <span style={{ fontSize: "13px", fontWeight: "500", color: brand.text.secondary, lineHeight: "1.4" }}>{q}</span>
                 </div>
                 <div style={{ width: "20px", height: "20px", borderRadius: "99px", background: brand.status.correct.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#000", fontWeight: "700", flexShrink: 0 }}>✓</div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -160,21 +197,22 @@ function DoneScreen({ solvedCount }: { setSlug: string; solvedCount: number }) {
 
 // ── Game renderer ──────────────────────────────────────────────────
 
-function GameRenderer({ card, onComplete }: { card: AnyCard; onComplete: () => void }) {
+function GameRenderer({ card, onComplete, nextCards, onSelectNext }: { card: AnyCard; onComplete: () => void; nextCards: AnyCard[]; onSelectNext: (question: string) => void }) {
+  const suggestions = nextCards.map((c) => ({ id: c.thumbId, question: c.question }));
   if (card.mechanic === "sequence") {
-    return <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} />;
+    return <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={onComplete} suggestions={suggestions} loadingSuggestions={false} onSelectSuggestion={onSelectNext} loadingNugget={null} />;
   }
   if (card.mechanic === "grouping") {
-    return <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={onComplete} />;
+    return <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={onComplete} suggestions={suggestions} loadingSuggestions={false} onSelectSuggestion={onSelectNext} loadingNugget={null} />;
   }
   if (card.mechanic === "matching") {
-    return <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={onComplete} />;
+    return <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={onComplete} suggestions={suggestions} loadingSuggestions={false} onSelectSuggestion={onSelectNext} loadingNugget={null} />;
   }
   if (card.mechanic === "ranked") {
     return <RankedListGame key={card.question} question={card.question} items={card.items} onComplete={onComplete} />;
   }
   if (card.mechanic === "multiple-choice") {
-    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onComplete} />;
+    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onComplete} suggestions={suggestions} loadingSuggestions={false} onSelectSuggestion={onSelectNext} loadingNugget={null} />;
   }
   if (card.mechanic === "pronunciation") {
     const pc = card as import("../games/questions").PronunciationQuestion & { thumbId: string };
@@ -237,25 +275,23 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
 
     // Read localStorage directly — profile state may not have loaded yet at mount time
     let historicAnswered: string[] = [];
-    let historicAnsweredIds: string[] = [];
     try {
       const raw = localStorage.getItem("sequence_profile");
       if (raw) {
         const parsed = JSON.parse(raw);
         historicAnswered = (parsed.history ?? []).map((h: { question: string }) => h.question);
-        historicAnsweredIds = (parsed.history ?? []).map((h: { id?: string; question: string }) => h.id ?? h.question);
       }
     } catch {}
     setAnswered(historicAnswered);
 
     const goldCards: AnyCard[] = gold
       .map((seq) => legacyToAny(recordToCard(seq)))
-      .filter((c) => !historicAnsweredIds.includes(c.thumbId) && !historicAnswered.includes(c.question))
+      .filter((c) => !historicAnswered.includes(c.question))
       .filter((c) => nuggetSet.topics.includes(c.topic ?? ""));
 
     const gameCards: AnyCard[] = GAME_QUESTIONS
       .map(gameQuestionToAny)
-      .filter((c) => nuggetSet.topics.includes(c.topic ?? "") && !historicAnsweredIds.includes(c.thumbId) && !historicAnswered.includes(c.question));
+      .filter((c) => nuggetSet.topics.includes(c.topic ?? "") && !historicAnswered.includes(c.question));
 
     const initial = [...goldCards, ...gameCards];
     setQueue(initial);
@@ -312,6 +348,21 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
     setCardKey((k) => k + 1);
   }
 
+  function handleSelectSuggestion(question: string) {
+    if (!currentCard) return;
+    // Mark current card complete, then jump to selected question
+    recordCorrect(currentCard.question, slug, currentCard.thumbId);
+    setAnswered((prev) => [...prev, currentCard.question]);
+    setQueue((prev) => {
+      const rest = prev.slice(1);
+      const idx = rest.findIndex((c) => c.question === question);
+      if (idx === -1) return rest;
+      const chosen = rest.splice(idx, 1)[0];
+      return [chosen, ...rest];
+    });
+    setCardKey((k) => k + 1);
+  }
+
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
   }
@@ -352,7 +403,7 @@ export default function SetPage({ params }: { params: Promise<{ set: string }> }
         ) : currentCard ? (
           <div key={cardKey} style={{ width: "100%", maxWidth: "390px", margin: "0 auto", padding: "8px 16px 48px", display: "flex", flexDirection: "column" }}>
             <CardHero card={currentCard} />
-            <GameRenderer card={currentCard} onComplete={handleComplete} />
+            <GameRenderer card={currentCard} onComplete={handleComplete} nextCards={queue.slice(1, 4)} onSelectNext={handleSelectSuggestion} />
             {/* Skip */}
             <button onClick={handleSkip} style={{ marginTop: "16px", background: "none", border: "none", color: brand.text.muted, fontSize: "11px", fontWeight: "500", letterSpacing: "0.06em", textTransform: "uppercase", cursor: "pointer", padding: "8px", alignSelf: "center", WebkitTapHighlightColor: "transparent", opacity: 0.5 }}>
               Skip →

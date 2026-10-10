@@ -3,6 +3,8 @@
 import { useState, useRef } from "react";
 import { brand } from "./brand";
 import { playCorrectBeep, playVictory } from "./sounds";
+import WhatsNext from "./WhatsNext";
+import type { Suggestion } from "./SuggestionList";
 
 export interface GroupingItem {
   id: string;
@@ -24,6 +26,10 @@ interface Props {
   onComplete: () => void;
   onSkip?: () => void;
   loadingSkip?: boolean;
+  suggestions?: Suggestion[];
+  loadingSuggestions?: boolean;
+  onSelectSuggestion?: (q: string) => void;
+  loadingNugget?: string | null;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -35,11 +41,13 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export default function GroupingGame({ items, zones, onComplete, onSkip, loadingSkip = false }: Props) {
+interface EvalResult { id: string; isCorrect: boolean }
+
+export default function GroupingGame({ items, zones, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
   const [placement, setPlacement] = useState<Record<string, string | null>>(
     () => Object.fromEntries(items.map((i) => [i.id, null]))
   );
-  const [lockedItems, setLockedItems] = useState<Set<string>>(new Set());
+  const [evalResults, setEvalResults] = useState<EvalResult[] | null>(null);
   const [allDone, setAllDone] = useState(false);
   const [shuffled] = useState(() => shuffle(items));
 
@@ -96,7 +104,7 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
   }
 
   function onPointerDown(id: string, e: React.PointerEvent) {
-    if (allDone || lockedItems.has(id)) return;
+    if (allDone) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     dragging.current = true;
     dragId.current = id;
@@ -119,39 +127,49 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
     if (!id) return;
 
     const zone = getZoneAtPoint(e.clientX, e.clientY);
-    const item = items.find((i) => i.id === id);
-    if (!item) return;
-
     setPlacement((prev) => ({ ...prev, [id]: zone }));
+    setEvalResults(null); // clear feedback on any move
+  }
 
-    const isCorrect = zone !== null && zone === item.correctGroup;
-    if (isCorrect) {
+  function handleSubmit() {
+    const results: EvalResult[] = items.map((item) => ({
+      id: item.id,
+      isCorrect: placement[item.id] === item.correctGroup,
+    }));
+    setEvalResults(results);
+
+    const isComplete = results.every((r) => r.isCorrect);
+    if (isComplete) {
+      setAllDone(true);
       playCorrectBeep();
-      const newLocked = new Set([...lockedItems, id]);
-      setLockedItems(newLocked);
-
-      const mustPlace = items.filter((i) => i.correctGroup !== "none");
-      if (newLocked.size >= mustPlace.length) {
-        setAllDone(true);
-        playVictory();
-        setTimeout(() => onComplete(), 700);
-      }
+      playVictory();
     }
   }
 
   const mustPlace = items.filter((i) => i.correctGroup !== "none");
   const pool = shuffled.filter((i) => placement[i.id] === null);
   const isSingleZone = zones.length === 1;
+  const correctCount = evalResults ? evalResults.filter((r) => r.isCorrect).length : 0;
 
   function chipStyle(item: GroupingItem) {
-    const locked = lockedItems.has(item.id);
+    const result = evalResults?.find((r) => r.id === item.id);
+    if (result?.isCorrect) return {
+      color: brand.status.correct.text,
+      border: brand.status.correct.border,
+      bg: brand.status.correct.bg,
+      shadow: `0 0 10px ${brand.status.correct.border}`,
+    };
+    if (result?.isCorrect === false) return {
+      color: brand.status.wrong.text,
+      border: brand.status.wrong.border,
+      bg: brand.status.wrong.bg,
+      shadow: `0 0 8px ${brand.status.wrong.border}`,
+    };
     return {
-      color: locked ? brand.status.correct.text : brand.text.primary,
-      border: locked ? brand.status.correct.border : brand.border.item,
-      bg: locked ? brand.status.correct.bg : brand.bg.raised,
-      shadow: locked
-        ? `0 0 10px ${brand.status.correct.border}`
-        : "0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+      color: brand.text.primary,
+      border: brand.border.item,
+      bg: brand.bg.raised,
+      shadow: "0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
     };
   }
 
@@ -184,6 +202,7 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
             >
               {zoneItems.map((item) => {
                 const c = chipStyle(item);
+                const result = evalResults?.find((r) => r.id === item.id);
                 return (
                   <ItemChip
                     key={item.id}
@@ -192,7 +211,7 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
                     border={c.border}
                     bg={c.bg}
                     shadow={c.shadow}
-                    locked={lockedItems.has(item.id)}
+                    isCorrect={result?.isCorrect}
                     allDone={allDone}
                     itemRefs={itemRefs}
                     onPointerDown={onPointerDown}
@@ -226,7 +245,7 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
                 border={brand.border.item}
                 bg={brand.bg.raised}
                 shadow="0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)"
-                locked={false}
+                isCorrect={undefined}
                 allDone={allDone}
                 itemRefs={itemRefs}
                 onPointerDown={onPointerDown}
@@ -238,42 +257,70 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
         </div>
       )}
 
-      {allDone ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div style={{ width: "100%", height: "1px", background: brand.border.item }} />
-          <span style={{ fontSize: "13px", color: brand.text.muted }}>You got it.</span>
+      {!allDone ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {evalResults && (
+            <div style={{
+              padding: "12px 16px",
+              borderRadius: "10px",
+              border: `1px solid ${brand.border.item}`,
+              background: brand.bg.raised,
+            }}>
+              <span style={{ fontSize: "13px", color: brand.text.muted }}>
+                <span style={{ fontWeight: "600", color: brand.text.secondary }}>{correctCount} of {mustPlace.length}</span> in the right group.
+              </span>
+            </div>
+          )}
+
+          <button
+            onClick={handleSubmit}
+            disabled={pool.length > 0}
+            style={{
+              width: "100%",
+              padding: "14px 20px",
+              borderRadius: brand.radius.button,
+              background: brand.bg.hover,
+              border: `1px solid ${brand.border.accent}`,
+              color: pool.length > 0 ? brand.text.muted : brand.text.primary,
+              fontSize: "14px",
+              fontWeight: "600",
+              letterSpacing: "-0.01em",
+              cursor: pool.length > 0 ? "default" : "pointer",
+              opacity: pool.length > 0 ? 0.4 : 1,
+              WebkitTapHighlightColor: "transparent",
+              boxShadow: `0 0 0 1px ${brand.border.accent}`,
+              transition: brand.motion.snap,
+            }}
+          >
+            Submit
+          </button>
+
+          {onSkip && (
+            <button
+              onClick={onSkip}
+              disabled={loadingSkip}
+              style={{ width: "100%", padding: "12px", borderRadius: brand.radius.button, background: "transparent", border: "none", color: brand.text.muted, fontSize: "11px", fontWeight: "500", letterSpacing: "0.06em", cursor: loadingSkip ? "default" : "pointer", opacity: loadingSkip ? 0.4 : 0.5, transition: brand.motion.snap }}
+            >
+              {loadingSkip ? "Finding next…" : "Skip"}
+            </button>
+          )}
         </div>
-      ) : onSkip && (
-        <button
-          onClick={onSkip}
-          disabled={loadingSkip}
-          style={{
-            width: "100%", padding: "12px",
-            borderRadius: brand.radius.button,
-            background: "transparent", border: "none",
-            color: brand.text.muted, fontSize: "11px", fontWeight: "500",
-            letterSpacing: "0.06em",
-            cursor: loadingSkip ? "default" : "pointer",
-            opacity: loadingSkip ? 0.4 : 0.5,
-            transition: brand.motion.snap,
-          }}
-        >
-          {loadingSkip ? "Finding next…" : "Skip"}
-        </button>
+      ) : (
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} />
       )}
     </div>
   );
 }
 
 function ItemChip({
-  item, color, border, bg, shadow, locked, allDone, itemRefs, onPointerDown, onPointerMove, onPointerUp,
+  item, color, border, bg, shadow, isCorrect, allDone, itemRefs, onPointerDown, onPointerMove, onPointerUp,
 }: {
   item: GroupingItem;
   color: string;
   border: string;
   bg: string;
   shadow: string;
-  locked: boolean;
+  isCorrect: boolean | undefined;
   allDone: boolean;
   itemRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onPointerDown: (id: string, e: React.PointerEvent) => void;
@@ -293,7 +340,7 @@ function ItemChip({
         background: bg,
         border: `1px solid ${border}`,
         boxShadow: shadow,
-        cursor: allDone || locked ? "default" : "grab",
+        cursor: allDone ? "default" : "grab",
         userSelect: "none",
         touchAction: "none",
         transition: "border-color 300ms ease, background 300ms ease, box-shadow 300ms ease",
@@ -303,7 +350,8 @@ function ItemChip({
       <span style={{ fontSize: "13px", fontWeight: "500", color, lineHeight: 1.3, transition: "color 300ms ease" }}>
         {item.label}
       </span>
-      {locked && <span style={{ fontSize: "11px", color, opacity: 0.7, flexShrink: 0 }}>✓</span>}
+      {isCorrect === true  && <span style={{ fontSize: "11px", color, opacity: 0.7, flexShrink: 0 }}>✓</span>}
+      {isCorrect === false && <span style={{ fontSize: "11px", color, opacity: 0.7, flexShrink: 0 }}>✗</span>}
     </div>
   );
 }

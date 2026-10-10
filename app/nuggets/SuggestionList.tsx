@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { brand } from "./brand";
 
 export interface Suggestion {
@@ -14,30 +13,11 @@ interface Props {
   onSelect?: (question: string) => void;
 }
 
-function ThumbImage({ id }: { id: string }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) return null;
-  return (
-    <img
-      src={`/nuggets/thumbs/${id}.jpg`}
-      alt=""
-      onError={() => setFailed(true)}
-      style={{
-        width: "56px",
-        height: "56px",
-        borderRadius: "10px",
-        objectFit: "cover",
-        flexShrink: 0,
-      }}
-    />
-  );
-}
-
 export default function SuggestionList({ suggestions, loadingNugget, onSelect }: Props) {
   if (suggestions.length === 0) return null;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      <span style={{ ...brand.type.label, fontSize: brand.type.label.size, color: brand.text.muted }}>
+      <span style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.12em", textTransform: "uppercase", color: brand.text.muted }}>
         What&apos;s next?
       </span>
       {suggestions.map((s) => {
@@ -46,25 +26,49 @@ export default function SuggestionList({ suggestions, loadingNugget, onSelect }:
           <button
             key={s.id}
             onClick={() => onSelect?.(s.question)}
-            disabled={loadingNugget !== null}
+            disabled={loadingNugget !== null && loadingNugget !== undefined}
             style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: brand.radius.item,
-              background: isLoading ? brand.bg.hover : brand.bg.raised,
-              border: `1px solid ${isLoading ? brand.border.accent : brand.border.item}`,
-              color: isLoading ? brand.text.primary : brand.text.secondary,
-              fontSize: "13px", fontWeight: "500", lineHeight: "1.4",
-              textAlign: "left",
-              cursor: loadingNugget !== null ? "default" : "pointer",
-              transition: brand.motion.snap,
               display: "flex",
               alignItems: "center",
-              gap: "12px",
+              gap: "14px",
+              background: brand.bg.raised,
+              border: `1px solid ${isLoading ? brand.border.accent : brand.border.item}`,
+              borderRadius: "16px",
+              padding: "12px 14px",
+              minHeight: "80px",
+              width: "100%",
+              textAlign: "left",
+              cursor: loadingNugget != null ? "default" : "pointer",
+              WebkitTapHighlightColor: "transparent",
+              transition: brand.motion.snap,
             }}
           >
-            <ThumbImage id={s.id} />
-            <span style={{ flex: 1 }}>
+            <div style={{
+              width: "56px",
+              height: "56px",
+              borderRadius: "10px",
+              overflow: "hidden",
+              flexShrink: 0,
+              background: brand.bg.page,
+            }}>
+              {s.id && (
+                <div style={{
+                  width: "100%",
+                  height: "100%",
+                  backgroundImage: `url(/nuggets/thumbs/${s.id}.jpg)`,
+                  backgroundSize: "200%",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }} />
+              )}
+            </div>
+            <span style={{
+              flex: 1,
+              fontSize: "13px",
+              fontWeight: "500",
+              color: isLoading ? brand.text.muted : brand.text.secondary,
+              lineHeight: "1.4",
+            }}>
               {isLoading ? "Loading…" : s.question}
             </span>
           </button>

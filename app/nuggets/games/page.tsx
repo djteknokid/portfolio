@@ -17,6 +17,8 @@ const MECHANIC_EMOJI: Record<MechanicType, string> = {
   grouping: "👥",
   ranked:   "🎯",
   "multiple-choice": "🎵",
+  pronunciation: "🎙️",
+  "visual-recognition": "🖼️",
 };
 
 function MechanicIcon({ type }: { type: MechanicType }) {
