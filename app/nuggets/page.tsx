@@ -154,12 +154,17 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
             const goldRec = allGold.find((g) => g.question === q);
             const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
             const id = goldRec?.id ?? gameQ?.id ?? "";
+            const topic = goldRec?.topic ?? (gameQ as { topic?: string } | undefined)?.topic ?? "";
+            const packName = NUGGET_SETS.find((s) => s.topics.includes(topic))?.name ?? "";
             return (
               <div key={q} style={{ display: "flex", alignItems: "center", gap: "14px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "16px", padding: "12px 14px", minHeight: "80px" }}>
-                <div style={{ width: "56px", height: "56px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, background: brand.bg.page }}>
-                  {id && <img src={`/nuggets/thumbs/${id}.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transform: "scale(1.08)", transformOrigin: "center center" }} />}
+                <div style={{ width: "56px", height: "56px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, background: brand.bg.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {id && <img src={`/nuggets/thumbs/${id}.jpg`} alt="" style={{ width: "50%", height: "50%", objectFit: "contain", display: "block" }} />}
                 </div>
-                <span style={{ flex: 1, fontSize: "13px", fontWeight: "500", color: brand.text.secondary, lineHeight: "1.4" }}>{q}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {packName && <div style={{ fontSize: "9px", fontWeight: "700", letterSpacing: "0.12em", textTransform: "uppercase", color: brand.text.muted, marginBottom: "4px" }}>{packName}</div>}
+                  <span style={{ fontSize: "13px", fontWeight: "500", color: brand.text.secondary, lineHeight: "1.4" }}>{q}</span>
+                </div>
                 <div style={{ width: "20px", height: "20px", borderRadius: "99px", background: brand.status.correct.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#000", fontWeight: "700", flexShrink: 0 }}>✓</div>
               </div>
             );
