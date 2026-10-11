@@ -124,7 +124,47 @@ function KnowledgeReveal({ reveal, takeaway }: { reveal?: string; takeaway?: str
   );
 }
 
-// ── Loading skeleton ─────────────────────────────────────────────────────────────
+// ── Card validator/normalizer ─────────────────────────────────────────────────
+
+function normalizeCard(raw: unknown): InterestCard | null {
+  if (!raw || typeof raw !== "object") return null;
+  const c = raw as Record<string, unknown>;
+  if (typeof c.question !== "string" || typeof c.mechanic !== "string") return null;
+
+  const base = {
+    id: (c.id as string) ?? "interest-generated",
+    question: c.question as string,
+    mechanic: c.mechanic as InterestCard["mechanic"],
+    topic: "interests" as const,
+    thumbId: "interests-default",
+    knowledgeReveal: (c.knowledgeReveal as string) ?? undefined,
+    conversationTakeaway: (c.conversationTakeaway as string) ?? undefined,
+  };
+
+  if (c.mechanic === "grouping") {
+    const zones = Array.isArray(c.zones) ? c.zones : [];
+    const items = Array.isArray(c.items) ? c.items : [];
+    if (zones.length === 0 || items.length === 0) return null;
+    return { ...base, mechanic: "grouping", zones, items } as InterestCard;
+  }
+  if (c.mechanic === "matching") {
+    const pairs = Array.isArray(c.pairs) ? c.pairs : [];
+    if (pairs.length === 0) return null;
+    return { ...base, mechanic: "matching", pairs } as InterestCard;
+  }
+  if (c.mechanic === "sequence") {
+    const sequence = Array.isArray(c.sequence) ? c.sequence : [];
+    if (sequence.length === 0) return null;
+    return { ...base, mechanic: "sequence", sequence } as InterestCard;
+  }
+  if (c.mechanic === "multiple-choice") {
+    const options = Array.isArray(c.options) ? c.options : [];
+    const correctIds = Array.isArray(c.correctIds) ? c.correctIds : [];
+    if (options.length === 0) return null;
+    return { ...base, mechanic: "multiple-choice", options, correctIds } as InterestCard;
+  }
+  return null;
+}
 
 function CardSkeleton({ topic }: { topic: string }) {
   return (
@@ -227,15 +267,17 @@ export default function InterestsPage() {
         body: JSON.stringify({ topic, history, completedQuestions, recentMechanics }),
       });
       const data: GenerateResponse = await res.json();
-      if (!data.card) throw new Error("No card");
+      const normalized = normalizeCard(data.card);
+      if (!normalized) throw new Error("Invalid card");
 
-      setCard(data.card);
+      setCard(normalized);
       setNextDirections(data.nextDirections ?? []);
       setHistory((prev) => [...prev, topic]);
       setRecentMechanics((prev) => [...prev, data.card.mechanic]);
       setPhase("card");
     } catch {
       setPhase("input");
+      setLoadingTopic("");
     }
   }
 
