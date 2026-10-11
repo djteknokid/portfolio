@@ -176,10 +176,11 @@ function PackCard({ slug, number, name, description, thumbId, cardCount, solvedC
   );
 }
 
-function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
+function SolvedOverlay({ answeredQuestions, allGold, onClose, synced }: {
   answeredQuestions: string[];
   allGold: SequenceRecord[];
   onClose: () => void;
+  synced: boolean;
 }) {
   const [reviewCard, setReviewCard] = useState<AnyCard | null>(null);
   const totalCards = NUGGET_SETS.reduce((sum, s) => sum + s.cardCount, 0);
@@ -212,7 +213,7 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
         <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
           <div style={{ flex: "1 1 auto", minWidth: "120px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-              <span style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{answeredQuestions.length}</span>
+              <span style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{synced ? answeredQuestions.length : "—"}</span>
               <span style={{ fontSize: "13px", fontWeight: "500", color: brand.text.muted }}>/ {totalCards}</span>
             </div>
             <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px" }}>Total solved</div>
@@ -265,7 +266,7 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose }: {
 
 export default function NuggetsPage() {
   const router = useRouter();
-  const { profile } = useProfile();
+  const { profile, synced } = useProfile();
   const [showSolved, setShowSolved] = useState(false);
   const [allGold, setAllGold] = useState<SequenceRecord[]>([]);
 
@@ -299,7 +300,7 @@ export default function NuggetsPage() {
       onClick={() => setShowSolved(true)}
       style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}
     >
-      <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{profile.score}</span>
+      <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{synced ? profile.score : "—"}</span>
       <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>solved</span>
     </button>
   );
@@ -348,6 +349,7 @@ export default function NuggetsPage() {
           answeredQuestions={profile.history.map((h) => h.question)}
           allGold={allGold}
           onClose={() => setShowSolved(false)}
+          synced={synced}
         />
       )}
     </div>

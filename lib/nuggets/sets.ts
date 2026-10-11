@@ -25,7 +25,7 @@ export const NUGGET_SETS: NuggetSet[] = [
     description: "K-pop, dramas, food, and the wave that went global.",
     topics: ["Korean culture", "K-pop"],
     thumbId: "korean-culture-appeal",
-    cardCount: 3,
+    cardCount: 10,
   },
   {
     slug: "jazz",
@@ -52,7 +52,7 @@ export const NUGGET_SETS: NuggetSet[] = [
     description: "The artists, moments, and movements that defined modern popular culture.",
     topics: ["pop culture"],
     thumbId: "mj-hits",
-    cardCount: 4,
+    cardCount: 12,
   },
   {
     slug: "coffee",

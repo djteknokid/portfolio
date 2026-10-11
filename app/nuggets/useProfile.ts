@@ -34,16 +34,19 @@ function save(p: Profile) {
 }
 
 export function useProfile() {
-  const [profile, setProfile] = useState<Profile>({ score: 0, history: [] });
+  const [profile, setProfile] = useState<Profile>(() => load());
+  const [synced, setSynced] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const local = load();
-    setProfile(local);
 
     const supabase = createClient();
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return;
+      if (!user) {
+        setSynced(true);
+        return;
+      }
       setUserId(user.id);
 
       // Push all local history to Supabase
@@ -64,7 +67,10 @@ export function useProfile() {
         .eq("user_id", user.id)
         .order("completed_at", { ascending: false });
 
-      if (!remote || remote.length === 0) return;
+      if (!remote || remote.length === 0) {
+        setSynced(true);
+        return;
+      }
 
       // Merge: remote is source of truth, keep local entries not yet in remote
       const remoteQuestions = new Set(remote.map((r) => r.question));
@@ -81,6 +87,7 @@ export function useProfile() {
       const merged_profile: Profile = { score: merged.length, history: merged };
       save(merged_profile);
       setProfile(merged_profile);
+      setSynced(true);
 
       // Sync total score
       supabase.from("user_set_progress").upsert({
@@ -137,5 +144,5 @@ export function useProfile() {
     });
   }, [userId]);
 
-  return { profile, recordCorrect, userId };
+  return { profile, recordCorrect, userId, synced };
 }

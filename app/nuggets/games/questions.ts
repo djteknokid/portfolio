@@ -11,12 +11,12 @@ interface BaseQuestion {
 export interface GroupingQuestion extends BaseQuestion {
   mechanic: "grouping";
   zones: { id: string; label: string; color: string }[];
-  items: { id: string; label: string; emoji: string; correctGroup: string }[];
+  items: { id: string; label: string; emoji?: string; correctGroup: string }[];
 }
 
 export interface MatchingQuestion extends BaseQuestion {
   mechanic: "matching";
-  pairs: { id: string; left: string; right: string }[];
+  pairs: { id: string; left: string; right: string; imageUrl?: string }[];
 }
 
 export interface SequenceQuestion extends BaseQuestion {
@@ -448,6 +448,127 @@ export const GAME_QUESTIONS: Question[] = [
       { id: "3", text: "Heartbreak Hotel becomes a massive hit, launching him into national stardom." },
       { id: "4", text: "TV performances electrify teenagers, with his voice, dancing, and rebellious image." },
       { id: "5", text: "Hit songs and Hollywood movies turn Elvis into a global cultural icon." },
+    ],
+  },
+
+  {
+    id: "pop-011",
+    question: "How Did MTV Change Music Forever?",
+    mechanic: "sequence",
+    topic: "pop culture",
+    sequence: [
+      { id: "pop-011-e1", text: `MTV launches with "Video Killed the Radio Star."` },
+      { id: "pop-011-e2", text: `Michael Jackson's "Billie Jean" enters heavy MTV rotation.` },
+      { id: "pop-011-e3", text: `Madonna performs "Like a Virgin" at the first MTV Video Music Awards.` },
+      { id: "pop-011-e4", text: "Yo! MTV Raps begins bringing hip-hop to wider TV audiences." },
+      { id: "pop-011-e5", text: "MTV Unplugged debuts as a regular series." },
+    ],
+  },
+
+  {
+    id: "pop-012",
+    question: "Who Created These Iconic Characters?",
+    mechanic: "matching",
+    topic: "pop culture",
+    pairs: [
+      { id: "pop-012-p1", left: "Mickey Mouse",   right: "Walt Disney and Ub Iwerks" },
+      { id: "pop-012-p2", left: "Spider-Man",      right: "Stan Lee and Steve Ditko" },
+      { id: "pop-012-p3", left: "Hello Kitty",     right: "Yuko Shimizu" },
+      { id: "pop-012-p4", left: "The Simpsons",    right: "Matt Groening" },
+      { id: "pop-012-p5", left: "Super Mario",     right: "Shigeru Miyamoto" },
+    ],
+  },
+
+  {
+    id: "pop-014",
+    question: "Which Legendary Video Game Came First?",
+    mechanic: "sequence",
+    topic: "pop culture",
+    sequence: [
+      { id: "pop-014-e1", text: "Pong arrives in arcades." },
+      { id: "pop-014-e2", text: "Space Invaders becomes an arcade sensation." },
+      { id: "pop-014-e3", text: "Pac-Man makes its arcade debut." },
+      { id: "pop-014-e4", text: "Super Mario Bros. launches in Japan." },
+      { id: "pop-014-e5", text: "Street Fighter II arrives in arcades." },
+    ],
+  },
+
+  {
+    id: "pop-015",
+    question: "Who Said These Famous Movie Lines?",
+    mechanic: "matching",
+    topic: "pop culture",
+    pairs: [
+      { id: "pop-015-p1", left: `"May the Force be with you."`,   right: "Star Wars" },
+      { id: "pop-015-p2", left: `"I'll be back."`,                right: "The Terminator" },
+      { id: "pop-015-p3", left: `"You can't handle the truth!"`,  right: "A Few Good Men" },
+      { id: "pop-015-p4", left: `"Here's looking at you, kid."`,  right: "Casablanca" },
+      { id: "pop-015-p5", left: `"There's no place like home."`,  right: "The Wizard of Oz" },
+    ],
+  },
+
+  {
+    id: "pop-016",
+    question: "Which Decade Launched These Pop Stars?",
+    mechanic: "grouping",
+    topic: "pop culture",
+    zones: [
+      { id: "1980s", label: "1980s", color: "#a78bfa" },
+      { id: "1990s", label: "1990s", color: "#60a5fa" },
+      { id: "2000s", label: "2000s", color: "#34d399" },
+    ],
+    items: [
+      { id: "pop-016-a1", label: "Madonna",              correctGroup: "1980s" },
+      { id: "pop-016-a2", label: "Whitney Houston",      correctGroup: "1980s" },
+      { id: "pop-016-a3", label: "Cyndi Lauper",         correctGroup: "1980s" },
+      { id: "pop-016-a4", label: "Britney Spears",       correctGroup: "1990s" },
+      { id: "pop-016-a5", label: "Backstreet Boys",      correctGroup: "1990s" },
+      { id: "pop-016-a6", label: "Spice Girls",          correctGroup: "1990s" },
+      { id: "pop-016-a7", label: "Lady Gaga",            correctGroup: "2000s" },
+      { id: "pop-016-a8", label: "Rihanna",              correctGroup: "2000s" },
+      { id: "pop-016-a9", label: "Beyoncé (solo)",       correctGroup: "2000s" },
+    ],
+  },
+
+  {
+    id: "pop-017",
+    question: "How Did Social Media Take Over Pop Culture?",
+    mechanic: "sequence",
+    topic: "pop culture",
+    sequence: [
+      { id: "pop-017-e1", text: "Myspace launches." },
+      { id: "pop-017-e2", text: "Facebook launches." },
+      { id: "pop-017-e3", text: "YouTube launches." },
+      { id: "pop-017-e4", text: "Instagram launches." },
+      { id: "pop-017-e5", text: "TikTok launches internationally." },
+    ],
+  },
+
+  {
+    id: "pop-019",
+    question: "How Did Superhero Movies Become Blockbusters?",
+    mechanic: "sequence",
+    topic: "pop culture",
+    sequence: [
+      { id: "pop-019-e1", text: "Superman reaches theaters." },
+      { id: "pop-019-e2", text: "Tim Burton's Batman premieres." },
+      { id: "pop-019-e3", text: "X-Men reaches theaters." },
+      { id: "pop-019-e4", text: "Iron Man launches the Marvel Cinematic Universe." },
+      { id: "pop-019-e5", text: "The Avengers unites MCU heroes." },
+    ],
+  },
+
+  {
+    id: "pop-020",
+    question: "Which TV Show Premiered First?",
+    mechanic: "sequence",
+    topic: "pop culture",
+    sequence: [
+      { id: "pop-020-e1", text: "I Love Lucy premieres." },
+      { id: "pop-020-e2", text: "The Simpsons premieres as a standalone series." },
+      { id: "pop-020-e3", text: "Friends premieres." },
+      { id: "pop-020-e4", text: "The Sopranos premieres." },
+      { id: "pop-020-e5", text: "Game of Thrones premieres." },
     ],
   },
 
@@ -1250,7 +1371,7 @@ export const GAME_QUESTIONS: Question[] = [
     question: "Pronounce: Rembrandt van Rijn",
     mechanic: "pronunciation",
     topic: "art",
-    thumbId: "art-vangogh-starry-night",
+    thumbId: "art-rembrandt-nightwatch",
     audioUrl: "/nuggets/audio/art-rembrandt.mp3",
     phonetic: "REM-brant van RINE",
     definition: "Dutch Golden Age master. Famous for dramatic light emerging from darkness — a technique called chiaroscuro. Painted The Night Watch. Died bankrupt.",
@@ -1270,7 +1391,7 @@ export const GAME_QUESTIONS: Question[] = [
     question: "Pronounce: Frida Kahlo",
     mechanic: "pronunciation",
     topic: "art",
-    thumbId: "art-davinci-mona-lisa",
+    thumbId: "art-kahlo-self-portrait",
     audioUrl: "/nuggets/audio/art-kahlo.mp3",
     phonetic: "FREE-dah KAH-loh",
     definition: "Mexican painter. Made 55 self-portraits, many depicting physical and emotional pain from a near-fatal bus accident at 18. Said she painted her own reality.",
@@ -1280,9 +1401,166 @@ export const GAME_QUESTIONS: Question[] = [
     question: "Pronounce: Andy Warhol",
     mechanic: "pronunciation",
     topic: "art",
-    thumbId: "art-picasso-three-musicians",
+    thumbId: "art-warhol-marilyn",
     audioUrl: "/nuggets/audio/art-warhol.mp3",
     phonetic: "AN-dee WOR-hol",
     definition: "American Pop artist. Turned Campbell's soup cans and Marilyn Monroe into fine art. Called his studio The Factory and made celebrity the subject of art.",
+  },
+
+  // ── Korean Essentials ────────────────────────────────────────────────────
+  {
+    id: "kor-001",
+    question: "How Did Modern Korea Take Shape?",
+    mechanic: "sequence",
+    topic: "Korean culture",
+    thumbId: "korean-culture-appeal",
+    sequence: [
+      { id: "kor-001-e1", text: "Korea is liberated from Japanese colonial rule." },
+      { id: "kor-001-e2", text: "The Republic of Korea is established in the South." },
+      { id: "kor-001-e3", text: "The Korean War begins." },
+      { id: "kor-001-e4", text: "South Korea hosts the Seoul Summer Olympics." },
+      { id: "kor-001-e5", text: "South Korea and Japan co-host the FIFA World Cup." },
+    ],
+  },
+  {
+    id: "kor-002",
+    question: "What Do These Korean Words Mean?",
+    mechanic: "matching",
+    topic: "Korean culture",
+    thumbId: "korean-culture-appeal",
+    pairs: [
+      { id: "kor-002-p1", left: "Annyeonghaseyo (안녕하세요)", right: "Hello (polite)" },
+      { id: "kor-002-p2", left: "Gamsahamnida (감사합니다)", right: "Thank you (formal)" },
+      { id: "kor-002-p3", left: "Juseyo (주세요)", right: "Please give me…" },
+      { id: "kor-002-p4", left: "Masisseoyo (맛있어요)", right: "It is delicious" },
+      { id: "kor-002-p5", left: "Jal meokgesseumnida (잘 먹겠습니다)", right: "Said before eating to express thanks / appreciation" },
+    ],
+  },
+  {
+    id: "kor-003",
+    question: "Can You Recognize These Korean Foods?",
+    mechanic: "matching",
+    topic: "Korean culture",
+    thumbId: "kor-bibimbap",
+    pairs: [
+      { id: "kor-003-i1", left: "Bibimbap", right: "Rice mixed with vegetables and often egg or meat", imageUrl: "/nuggets/thumbs/kor-bibimbap.jpg" },
+      { id: "kor-003-i2", left: "Kimchi", right: "Seasoned fermented vegetables, often napa cabbage", imageUrl: "/nuggets/thumbs/kor-kimchi.jpg" },
+      { id: "kor-003-i3", left: "Tteokbokki", right: "Chewy rice cakes in a red sauce", imageUrl: "/nuggets/thumbs/kor-tteokbokki.jpg" },
+      { id: "kor-003-i4", left: "Samgyeopsal", right: "Grilled pork belly, often wrapped in lettuce", imageUrl: "/nuggets/thumbs/kor-samgyeopsal.jpg" },
+    ],
+  },
+  {
+    id: "kor-004",
+    question: "How Did K-Pop Become Global?",
+    mechanic: "sequence",
+    topic: "K-pop",
+    thumbId: "korean-culture-appeal",
+    sequence: [
+      { id: "kor-004-e1", text: "Seo Taiji and Boys debut, reshaping mainstream Korean pop." },
+      { id: "kor-004-e2", text: "H.O.T. debut, helping define the idol-group model." },
+      { id: "kor-004-e3", text: "BoA debuts in Japan, building a major cross-border career." },
+      { id: "kor-004-e4", text: `PSY releases "Gangnam Style," a global viral hit.` },
+      { id: "kor-004-e5", text: `BTS earn their first No. 1 on the US Billboard Hot 100 with "Dynamite."` },
+    ],
+  },
+  {
+    id: "kor-005",
+    question: "Which Korean Cultural Phenomenon Is Which?",
+    mechanic: "matching",
+    topic: "Korean culture",
+    thumbId: "korean-culture-appeal",
+    pairs: [
+      { id: "kor-005-p1", left: "Hallyu", right: "The Korean Wave: overseas popularity of Korean culture" },
+      { id: "kor-005-p2", left: "K-drama", right: "Korean television drama" },
+      { id: "kor-005-p3", left: "Manhwa", right: "Korean comics" },
+      { id: "kor-005-p4", left: "Webtoon", right: "Digital comics often designed for vertical scrolling" },
+      { id: "kor-005-p5", left: "Mukbang", right: "A broadcast or video centered on eating food" },
+    ],
+  },
+  {
+    id: "kor-006",
+    question: "Palaces, Cities, or Islands?",
+    mechanic: "grouping",
+    topic: "Korean culture",
+    thumbId: "korean-culture-appeal",
+    zones: [
+      { id: "Historic palace", label: "Historic palace", color: "#a78bfa" },
+      { id: "City",            label: "City",            color: "#60a5fa" },
+      { id: "Island",          label: "Island",          color: "#34d399" },
+    ],
+    items: [
+      { id: "kor-006-a1", label: "Gyeongbokgung",  correctGroup: "Historic palace" },
+      { id: "kor-006-a2", label: "Changdeokgung",  correctGroup: "Historic palace" },
+      { id: "kor-006-a3", label: "Deoksugung",     correctGroup: "Historic palace" },
+      { id: "kor-006-a4", label: "Busan",           correctGroup: "City" },
+      { id: "kor-006-a5", label: "Incheon",         correctGroup: "City" },
+      { id: "kor-006-a6", label: "Gyeongju",        correctGroup: "City" },
+      { id: "kor-006-a7", label: "Jeju",            correctGroup: "Island" },
+      { id: "kor-006-a8", label: "Ulleungdo",       correctGroup: "Island" },
+    ],
+  },
+  {
+    id: "kor-007",
+    question: "Can You Recognize These Korean Landmarks?",
+    mechanic: "matching",
+    topic: "Korean culture",
+    thumbId: "kor-gyeongbokgung",
+    pairs: [
+      { id: "kor-007-i1", left: "Gyeongbokgung Palace",        right: "Joseon royal palace in Seoul",                    imageUrl: "/nuggets/thumbs/kor-gyeongbokgung.jpg" },
+      { id: "kor-007-i2", left: "N Seoul Tower",               right: "Observation tower on Namsan",                     imageUrl: "/nuggets/thumbs/kor-n-seoul-tower.jpg" },
+      { id: "kor-007-i3", left: "Dongdaemun Design Plaza",     right: "Curved contemporary cultural complex",            imageUrl: "/nuggets/thumbs/kor-ddp.jpg" },
+      { id: "kor-007-i4", left: "Haedong Yonggungsa Temple",   right: "Buddhist temple by the sea near Busan",           imageUrl: "/nuggets/thumbs/kor-haedong-yonggungsa.jpg" },
+    ],
+  },
+  {
+    id: "kor-008",
+    question: "Who Made These Korean Films and Shows?",
+    mechanic: "matching",
+    topic: "Korean culture",
+    thumbId: "korean-culture-appeal",
+    pairs: [
+      { id: "kor-008-p1", left: "Parasite",           right: "Bong Joon-ho (director)" },
+      { id: "kor-008-p2", left: "Squid Game",         right: "Hwang Dong-hyuk (creator/director)" },
+      { id: "kor-008-p3", left: "Oldboy (2003)",      right: "Park Chan-wook (director)" },
+      { id: "kor-008-p4", left: "Train to Busan",     right: "Yeon Sang-ho (director)" },
+      { id: "kor-008-p5", left: "Minari",             right: "Lee Isaac Chung (director)" },
+    ],
+  },
+  {
+    id: "kor-009",
+    question: "How Did Korean Writing Develop?",
+    mechanic: "sequence",
+    topic: "Korean culture",
+    thumbId: "korean-culture-appeal",
+    sequence: [
+      { id: "kor-009-e1", text: "King Sejong oversees the creation of the Korean alphabet." },
+      { id: "kor-009-e2", text: "Hunminjeongeum, the text explaining the alphabet, is published." },
+      { id: "kor-009-e3", text: "The Korean Empire is proclaimed." },
+      { id: "kor-009-e4", text: "Korea is liberated from Japanese colonial rule." },
+      { id: "kor-009-e5", text: "South Korea establishes Hangul Day as a national holiday again." },
+    ],
+  },
+  {
+    id: "kor-010",
+    question: "Which Korean Food Belongs Where?",
+    mechanic: "grouping",
+    topic: "Korean culture",
+    thumbId: "kor-bibimbap",
+    zones: [
+      { id: "Fermented food", label: "Fermented food", color: "#f97316" },
+      { id: "Noodle dish",    label: "Noodle dish",    color: "#60a5fa" },
+      { id: "Rice dish",      label: "Rice dish",      color: "#34d399" },
+    ],
+    items: [
+      { id: "kor-010-a1", label: "Baechu kimchi",       correctGroup: "Fermented food" },
+      { id: "kor-010-a2", label: "Kkakdugi",             correctGroup: "Fermented food" },
+      { id: "kor-010-a3", label: "Doenjang",             correctGroup: "Fermented food" },
+      { id: "kor-010-a4", label: "Naengmyeon",           correctGroup: "Noodle dish" },
+      { id: "kor-010-a5", label: "Japchae",              correctGroup: "Noodle dish" },
+      { id: "kor-010-a6", label: "Kalguksu",             correctGroup: "Noodle dish" },
+      { id: "kor-010-a7", label: "Bibimbap",             correctGroup: "Rice dish" },
+      { id: "kor-010-a8", label: "Gimbap",               correctGroup: "Rice dish" },
+      { id: "kor-010-a9", label: "Kimchi-bokkeumbap",    correctGroup: "Rice dish" },
+    ],
   },
 ];

@@ -10,6 +10,7 @@ export interface MatchPair {
   id: string;
   left: string;
   right: string;
+  imageUrl?: string;
 }
 
 interface Props {
@@ -204,15 +205,22 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
                 onPointerDown={(e) => onPointerDownLeft(p.id, e)}
                 onPointerMove={onPointerMove} onPointerUp={onPointerUp}
                 style={{
-                  padding: "10px 12px", borderRadius: brand.radius.item,
+                  padding: p.imageUrl ? "0" : "10px 12px",
+                  borderRadius: brand.radius.item,
                   background: c.bg, border: `1px solid ${c.border}`,
                   boxShadow: c.shadow,
                   cursor: allDone ? "default" : "crosshair",
                   userSelect: "none", touchAction: "none",
+                  overflow: "hidden",
                   transition: "border-color 300ms ease, background 300ms ease, box-shadow 300ms ease",
                   position: "relative",
                 }}>
-                <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4, transition: "color 300ms ease" }}>{p.left}</span>
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt={p.left}
+                    style={{ width: "100%", height: "72px", objectFit: "cover", display: "block", pointerEvents: "none" }} />
+                ) : (
+                  <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4, transition: "color 300ms ease" }}>{p.left}</span>
+                )}
                 <div style={{
                   position: "absolute", right: "-5px", top: "50%", transform: "translateY(-50%)",
                   width: "9px", height: "9px", borderRadius: "50%",
