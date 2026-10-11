@@ -30,7 +30,7 @@ ${historyClause}${completedClause}${mechanicsClause}
 Generate one high-quality question card and three next directions.`;
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: DIRECTOR_PROMPT },
       { role: "user", content: userPrompt },
