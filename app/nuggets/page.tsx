@@ -218,16 +218,31 @@ function SolvedOverlay({ answeredQuestions, allGold, onClose, synced }: {
             </div>
             <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px" }}>Total solved</div>
           </div>
-          {packCounts.map((p) => (
-            <div key={p.name} style={{ flex: "1 1 auto", minWidth: "120px", background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px" }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-                <span style={{ fontSize: "26px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1 }}>{p.count}</span>
-                <span style={{ fontSize: "13px", fontWeight: "500", color: brand.text.muted }}>/ {p.cardCount}</span>
-              </div>
-              <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{p.name}</div>
-            </div>
-          ))}
         </div>
+        {/* Per-pack bar charts */}
+        {packCounts.length > 0 && (
+          <div style={{ background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px", marginBottom: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+            {NUGGET_SETS.map((s) => {
+              const p = packCounts.find((pc) => pc.name === s.name);
+              const count = p?.count ?? 0;
+              const pct = Math.min(100, Math.round((count / 100) * 100));
+              const isExpert = count >= 100;
+              return (
+                <div key={s.name}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "5px" }}>
+                    <span style={{ fontSize: "11px", fontWeight: "600", color: count > 0 ? brand.text.secondary : brand.text.muted, letterSpacing: "0.02em" }}>{s.name}</span>
+                    <span style={{ fontSize: "11px", fontWeight: "500", color: isExpert ? brand.status.correct.text : brand.text.muted, fontVariantNumeric: "tabular-nums" }}>
+                      {count} / 100{isExpert ? " ✓" : ""}
+                    </span>
+                  </div>
+                  <div style={{ height: "6px", borderRadius: "99px", background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${pct}%`, borderRadius: "99px", background: isExpert ? brand.status.correct.text : brand.text.primary, transition: "width 0.4s ease" }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
         {answeredQuestions.length === 0 && (
           <span style={{ fontSize: "13px", color: brand.text.muted, padding: "8px 4px", display: "block" }}>Nothing solved yet.</span>
         )}
@@ -336,6 +351,35 @@ export default function NuggetsPage() {
               Things you should already know
             </h1>
           </div>
+
+          {/* My Interest entry card */}
+          <button
+            onClick={() => router.push("/nuggets/interests")}
+            style={{
+              width: "100%",
+              borderRadius: "20px",
+              border: `1px solid ${brand.border.accent}`,
+              background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+              cursor: "pointer",
+              textAlign: "left",
+              padding: "20px 22px",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>
+              ✦
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Personalized</div>
+              <div style={{ fontSize: "18px", fontWeight: "800", color: "#ffffff", letterSpacing: "-0.02em", lineHeight: 1.2 }}>My Interest</div>
+              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginTop: "3px", lineHeight: 1.4 }}>Tell AI what you want to learn. It builds the card.</div>
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "18px", flexShrink: 0 }}>›</div>
+          </button>
+
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {incompleteSets.map((set) => (
               <PackCard key={set.slug} slug={set.slug} number={set.number} name={set.name} description={set.description} thumbId={set.thumbId} cardCount={totalCardsForSet(set)} solvedCount={solvedCountForSet(set)} />
