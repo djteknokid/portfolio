@@ -1443,10 +1443,10 @@ export const GAME_QUESTIONS: Question[] = [
     topic: "Korean culture",
     thumbId: "kor-bibimbap",
     pairs: [
-      { id: "kor-003-i1", left: "Bibimbap", right: "Rice mixed with vegetables and often egg or meat", imageUrl: "/nuggets/thumbs/kor-bibimbap.jpg" },
-      { id: "kor-003-i2", left: "Kimchi", right: "Seasoned fermented vegetables, often napa cabbage", imageUrl: "/nuggets/thumbs/kor-kimchi.jpg" },
-      { id: "kor-003-i3", left: "Tteokbokki", right: "Chewy rice cakes in a red sauce", imageUrl: "/nuggets/thumbs/kor-tteokbokki.jpg" },
-      { id: "kor-003-i4", left: "Samgyeopsal", right: "Grilled pork belly, often wrapped in lettuce", imageUrl: "/nuggets/thumbs/kor-samgyeopsal.jpg" },
+      { id: "kor-003-i1", left: "Bibimbap",    right: "Bibimbap",    imageUrl: "/nuggets/thumbs/kor-bibimbap.jpg" },
+      { id: "kor-003-i2", left: "Kimchi",      right: "Kimchi",      imageUrl: "/nuggets/thumbs/kor-kimchi.jpg" },
+      { id: "kor-003-i3", left: "Tteokbokki",  right: "Tteokbokki",  imageUrl: "/nuggets/thumbs/kor-tteokbokki.jpg" },
+      { id: "kor-003-i4", left: "Samgyeopsal", right: "Samgyeopsal", imageUrl: "/nuggets/thumbs/kor-samgyeopsal.jpg" },
     ],
   },
   {
