@@ -25,7 +25,7 @@ export const NUGGET_SETS: NuggetSet[] = [
     description: "K-pop, dramas, food, and the wave that went global.",
     topics: ["Korean culture", "K-pop"],
     thumbId: "korean-culture-appeal",
-    cardCount: 10,
+    cardCount: 13,
   },
   {
     slug: "jazz",
