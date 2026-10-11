@@ -211,13 +211,15 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
                   boxShadow: c.shadow,
                   cursor: allDone ? "default" : "crosshair",
                   userSelect: "none", touchAction: "none",
-                  overflow: "hidden",
+                  overflow: "visible",
                   transition: "border-color 300ms ease, background 300ms ease, box-shadow 300ms ease",
                   position: "relative",
                 }}>
                 {p.imageUrl ? (
-                  <img src={p.imageUrl} alt={p.left}
-                    style={{ width: "100%", height: "72px", objectFit: "cover", display: "block", pointerEvents: "none" }} />
+                  <div style={{ borderRadius: brand.radius.item, overflow: "hidden" }}>
+                    <img src={p.imageUrl} alt={p.left}
+                      style={{ width: "100%", height: "72px", objectFit: "cover", display: "block", pointerEvents: "none" }} />
+                  </div>
                 ) : (
                   <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4, transition: "color 300ms ease" }}>{p.left}</span>
                 )}
