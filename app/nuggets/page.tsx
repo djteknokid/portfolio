@@ -374,8 +374,8 @@ export default function NuggetsPage() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Personalized</div>
-              <div style={{ fontSize: "18px", fontWeight: "800", color: "#ffffff", letterSpacing: "-0.02em", lineHeight: 1.2 }}>My Interest</div>
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginTop: "3px", lineHeight: 1.4 }}>Tell AI what you want to learn. It builds the card.</div>
+              <div style={{ fontSize: "18px", fontWeight: "800", color: "#ffffff", letterSpacing: "-0.02em", lineHeight: 1.2 }}>Follow Your Curiosity</div>
+              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginTop: "3px", lineHeight: 1.4 }}>Tell the Learning Director what interests you.</div>
             </div>
             <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "18px", flexShrink: 0 }}>›</div>
           </button>

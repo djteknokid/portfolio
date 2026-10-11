@@ -13,65 +13,128 @@ import type { Question } from "../games/questions";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-type InterestCard = Question & { thumbId: string };
+type InterestCard = Question & { thumbId: string; knowledgeReveal?: string; conversationTakeaway?: string };
+
+interface NextDirection {
+  type: "deeper" | "connection" | "surprise";
+  label: string;
+  description: string;
+  topic: string;
+}
 
 interface GenerateResponse {
   card: InterestCard;
-  suggestions: string[];
+  nextDirections: NextDirection[];
 }
 
-// ── Suggestion chips ────────────────────────────────────────────────────────────
+// ── Direction cards ─────────────────────────────────────────────────────────────
 
-function SuggestionChips({ suggestions, onSelect, loading }: {
-  suggestions: string[];
-  onSelect: (s: string) => void;
+const DIRECTION_STYLES: Record<string, { accent: string; icon: string }> = {
+  deeper:     { accent: "#60a5fa", icon: "↓" },
+  connection: { accent: "#a78bfa", icon: "→" },
+  surprise:   { accent: "#f59e0b", icon: "✦" },
+};
+
+function NextDirections({ directions, onSelect, loading }: {
+  directions: NextDirection[];
+  onSelect: (topic: string) => void;
   loading: boolean;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "24px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "28px" }}>
       <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: brand.text.muted, marginBottom: "4px" }}>
-        What's next?
+        Where to next?
       </div>
       {loading
         ? [1, 2, 3].map((i) => (
-            <div key={i} style={{ height: "44px", borderRadius: brand.radius.item, background: brand.bg.raised, border: `1px solid ${brand.border.item}`, opacity: 0.5 + i * 0.1, animation: "pulse 1.5s ease-in-out infinite" }} />
+            <div key={i} style={{ height: "68px", borderRadius: brand.radius.item, background: brand.bg.raised, border: `1px solid ${brand.border.item}`, opacity: 0.4 + i * 0.1 }} />
           ))
-        : suggestions.map((s) => (
-            <button
-              key={s}
-              onClick={() => onSelect(s)}
-              style={{
-                width: "100%",
-                padding: "12px 14px",
-                borderRadius: brand.radius.item,
-                background: brand.bg.raised,
-                border: `1px solid ${brand.border.item}`,
-                color: brand.text.secondary,
-                fontSize: "13px",
-                fontWeight: "500",
-                lineHeight: 1.4,
-                textAlign: "left",
-                cursor: "pointer",
-                WebkitTapHighlightColor: "transparent",
-                transition: brand.motion.snap,
-              }}
-            >
-              {s}
-            </button>
-          ))
+        : directions.map((d) => {
+            const style = DIRECTION_STYLES[d.type] ?? DIRECTION_STYLES.deeper;
+            return (
+              <button
+                key={d.topic}
+                onClick={() => onSelect(d.topic)}
+                style={{
+                  width: "100%",
+                  padding: "14px 16px",
+                  borderRadius: brand.radius.item,
+                  background: brand.bg.raised,
+                  border: `1px solid ${brand.border.item}`,
+                  textAlign: "left",
+                  cursor: "pointer",
+                  WebkitTapHighlightColor: "transparent",
+                  transition: brand.motion.snap,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "12px",
+                }}
+              >
+                <div style={{
+                  width: "28px", height: "28px", borderRadius: "8px", flexShrink: 0,
+                  background: `${style.accent}18`,
+                  border: `1px solid ${style.accent}30`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "14px", color: style.accent, marginTop: "1px",
+                }}>
+                  {style.icon}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "9px", fontWeight: "700", letterSpacing: "0.14em", textTransform: "uppercase", color: style.accent, marginBottom: "3px" }}>
+                    {d.label}
+                  </div>
+                  <div style={{ fontSize: "13px", fontWeight: "500", color: brand.text.secondary, lineHeight: 1.4 }}>
+                    {d.description}
+                  </div>
+                </div>
+              </button>
+            );
+          })
       }
+    </div>
+  );
+}
+
+// ── Knowledge reveal ────────────────────────────────────────────────────────────
+
+function KnowledgeReveal({ reveal, takeaway }: { reveal?: string; takeaway?: string }) {
+  if (!reveal && !takeaway) return null;
+  return (
+    <div style={{
+      marginTop: "20px",
+      padding: "16px 18px",
+      borderRadius: brand.radius.item,
+      background: brand.bg.raised,
+      border: `1px solid ${brand.border.item}`,
+      display: "flex",
+      flexDirection: "column",
+      gap: "10px",
+    }}>
+      {reveal && (
+        <p style={{ margin: 0, fontSize: "13px", color: brand.text.secondary, lineHeight: 1.65 }}>
+          {reveal}
+        </p>
+      )}
+      {takeaway && (
+        <p style={{ margin: 0, fontSize: "12px", fontWeight: "600", color: brand.text.muted, lineHeight: 1.5, borderTop: `1px solid ${brand.border.item}`, paddingTop: "10px" }}>
+          💬 {takeaway}
+        </p>
+      )}
     </div>
   );
 }
 
 // ── Loading skeleton ─────────────────────────────────────────────────────────────
 
-function CardSkeleton() {
+function CardSkeleton({ topic }: { topic: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div style={{ fontSize: "12px", color: brand.text.muted, marginBottom: "4px" }}>
+        Learning about <span style={{ color: brand.text.secondary, fontWeight: "600" }}>{topic}</span>…
+      </div>
       <div style={{ height: "160px", borderRadius: "18px", background: brand.bg.raised, opacity: 0.6 }} />
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} style={{ height: "52px", borderRadius: brand.radius.item, background: brand.bg.raised, opacity: 0.3 + i * 0.1 }} />
+      {[90, 72, 72, 90].map((h, i) => (
+        <div key={i} style={{ height: `${h}px`, borderRadius: brand.radius.item, background: brand.bg.raised, opacity: 0.25 + i * 0.08 }} />
       ))}
     </div>
   );
@@ -79,26 +142,18 @@ function CardSkeleton() {
 
 // ── Game renderer ─────────────────────────────────────────────────────────────────
 
-function GameRenderer({ card, onComplete, suggestions, loadingSuggestions, onSelectSuggestion }: {
-  card: InterestCard;
-  onComplete: () => void;
-  suggestions: string[];
-  loadingSuggestions: boolean;
-  onSelectSuggestion: (s: string) => void;
-}) {
-  const suggestionItems = suggestions.map((s, i) => ({ id: `sug-${i}`, question: s }));
-
+function GameRenderer({ card, onComplete }: { card: InterestCard; onComplete: () => void }) {
   if (card.mechanic === "sequence") {
-    return <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={onComplete} suggestions={suggestionItems} loadingSuggestions={loadingSuggestions} onSelectSuggestion={onSelectSuggestion} loadingNugget={null} />;
+    return <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} />;
   }
   if (card.mechanic === "grouping") {
-    return <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={onComplete} suggestions={suggestionItems} loadingSuggestions={loadingSuggestions} onSelectSuggestion={onSelectSuggestion} loadingNugget={null} />;
+    return <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} />;
   }
   if (card.mechanic === "matching") {
-    return <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={onComplete} suggestions={suggestionItems} loadingSuggestions={loadingSuggestions} onSelectSuggestion={onSelectSuggestion} loadingNugget={null} />;
+    return <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} />;
   }
   if (card.mechanic === "multiple-choice") {
-    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onComplete} suggestions={suggestionItems} loadingSuggestions={loadingSuggestions} onSelectSuggestion={onSelectSuggestion} loadingNugget={null} />;
+    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} />;
   }
   return null;
 }
@@ -115,7 +170,7 @@ function CardHero({ card }: { card: InterestCard }) {
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.7) 100%)" }} />
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "14px 18px 16px" }}>
         <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: "5px" }}>
-          My Interest · {mechLabel[card.mechanic] ?? card.mechanic}
+          Follow Your Curiosity · {mechLabel[card.mechanic] ?? card.mechanic}
         </div>
         <div style={{ fontSize: "clamp(1.1rem, 5vw, 1.3rem)", fontWeight: "800", color: "#ffffff", lineHeight: "1.18", letterSpacing: "-0.025em", textShadow: "0 1px 8px rgba(0,0,0,0.3)" }}>
           {card.question}
@@ -131,38 +186,53 @@ type Phase = "input" | "loading" | "card";
 
 export default function InterestsPage() {
   const router = useRouter();
-  const { recordCorrect } = useProfile();
+  const { profile, recordCorrect } = useProfile();
 
   const [phase, setPhase] = useState<Phase>("input");
+  const [loadingTopic, setLoadingTopic] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [card, setCard] = useState<InterestCard | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [nextDirections, setNextDirections] = useState<NextDirection[]>([]);
+  const [loadingNext, setLoadingNext] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
+  const [recentMechanics, setRecentMechanics] = useState<string[]>([]);
   const [cardCompleted, setCardCompleted] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (phase === "input") inputRef.current?.focus();
   }, [phase]);
 
+  // Scroll to top of card when a new one loads
+  useEffect(() => {
+    if (phase === "card") {
+      setTimeout(() => cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    }
+  }, [phase, card]);
+
+  const completedQuestions = profile.history.map((h) => h.question);
+
   async function generate(topic: string) {
     setPhase("loading");
+    setLoadingTopic(topic);
     setCardCompleted(false);
+    setNextDirections([]);
 
     try {
       const res = await fetch("/api/nuggets/interests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, history }),
+        body: JSON.stringify({ topic, history, completedQuestions, recentMechanics }),
       });
       const data: GenerateResponse = await res.json();
       if (!data.card) throw new Error("No card");
 
       setCard(data.card);
-      setSuggestions(data.suggestions ?? []);
+      setNextDirections(data.nextDirections ?? []);
       setHistory((prev) => [...prev, topic]);
+      setRecentMechanics((prev) => [...prev, data.card.mechanic]);
       setPhase("card");
     } catch {
       setPhase("input");
@@ -177,10 +247,9 @@ export default function InterestsPage() {
     generate(val);
   }
 
-  function handleSuggestionSelect(s: string) {
-    setSuggestions([]);
-    setLoadingSuggestions(true);
-    generate(s).finally(() => setLoadingSuggestions(false));
+  function handleDirectionSelect(topic: string) {
+    setLoadingNext(true);
+    generate(topic).finally(() => setLoadingNext(false));
   }
 
   function handleCardComplete() {
@@ -190,20 +259,20 @@ export default function InterestsPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
-      <ShellBar title="My Interest" onBack={() => router.push("/nuggets")} />
+      <ShellBar title="Follow Your Curiosity" onBack={() => router.push("/nuggets")} />
 
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "64px", paddingBottom: "48px" }}>
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "64px", paddingBottom: "64px" }}>
         <div style={{ width: "100%", maxWidth: "390px", padding: "16px 20px", display: "flex", flexDirection: "column" }}>
 
-          {/* Input phase */}
+          {/* ── Input phase ── */}
           {phase === "input" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               <div>
                 <h1 style={{ margin: "0 0 8px", fontSize: "24px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1.15 }}>
-                  What do you want to learn?
+                  Follow your curiosity.
                 </h1>
                 <p style={{ margin: 0, fontSize: "14px", color: brand.text.muted, lineHeight: 1.6 }}>
-                  Type anything — a topic, a question, or just a word.
+                  Type a topic, a name, a question — anything. Your Learning Director takes it from there.
                 </p>
               </div>
 
@@ -243,17 +312,16 @@ export default function InterestsPage() {
                     WebkitTapHighlightColor: "transparent",
                   }}
                 >
-                  Generate
+                  Start learning
                 </button>
               </form>
 
-              {/* Quick start chips */}
               <div>
                 <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: brand.text.muted, marginBottom: "10px" }}>
-                  Try something
+                  Open a door
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                  {["Roman Empire", "Black holes", "The stock market", "DNA", "Ancient Egypt", "Cryptocurrency"].map((s) => (
+                  {["Roman Empire", "Black holes", "Jazz history", "Ancient Egypt", "How vaccines work", "Cryptocurrency"].map((s) => (
                     <button
                       key={s}
                       onClick={() => generate(s)}
@@ -278,31 +346,24 @@ export default function InterestsPage() {
             </div>
           )}
 
-          {/* Loading phase */}
-          {phase === "loading" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <div style={{ fontSize: "13px", color: brand.text.muted, marginBottom: "8px" }}>Generating your card…</div>
-              <CardSkeleton />
-            </div>
-          )}
+          {/* ── Loading phase ── */}
+          {phase === "loading" && <CardSkeleton topic={loadingTopic} />}
 
-          {/* Card phase */}
+          {/* ── Card phase ── */}
           {phase === "card" && card && (
-            <div style={{ display: "flex", flexDirection: "column" }}>
+            <div ref={cardRef} style={{ display: "flex", flexDirection: "column" }}>
               <CardHero card={card} />
-              <GameRenderer
-                card={card}
-                onComplete={handleCardComplete}
-                suggestions={cardCompleted ? suggestions : []}
-                loadingSuggestions={loadingSuggestions}
-                onSelectSuggestion={handleSuggestionSelect}
-              />
+              <GameRenderer card={card} onComplete={handleCardComplete} />
+
               {cardCompleted && (
-                <SuggestionChips
-                  suggestions={suggestions}
-                  onSelect={handleSuggestionSelect}
-                  loading={loadingSuggestions}
-                />
+                <>
+                  <KnowledgeReveal reveal={card.knowledgeReveal} takeaway={card.conversationTakeaway} />
+                  <NextDirections
+                    directions={nextDirections}
+                    onSelect={handleDirectionSelect}
+                    loading={loadingNext}
+                  />
+                </>
               )}
             </div>
           )}

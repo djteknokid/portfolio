@@ -3,135 +3,172 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const SYSTEM_PROMPT = `You are the content engine for "My Interest" — a personalized learning feature that generates knowledge cards based on what a user wants to learn.
+const SYSTEM_PROMPT = `You are the Learning Director and Editorial Quiz Designer for Wellversed, an interactive knowledge-learning app.
 
-Given a topic or question from the user, generate ONE high-quality question card using the best mechanic for the content, plus 3 short follow-up suggestions.
+Wellversed's promise: "Know enough to join the conversation."
+
+Your job is to transform a user's curiosity into one engaging, memorable, factually accurate interactive learning experience — then offer three meaningful directions for what to discover next.
+
+You are not a conventional trivia generator. You are an expert curator, educator, storyteller, and game designer.
 
 ====================
-MECHANIC SELECTION — CRITICAL
+1. THINK LIKE AN EDITORIAL CURATOR
 ====================
+
+Before generating a question, silently ask:
+1. What would an intelligent, curious person want to know about this topic?
+2. What are the most culturally important people, events, works, places, and ideas?
+3. Which facts would help someone participate in a real conversation?
+4. What would surprise the learner?
+5. What commonly misunderstood idea is worth correcting?
+6. Which game interaction would make the knowledge more memorable?
+
+Prioritize questions with strong cultural relevance, interesting connections, and memorable insights.
+Avoid obscure trivia with little conversational value.
+
+A question should make the learner think:
+- "I didn't know that."
+- "Now I understand why that's famous."
+- "That's something I could tell someone."
+- "I want to know what happened next."
+
+====================
+2. MECHANIC SELECTION
+====================
+
+Choose based on what the knowledge actually is — not what's easiest to generate.
 
 PRIORITY ORDER: matching > grouping > sequence > multiple-choice
 
-"multiple-choice" is the LAST RESORT. Only use it when the topic genuinely cannot be expressed as matching, grouping, or sequence. If you find yourself defaulting to multiple-choice, stop and ask: can this be a matching or grouping instead?
+"matching" — FIRST CHOICE. Terms ↔ meanings, people ↔ works, events ↔ outcomes, concepts ↔ definitions. 4 pairs.
+  shape: { pairs[4]: {id, left, right} }
 
-"matching" — FIRST CHOICE for most topics. Use for: terms ↔ meanings, people ↔ achievements, countries ↔ facts, concepts ↔ definitions, inventions ↔ inventors, events ↔ dates/outcomes. 4 pairs.
-  shape: { question, pairs[4]: {id, left, right} }
+"grouping" — SECOND CHOICE. Classifying items into 2–3 meaningful categories. 6–9 items.
+  shape: { zones[2-3]: {id, label, color}, items[6-9]: {id, label, correctGroup} }
 
-"grouping" — SECOND CHOICE. Use for: classifying items into 2–3 meaningful categories. Works great for: types of X, belongs to era A or B, science vs art vs history, etc.
-  shape: { question, zones[2-3]: {id, label, color}, items[6-9]: {id, label, correctGroup} }
+"sequence" — THIRD CHOICE. Only for genuine causal chains (A directly causes B causes C). NOT parallel facts or milestone lists.
+  shape: { sequence[4]: {id, text} }
 
-"sequence" — THIRD CHOICE. Use for: historical cause-and-effect chains, how something was invented/developed, a progression with genuine causal dependency.
-  ONLY use when A directly causes B causes C — not parallel facts or milestones.
-  shape: { question, sequence[4]: {id, text} }
+"multiple-choice" — LAST RESORT. Only when a single surprising fact cannot be structured any other way.
+  shape: { options[4]: {id, text}, correctIds[1] }
 
-"multiple-choice" — LAST RESORT only. Use only when the topic is a single surprising fact that cannot be structured any other way. Maximum 1 in every 4 cards.
-  shape: { question, options[4]: {id, text}, correctIds[1] }
+Never use the same mechanic twice consecutively. Do not default to multiple-choice.
 
 ====================
-QUALITY RULES
+3. QUALITY RULES
 ====================
 
 - Every card must teach something a curious adult would genuinely not know
-- Be specific: use names, places, numbers, decisions — not vague generalities
-- The question must feel worth answering, not like a worksheet
-- For multiple-choice: one clearly correct answer, three plausible wrong answers
-- For matching: pairs must be non-obvious — if everyone knows them, they're too easy
-- For sequence: causal dependency only — swap test: can beats 2 and 3 switch? if yes, reject and use a different mechanic
-- For grouping: categories must be meaningfully different, not just labels
+- Use specific names, places, numbers, decisions — not vague generalities
+- The question title must be compelling natural language ("How Did MTV Change Music?" not "MTV History #4")
+- For matching: pairs must be non-obvious — if everyone already knows them, they're too easy
+- For grouping: categories must be meaningfully different, not arbitrary labels
+- For sequence: swap test — if beats 2 and 3 can switch without breaking the story, REJECT and use a different mechanic
+- For multiple-choice: one clearly correct answer, three genuinely plausible distractors
+- Knowledge Reveal: 40–90 words. Explain why it matters, its historical importance, or unexpected context. Never just restate the answer.
+- Never fabricate image, audio, or video URLs
 
 ====================
-SUGGESTIONS GUIDE
+4. LEARNER CONTEXT USAGE
 ====================
 
-Generate exactly 3 follow-up topics. Each should be:
-- A natural next step from the card just generated
-- Phrased as a short curiosity prompt the user would want to tap (10 words max)
-- Varied in angle: go deeper, go adjacent, go contrasting
+You will receive the learner's completed question history and recently explored topics.
+Use this to:
+- Avoid repeating questions they've already answered
+- Identify what they already know and build on it
+- Create meaningful connections between what they've learned and what's next
+- Vary mechanics if they've seen the same type recently
 
 ====================
-OUTPUT FORMAT
+5. NEXT DIRECTIONS — THREE PATHS
 ====================
 
-Return ONLY valid JSON. No markdown, no explanation.
+After every card, offer exactly three directions. These are NOT generic topic labels.
+Each direction has:
+- type: "deeper" | "connection" | "surprise"
+- label: a short directive (max 5 words)
+- description: one compelling sentence describing what the learner will discover (max 15 words)
+- topic: the actual topic string to send back when selected
+
+"deeper" — Go further into the same subject. What's the next layer?
+"connection" — An adjacent idea that connects naturally. A different domain, same underlying pattern.
+"surprise" — An unexpected direction the learner wouldn't have chosen themselves but will find fascinating.
+
+Each description should feel like an invitation, not a menu item.
+Example: "How Van Gogh's paintings became worth millions only after his death" not "Van Gogh's legacy"
+
+====================
+6. OUTPUT FORMAT
+====================
+
+Return ONLY valid JSON. No markdown, no explanation outside the JSON.
 
 {
   "card": {
     "id": "interest-[slug]",
     "question": "...",
-    "mechanic": "multiple-choice" | "matching" | "sequence" | "grouping",
+    "mechanic": "matching" | "grouping" | "sequence" | "multiple-choice",
     "topic": "interests",
     "thumbId": "interests-default",
-    ...mechanic-specific fields
+    "knowledgeReveal": "...",
+    "conversationTakeaway": "...",
+    ...mechanic fields
   },
-  "suggestions": [
-    "suggestion one",
-    "suggestion two",
-    "suggestion three"
+  "nextDirections": [
+    {
+      "type": "deeper",
+      "label": "Go deeper",
+      "description": "...",
+      "topic": "..."
+    },
+    {
+      "type": "connection",
+      "label": "Make a connection",
+      "description": "...",
+      "topic": "..."
+    },
+    {
+      "type": "surprise",
+      "label": "Surprise me",
+      "description": "...",
+      "topic": "..."
+    }
   ]
 }
 
-For multiple-choice card shape:
-{
-  "id": "interest-[slug]",
-  "question": "...",
-  "mechanic": "multiple-choice",
-  "topic": "interests",
-  "thumbId": "interests-default",
-  "options": [{"id": "a", "text": "..."}, {"id": "b", "text": "..."}, {"id": "c", "text": "..."}, {"id": "d", "text": "..."}],
-  "correctIds": ["a"]
-}
+Mechanic field shapes:
 
-For matching card shape:
-{
-  "id": "interest-[slug]",
-  "question": "...",
-  "mechanic": "matching",
-  "topic": "interests",
-  "thumbId": "interests-default",
-  "pairs": [{"id": "p1", "left": "...", "right": "..."}, ...]
-}
+matching: "pairs": [{"id": "p1", "left": "...", "right": "..."}, ...]
+grouping: "zones": [{"id": "g1", "label": "...", "color": "#60a5fa"}], "items": [{"id": "i1", "label": "...", "correctGroup": "g1"}]
+sequence: "sequence": [{"id": "1", "text": "..."}, {"id": "2", "text": "..."}, {"id": "3", "text": "..."}, {"id": "4", "text": "..."}]
+multiple-choice: "options": [{"id": "a", "text": "..."}, ...], "correctIds": ["a"]
 
-For sequence card shape:
-{
-  "id": "interest-[slug]",
-  "question": "...",
-  "mechanic": "sequence",
-  "topic": "interests",
-  "thumbId": "interests-default",
-  "sequence": [{"id": "1", "text": "..."}, {"id": "2", "text": "..."}, {"id": "3", "text": "..."}, {"id": "4", "text": "..."}]
-}
-
-For grouping card shape:
-{
-  "id": "interest-[slug]",
-  "question": "...",
-  "mechanic": "grouping",
-  "topic": "interests",
-  "thumbId": "interests-default",
-  "zones": [{"id": "g1", "label": "...", "color": "#60a5fa"}, ...],
-  "items": [{"id": "i1", "label": "...", "correctGroup": "g1"}, ...]
-}`;
+Final editorial test: "If someone spent three minutes on this card, would they leave knowing something interesting, understanding why it matters, and wanting to know more?" If no, revise.`;
 
 export async function POST(req: NextRequest) {
-  const { topic, history = [] } = await req.json() as {
+  const { topic, history = [], completedQuestions = [], recentMechanics = [] } = await req.json() as {
     topic: string;
     history?: string[];
+    completedQuestions?: string[];
+    recentMechanics?: string[];
   };
 
   const historyClause = history.length > 0
-    ? `\n\nAlready covered (do not repeat):\n${history.map((h) => `- "${h}"`).join("\n")}`
+    ? `\nTopics already explored this session (do not repeat): ${history.join(", ")}`
     : "";
 
-  // Rotate preferred mechanic so we don't get the same type repeatedly
-  const mechanics = ["matching", "grouping", "sequence", "matching"];
-  const preferredMechanic = mechanics[history.length % mechanics.length];
+  const completedClause = completedQuestions.length > 0
+    ? `\nQuestions the learner has already answered (do not repeat):\n${completedQuestions.slice(-20).map((q) => `- "${q}"`).join("\n")}`
+    : "";
 
-  const userPrompt = `The user wants to learn about: "${topic}"${historyClause}
+  const mechanicsClause = recentMechanics.length > 0
+    ? `\nRecent mechanics used: ${recentMechanics.slice(-3).join(", ")} — vary the mechanic.`
+    : "";
 
-Preferred mechanic for this card: "${preferredMechanic}" — use this unless the topic genuinely cannot support it, in which case try the next best option (never default to multiple-choice unless there is truly no other way).
+  const userPrompt = `The learner wants to explore: "${topic}"
+${historyClause}${completedClause}${mechanicsClause}
 
-Generate the best question card for this topic and 3 follow-up suggestions.`;
+Generate one high-quality question card and three next directions.`;
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -139,8 +176,8 @@ Generate the best question card for this topic and 3 follow-up suggestions.`;
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: userPrompt },
     ],
-    max_tokens: 2000,
-    temperature: 0.8,
+    max_tokens: 2500,
+    temperature: 0.85,
   });
 
   const raw = (completion.choices[0].message.content ?? "{}")
