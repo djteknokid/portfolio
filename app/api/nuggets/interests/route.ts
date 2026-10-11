@@ -8,23 +8,25 @@ const SYSTEM_PROMPT = `You are the content engine for "My Interest" — a person
 Given a topic or question from the user, generate ONE high-quality question card using the best mechanic for the content, plus 3 short follow-up suggestions.
 
 ====================
-MECHANIC GUIDE
+MECHANIC SELECTION — CRITICAL
 ====================
 
-Choose the mechanic that best fits the content:
+PRIORITY ORDER: matching > grouping > sequence > multiple-choice
 
-"multiple-choice" — best for: definitions, identifying facts, recognizing concepts, "which one is correct" questions
-  shape: { question, options[4]: {id, text}, correctIds[1] }
+"multiple-choice" is the LAST RESORT. Only use it when the topic genuinely cannot be expressed as matching, grouping, or sequence. If you find yourself defaulting to multiple-choice, stop and ask: can this be a matching or grouping instead?
 
-"matching" — best for: pairing terms with meanings, people with works, countries with capitals
+"matching" — FIRST CHOICE for most topics. Use for: terms ↔ meanings, people ↔ achievements, countries ↔ facts, concepts ↔ definitions, inventions ↔ inventors, events ↔ dates/outcomes. 4 pairs.
   shape: { question, pairs[4]: {id, left, right} }
 
-"sequence" — best for: historical cause-and-effect chains, how something developed over time
-  ONLY use when there is a genuine causal chain (A causes B causes C). Do NOT use for parallel facts.
+"grouping" — SECOND CHOICE. Use for: classifying items into 2–3 meaningful categories. Works great for: types of X, belongs to era A or B, science vs art vs history, etc.
+  shape: { question, zones[2-3]: {id, label, color}, items[6-9]: {id, label, correctGroup} }
+
+"sequence" — THIRD CHOICE. Use for: historical cause-and-effect chains, how something was invented/developed, a progression with genuine causal dependency.
+  ONLY use when A directly causes B causes C — not parallel facts or milestones.
   shape: { question, sequence[4]: {id, text} }
 
-"grouping" — best for: classifying items into 2–3 categories
-  shape: { question, zones[2-3]: {id, label, color}, items[6-9]: {id, label, correctGroup} }
+"multiple-choice" — LAST RESORT only. Use only when the topic is a single surprising fact that cannot be structured any other way. Maximum 1 in every 4 cards.
+  shape: { question, options[4]: {id, text}, correctIds[1] }
 
 ====================
 QUALITY RULES
@@ -121,7 +123,13 @@ export async function POST(req: NextRequest) {
     ? `\n\nAlready covered (do not repeat):\n${history.map((h) => `- "${h}"`).join("\n")}`
     : "";
 
+  // Rotate preferred mechanic so we don't get the same type repeatedly
+  const mechanics = ["matching", "grouping", "sequence", "matching"];
+  const preferredMechanic = mechanics[history.length % mechanics.length];
+
   const userPrompt = `The user wants to learn about: "${topic}"${historyClause}
+
+Preferred mechanic for this card: "${preferredMechanic}" — use this unless the topic genuinely cannot support it, in which case try the next best option (never default to multiple-choice unless there is truly no other way).
 
 Generate the best question card for this topic and 3 follow-up suggestions.`;
 
