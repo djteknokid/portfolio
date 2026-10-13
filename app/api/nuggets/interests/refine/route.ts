@@ -26,22 +26,21 @@ Generate exactly 3 of the 12 questions that create a surprising bridge between t
 
   const prompt = `The learner typed: "${topic}"
 
-Generate exactly 12 short pill labels for sub-topics the learner can explore. Each label must be 1–3 words maximum — like a chip button, not a sentence.
+Generate exactly 12 short pill labels for specific, concrete sub-topics they can explore about "${topic}". Each label must be 1–3 words maximum — like a chip button, not a sentence.
 
 ${historyClause}
 
-Examples of good labels: "Origin story", "Health effects", "Famous figures", "vs. today", "Dark side", "Key technique", "Why it matters", "Cultural impact", "Surprising fact"
-
 Rules:
-- 1–3 words only — no questions, no full sentences, no prefixes like "Bridge:"
-- Each must be a genuinely different angle on the topic
+- 1–3 words only — no questions, no full sentences
+- Every label must be specific to "${topic}" — if it could appear on a pill for a completely different topic (e.g. "Key figures", "History", "Cultural impact", "Famous people"), it is too generic. Reject it.
+- Think: what are the actual specific things someone curious about "${topic}" would want to explore? Name those things directly.
+- Vary the angles: how it works, specific techniques, types/varieties, common mistakes, unexpected uses, sensory experience, where to start, controversies, science behind it
 - ${history.length > 0 ? "Exactly 3 must bridge the learner's history to this new topic (bridge: true). The other 9 are pure topic angles (bridge: false)." : "All 12 are topic angles (bridge: false)."}
-- Vary the angles: origin, science, history, culture, controversy, daily life, unexpected consequence, famous person, modern relevance
 
 Return valid JSON only:
 {
   "pills": [
-    { "label": "Origin story", "bridge": false },
+    { "label": "Natural wine", "bridge": false },
     ...
   ]
 }`;
