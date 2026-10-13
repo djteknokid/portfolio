@@ -46,6 +46,33 @@ export default function SequenceGame({ question: _question, sequence, onComplete
   const ghostRef = useRef<HTMLDivElement | null>(null);
   const pointerOffset = useRef({ x: 0, y: 0 });
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const scrollRAF = useRef<number | null>(null);
+  const lastPointer = useRef({ x: 0, y: 0 });
+
+  function startEdgeScroll() {
+    if (scrollRAF.current !== null) return;
+    function tick() {
+      const { y } = lastPointer.current;
+      const vh = window.innerHeight;
+      const zone = 80;
+      if (y < zone) {
+        const speed = Math.round(((zone - y) / zone) * 12);
+        window.scrollBy(0, -speed);
+      } else if (y > vh - zone) {
+        const speed = Math.round(((y - (vh - zone)) / zone) * 12);
+        window.scrollBy(0, speed);
+      }
+      scrollRAF.current = requestAnimationFrame(tick);
+    }
+    scrollRAF.current = requestAnimationFrame(tick);
+  }
+
+  function stopEdgeScroll() {
+    if (scrollRAF.current !== null) {
+      cancelAnimationFrame(scrollRAF.current);
+      scrollRAF.current = null;
+    }
+  }
 
   useEffect(() => {
     const el = itemRefs.current[0];
@@ -112,7 +139,9 @@ export default function SequenceGame({ question: _question, sequence, onComplete
   function onPointerMove(e: React.PointerEvent) {
     if (!dragging.current) return;
     e.preventDefault();
+    lastPointer.current = { x: e.clientX, y: e.clientY };
     moveGhost(e.clientX, e.clientY);
+    startEdgeScroll();
     const over = getIndexAtPoint(e.clientX, e.clientY);
     if (over !== null) setDropIndex(over);
   }
@@ -120,6 +149,7 @@ export default function SequenceGame({ question: _question, sequence, onComplete
   function onPointerUp(e: React.PointerEvent) {
     if (!dragging.current) return;
     dragging.current = false;
+    stopEdgeScroll();
     destroyGhost();
 
     const from = dragIdx.current;
@@ -145,6 +175,7 @@ export default function SequenceGame({ question: _question, sequence, onComplete
     function cleanup() {
       if (dragging.current) {
         dragging.current = false;
+        stopEdgeScroll();
         destroyGhost();
         dragIdx.current = null;
         setDragIndex(null);
@@ -195,7 +226,7 @@ export default function SequenceGame({ question: _question, sequence, onComplete
       <div style={{ fontSize: "11px", fontWeight: "600", letterSpacing: "0.1em", textTransform: "uppercase", color: brand.text.muted }}>
         Drag into the right order
       </div>
-      <div style={{ display: "flex", flexDirection: "column", position: "relative", paddingLeft: "40px", touchAction: "none" }}>
+      <div style={{ display: "flex", flexDirection: "column", position: "relative", paddingLeft: "40px" }}>
 
         {/* Subway map */}
         {itemHeight > 0 && (
