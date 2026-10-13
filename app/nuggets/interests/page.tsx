@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { brand } from "../brand";
 import ShellBar from "../ShellBar";
 import { useProfile } from "../useProfile";
+import UserMenu from "../UserMenu";
 import SequenceGame from "../SequenceGame";
 import GroupingGame from "../GroupingGame";
 import MatchingGame from "../MatchingGame";
@@ -546,7 +547,7 @@ type RefinePill = { label: string; bridge: boolean };
 
 export default function InterestsPage() {
   const router = useRouter();
-  const { profile, recordCorrect } = useProfile();
+  const { profile, synced, recordCorrect } = useProfile();
 
   const [phase, setPhaseRaw] = useState<Phase>("input");
   function setPhase(next: Phase) {
@@ -708,7 +709,28 @@ export default function InterestsPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
-      <ShellBar title="Follow Your Curiosity" onBack={() => router.push("/nuggets")} />
+      <ShellBar
+        title="Follow Your Curiosity"
+        onBack={() => router.push("/nuggets")}
+        right={
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <button
+              onClick={() => router.push("/nuggets/leaderboard")}
+              style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}
+            >
+              <span style={{ fontSize: "16px", lineHeight: 1 }}>🏆</span>
+              <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>Board</span>
+            </button>
+            <button
+              style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}
+            >
+              <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{synced ? profile.score : "—"}</span>
+              <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>solved</span>
+            </button>
+            <UserMenu />
+          </div>
+        }
+      />
 
       <main style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "64px", paddingBottom: "64px" }}>
         <div style={{ width: "100%", maxWidth: "390px", padding: "16px 20px", display: "flex", flexDirection: "column" }}>

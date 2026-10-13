@@ -192,6 +192,9 @@ export default function SequenceGame({ question: _question, sequence, onComplete
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <div style={{ fontSize: "11px", fontWeight: "600", letterSpacing: "0.1em", textTransform: "uppercase", color: brand.text.muted }}>
+        Drag into the right order
+      </div>
       <div style={{ display: "flex", flexDirection: "column", position: "relative", paddingLeft: "40px" }}>
 
         {/* Subway map */}
