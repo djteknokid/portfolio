@@ -21,9 +21,10 @@ interface Props {
   loadingSuggestions?: boolean;
   onSelectSuggestion?: (q: string) => void;
   loadingNugget?: string | null;
+  autoComplete?: boolean;
 }
 
-export default function MultipleChoiceGame({ question: _q, mediaUrl, options, correctIds, onComplete, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
+export default function MultipleChoiceGame({ question: _q, mediaUrl, options, correctIds, onComplete, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget, autoComplete = false }: Props) {
   const isMulti = correctIds.length > 1;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
@@ -174,7 +175,7 @@ export default function MultipleChoiceGame({ question: _q, mediaUrl, options, co
       </div>
 
       {allDone && (
-        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} />
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} autoComplete={autoComplete} />
       )}
     </div>
   );

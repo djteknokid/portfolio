@@ -23,6 +23,7 @@ interface Props {
   loadingSuggestions?: boolean;
   onSelectSuggestion?: (q: string) => void;
   loadingNugget?: string | null;
+  autoComplete?: boolean;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -36,7 +37,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 interface EvalResult { id: string; isCorrect: boolean }
 
-export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
+export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget, autoComplete = false }: Props) {
   const [shuffledRight] = useState(() => shuffle(pairs.map((p) => ({ id: p.id, text: p.right }))));
   const [connections, setConnections] = useState<Record<string, string>>({});
   const [evalResults, setEvalResults] = useState<EvalResult[] | null>(null);
@@ -312,7 +313,7 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
           )}
         </div>
       ) : (
-        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} />
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} autoComplete={autoComplete} />
       )}
     </div>
   );

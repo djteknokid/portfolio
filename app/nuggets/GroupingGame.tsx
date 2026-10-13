@@ -30,6 +30,7 @@ interface Props {
   loadingSuggestions?: boolean;
   onSelectSuggestion?: (q: string) => void;
   loadingNugget?: string | null;
+  autoComplete?: boolean;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -43,7 +44,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 interface EvalResult { id: string; isCorrect: boolean }
 
-export default function GroupingGame({ items, zones, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
+export default function GroupingGame({ items, zones, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget, autoComplete = false }: Props) {
   const [placement, setPlacement] = useState<Record<string, string | null>>(
     () => Object.fromEntries(items.map((i) => [i.id, null]))
   );
@@ -181,16 +182,16 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
         const zoneItems = shuffled.filter((i) => placement[i.id] === zone.id);
         return (
           <div key={zone.id}>
-            <div style={{ ...brand.type.label, fontSize: brand.type.label.size, color: zone.color, marginBottom: "8px" }}>
+            <div style={{ ...brand.type.label, fontSize: brand.type.label.size, color: brand.text.secondary, marginBottom: "8px" }}>
               {zone.label}
             </div>
             <div
               ref={(el) => { zoneRefs.current[zone.id] = el; }}
               style={{
-                minHeight: "64px",
+                minHeight: "72px",
                 borderRadius: brand.radius.item,
-                border: `1px dashed ${zone.color}44`,
-                background: `${zone.color}0a`,
+                border: `1px solid ${zoneItems.length === 0 ? brand.border.item : zone.color + "55"}`,
+                background: zoneItems.length === 0 ? brand.bg.raised : `${zone.color}0d`,
                 padding: "10px",
                 display: "flex",
                 flexWrap: "wrap",
@@ -221,8 +222,8 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
                 );
               })}
               {zoneItems.length === 0 && (
-                <span style={{ fontSize: "11px", color: zone.color, opacity: 0.3, padding: "4px 2px" }}>
-                  Drop here
+                <span style={{ fontSize: "12px", color: brand.text.muted, opacity: 0.5, padding: "4px 2px", width: "100%", textAlign: "center", alignSelf: "center" }}>
+                  Drag chips here
                 </span>
               )}
             </div>
@@ -306,7 +307,7 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
           )}
         </div>
       ) : (
-        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} />
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} autoComplete={autoComplete} />
       )}
     </div>
   );
@@ -346,6 +347,7 @@ function ItemChip({
         transition: "border-color 300ms ease, background 300ms ease, box-shadow 300ms ease",
       }}
     >
+      {!allDone && <span style={{ fontSize: "10px", color, opacity: 0.25, flexShrink: 0, letterSpacing: "0.05em" }}>⠿</span>}
       {item.emoji && <span style={{ fontSize: "18px", lineHeight: 1 }}>{item.emoji}</span>}
       <span style={{ fontSize: "13px", fontWeight: "500", color, lineHeight: 1.3, transition: "color 300ms ease" }}>
         {item.label}

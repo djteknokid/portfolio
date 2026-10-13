@@ -138,6 +138,33 @@ function SolvedPage({
             <div style={{ fontSize: "10px", fontWeight: "600", color: brand.text.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "6px" }}>Total solved</div>
           </div>
         </div>
+        {/* Per-pack bar charts */}
+        <div style={{ background: brand.bg.raised, border: `1px solid ${brand.border.item}`, borderRadius: "14px", padding: "14px 16px", marginBottom: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          {NUGGET_SETS.map((s) => {
+            const count = answeredQuestions.filter((q) => {
+              const goldRec = allGold.find((g) => g.question === q);
+              if (goldRec) return s.topics.includes(goldRec.topic ?? "");
+              const gameQ = GAME_QUESTIONS.find((g) => g.question === q);
+              if (gameQ) return s.topics.includes(gameQ.topic ?? "");
+              return false;
+            }).length;
+            const pct = Math.min(100, Math.round((count / 100) * 100));
+            const isExpert = count >= 100;
+            return (
+              <div key={s.name}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "5px" }}>
+                  <span style={{ fontSize: "11px", fontWeight: "600", color: count > 0 ? brand.text.secondary : brand.text.muted, letterSpacing: "0.02em" }}>{s.name}</span>
+                  <span style={{ fontSize: "11px", fontWeight: "500", color: isExpert ? brand.status.correct.text : brand.text.muted, fontVariantNumeric: "tabular-nums" }}>
+                    {count} / 100{isExpert ? " ✓" : ""}
+                  </span>
+                </div>
+                <div style={{ height: "6px", borderRadius: "99px", background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, borderRadius: "99px", background: isExpert ? brand.status.correct.text : brand.text.primary, transition: "width 0.4s ease" }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
         {answeredQuestions.length === 0 && (
           <span style={{ fontSize: "13px", color: brand.text.muted, padding: "8px 4px", display: "block" }}>Nothing solved yet.</span>
         )}

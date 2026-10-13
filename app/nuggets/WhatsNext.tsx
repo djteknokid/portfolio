@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { brand } from "./brand";
 import SuggestionList, { type Suggestion } from "./SuggestionList";
 
@@ -9,9 +10,16 @@ interface Props {
   loadingNugget?: string | null;
   onSelect?: (question: string) => void;
   onDone?: () => void;
+  autoComplete?: boolean;
 }
 
-export default function WhatsNext({ suggestions, loadingSuggestions = false, loadingNugget, onSelect, onDone }: Props) {
+export default function WhatsNext({ suggestions, loadingSuggestions = false, loadingNugget, onSelect, onDone, autoComplete = false }: Props) {
+  useEffect(() => {
+    if (autoComplete && onDone) onDone();
+  }, [autoComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (autoComplete) return null;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       <div style={{ width: "100%", height: "1px", background: brand.border.item }} />

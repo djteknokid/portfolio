@@ -27,9 +27,10 @@ interface Props {
   loadingSuggestions?: boolean;
   onSelectSuggestion?: (q: string) => void;
   loadingNugget?: string | null;
+  autoComplete?: boolean;
 }
 
-export default function SequenceGame({ question: _question, sequence, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget }: Props) {
+export default function SequenceGame({ question: _question, sequence, onComplete, onSkip, loadingSkip = false, suggestions = [], loadingSuggestions = false, onSelectSuggestion, loadingNugget, autoComplete = false }: Props) {
   const correct = Array.isArray(sequence) ? sequence : [];
   const [items, setItems] = useState(() => shuffle(correct));
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -405,7 +406,7 @@ export default function SequenceGame({ question: _question, sequence, onComplete
           )}
         </div>
       ) : (
-        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={handleDone} />
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={handleDone} autoComplete={autoComplete} />
       )}
     </div>
   );
