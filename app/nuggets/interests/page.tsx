@@ -530,7 +530,7 @@ function CardHero({ card }: { card: InterestCard }) {
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.7) 100%)" }} />
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "14px 18px 16px" }}>
         <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: "5px" }}>
-          Follow Your Curiosity · {label}
+          Topics · {label}
         </div>
         <div style={{ fontSize: "clamp(1.1rem, 5vw, 1.3rem)", fontWeight: "800", color: "#ffffff", lineHeight: "1.18", letterSpacing: "-0.025em", textShadow: "0 1px 8px rgba(0,0,0,0.3)" }}>
           {card.question}
@@ -710,7 +710,7 @@ export default function InterestsPage() {
   return (
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
       <ShellBar
-        title="Follow Your Curiosity"
+        title="Topics"
         onBack={() => router.push("/nuggets")}
         right={
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
@@ -740,7 +740,7 @@ export default function InterestsPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               <div>
                 <h1 style={{ margin: "0 0 8px", fontSize: "24px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.03em", lineHeight: 1.15 }}>
-                  Follow your curiosity.
+                  Explore any topic.
                 </h1>
                 <p style={{ margin: 0, fontSize: "14px", color: brand.text.muted, lineHeight: 1.6 }}>
                   Type a topic, a name, a question — anything. Your Learning Director takes it from there.
