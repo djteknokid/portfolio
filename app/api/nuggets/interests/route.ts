@@ -206,13 +206,17 @@ export async function POST(req: NextRequest) {
 Priority: latest choice > current focus > original intent. Follow the player — but a single choice does not permanently change the intent.${breadthClause}`
     : "";
 
-  const isMusicFirstCard = isMusicTopic(topic) && history.length === 0;
+  const isMusicSession = isMusicTopic(topic);
+  // First card + every 3rd card in a music session gets YouTube multiple-choice
+  const isMusicYouTubeCard = isMusicSession && (history.length === 0 || history.length % 3 === 2);
 
-  const musicClause = isMusicFirstCard
-    ? `\nMUSIC FIRST CARD — This is a music topic and the player's first card. You MUST:
+  const musicClause = isMusicYouTubeCard
+    ? `\nMUSIC YOUTUBE CARD — This is a music topic. You MUST:
 1. Use mechanic: "multiple-choice"
 2. Include a "youtubeVideoId" field with an exact 11-character YouTube video ID of a well-known, widely available recording directly relevant to the question. Only include a video ID you are confident is correct (e.g. "fJ9rUzIMcZQ" for Bohemian Rhapsody by Queen). If you are not confident of any specific video ID for this topic, omit the field rather than guessing.
 3. Frame the question so the player can listen first, then answer.`
+    : isMusicSession
+    ? `\nMUSIC SESSION — This is a music topic. Consider using image-matching, matching, grouping, or sequence to vary from multiple-choice.`
     : "";
 
   const qualityReminder = `\nBefore outputting, check:
