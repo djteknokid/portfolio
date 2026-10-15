@@ -99,83 +99,57 @@ function isMusicTopic(topic: string): boolean {
 }
 
 // Verified YouTube video IDs (checked via oEmbed 2026-10-15)
-// Format: { tags: string[], id: string, title: string }
-const VERIFIED_MUSIC_VIDEOS = [
+type MusicVideo = { tags: string[]; id: string; title: string; artist: string; context: string };
+const VERIFIED_MUSIC_VIDEOS: MusicVideo[] = [
   // Jazz
-  { tags: ["jazz", "miles davis", "so what", "kind of blue"],       id: "zqNTltOGh5c", title: "Miles Davis - So What" },
-  { tags: ["jazz", "coltrane", "my favorite things"],               id: "XVw3A6VjsOE", title: "John Coltrane - My Favorite Things" },
-  { tags: ["jazz", "dave brubeck", "take five"],                    id: "vmDDOFXSgAs", title: "Dave Brubeck - Take Five" },
-  { tags: ["jazz", "louis armstrong", "wonderful world"],           id: "CaCSuzR4DwM", title: "Louis Armstrong - What A Wonderful World" },
-  { tags: ["jazz", "coltrane", "a love supreme"],                   id: "ni9Cp9mOOOg", title: "John Coltrane - A Love Supreme" },
-  { tags: ["jazz", "bill evans", "autumn leaves"],                  id: "IrAfjW5qiyo", title: "Bill Evans - Autumn Leaves" },
+  { tags: ["jazz", "miles davis", "so what", "kind of blue", "modal"],  id: "zqNTltOGh5c", artist: "Miles Davis", title: "So What",               context: "the opening track of Kind of Blue (1959), the best-selling jazz album ever recorded, which introduced modal jazz — abandoning chord progressions for open scales" },
+  { tags: ["jazz", "coltrane", "my favorite things"],                    id: "XVw3A6VjsOE", artist: "John Coltrane", title: "My Favorite Things",   context: "Coltrane's 1961 transformation of a Rogers & Hammerstein show tune into a 14-minute modal jazz exploration, redefining how jazz could treat familiar material" },
+  { tags: ["jazz", "dave brubeck", "take five", "5/4"],                 id: "vmDDOFXSgAs", artist: "Dave Brubeck", title: "Take Five",              context: "the best-selling jazz single of all time, written in 5/4 time — a meter almost never used in popular music — by the Dave Brubeck Quartet in 1959" },
+  { tags: ["jazz", "louis armstrong", "wonderful world", "dixieland"],  id: "CaCSuzR4DwM", artist: "Louis Armstrong", title: "What a Wonderful World", context: "Armstrong's 1967 recording that became a cultural touchstone, blending jazz phrasing with popular song at a time of social upheaval in America" },
+  { tags: ["jazz", "coltrane", "a love supreme", "spiritual"],          id: "ni9Cp9mOOOg", artist: "John Coltrane", title: "A Love Supreme",         context: "Coltrane's 1964 four-part suite considered his spiritual masterpiece, influencing both jazz and rock musicians for decades" },
+  { tags: ["jazz", "bill evans", "autumn leaves", "piano trio"],        id: "IrAfjW5qiyo", artist: "Bill Evans", title: "Autumn Leaves",            context: "Bill Evans's reharmonisation of a French cabaret song, demonstrating how jazz pianists transform popular standards into vehicles for harmonic exploration" },
   // Classic rock
-  { tags: ["queen", "bohemian rhapsody", "classic rock", "rock"],   id: "fJ9rUzIMcZQ", title: "Queen - Bohemian Rhapsody" },
-  { tags: ["nirvana", "smells like teen spirit", "grunge", "rock"], id: "hTWKbfoikeg", title: "Nirvana - Smells Like Teen Spirit" },
-  { tags: ["guns n roses", "sweet child", "rock"],                  id: "1w7OgIMMRc4", title: "Guns N' Roses - Sweet Child O' Mine" },
-  { tags: ["seven nation army", "white stripes", "rock"],           id: "0J2QdDbelmY", title: "The White Stripes - Seven Nation Army" },
-  { tags: ["linkin park", "in the end", "rock", "alternative"],     id: "eVTXPUF4Oz4", title: "Linkin Park - In The End" },
+  { tags: ["queen", "bohemian rhapsody", "classic rock", "rock", "opera"], id: "fJ9rUzIMcZQ", artist: "Queen", title: "Bohemian Rhapsody",         context: "the 1975 Queen recording that broke every radio rule — no chorus, six minutes long, mixing ballad, opera, and hard rock — and became one of the best-selling singles ever" },
+  { tags: ["nirvana", "smells like teen spirit", "grunge", "rock", "90s"], id: "hTWKbfoikeg", artist: "Nirvana", title: "Smells Like Teen Spirit",  context: "the 1991 single that brought grunge from Seattle to global mainstream, credited with ending the dominance of 1980s hair metal" },
+  { tags: ["guns n roses", "sweet child", "rock", "80s"],               id: "1w7OgIMMRc4", artist: "Guns N' Roses", title: "Sweet Child O' Mine",   context: "the 1988 power ballad built around a guitar riff Slash invented as a joke warm-up exercise, which became one of the most recognisable intros in rock history" },
+  { tags: ["white stripes", "seven nation army", "rock", "blues rock"],  id: "0J2QdDbelmY", artist: "The White Stripes", title: "Seven Nation Army", context: "the 2003 opening riff so simple it became a stadium chant worldwide, played on a guitar run through an octave pedal — many listeners still think it's a bass line" },
+  { tags: ["linkin park", "in the end", "rock", "alternative", "nu metal"], id: "eVTXPUF4Oz4", artist: "Linkin Park", title: "In The End",          context: "the 2000 track that blended rap and rock in a way that defined nu-metal for a generation and remains one of the most-streamed rock songs of all time" },
   // Pop
-  { tags: ["michael jackson", "billie jean", "pop"],                id: "Zi_XLOBDo_Y", title: "Michael Jackson - Billie Jean" },
-  { tags: ["michael jackson", "smooth criminal", "pop"],            id: "h_D3VFfhvs4", title: "Michael Jackson - Smooth Criminal" },
-  { tags: ["ed sheeran", "shape of you", "pop"],                    id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You" },
-  { tags: ["uptown funk", "bruno mars", "mark ronson", "pop"],      id: "OPf0YbXqDm0", title: "Mark Ronson - Uptown Funk ft. Bruno Mars" },
-  { tags: ["taylor swift", "shake it off", "pop"],                  id: "nfWlot6h_JM", title: "Taylor Swift - Shake It Off" },
-  { tags: ["sia", "chandelier", "pop"],                             id: "2vjPBrBU-TM", title: "Sia - Chandelier" },
-  { tags: ["all of me", "john legend", "pop", "soul"],              id: "450p7goxZqg", title: "John Legend - All of Me" },
-  // Hip-hop / rap
-  { tags: ["eminem", "rap", "hip hop", "hip-hop"],                  id: "uelHwf8o7_U", title: "Eminem - Love The Way You Lie" },
-  { tags: ["wiz khalifa", "see you again", "hip hop", "rap"],       id: "RgKAFK5djSk", title: "Wiz Khalifa - See You Again" },
-  { tags: ["lean on", "major lazer", "dj snake", "edm", "pop"],     id: "YqeW9_5kURI", title: "Major Lazer - Lean On" },
-  // Classics / timeless
-  { tags: ["imagine", "john lennon", "beatles", "classic"],         id: "YkgkThdzX-8", title: "John Lennon - Imagine" },
-  { tags: ["jeff buckley", "hallelujah", "classic"],                id: "y8AWFf7EAc4", title: "Jeff Buckley - Hallelujah" },
-  { tags: ["thinking out loud", "ed sheeran", "pop"],               id: "lp-EO5I60KA", title: "Ed Sheeran - Thinking Out Loud" },
+  { tags: ["michael jackson", "billie jean", "pop", "80s", "moonwalk"], id: "Zi_XLOBDo_Y", artist: "Michael Jackson", title: "Billie Jean",        context: "the 1982 Thriller single during which Jackson debuted the moonwalk on Motown 25, with a bassline that producer Quincy Jones initially wanted cut from the album" },
+  { tags: ["michael jackson", "smooth criminal", "pop", "bad"],         id: "h_D3VFfhvs4", artist: "Michael Jackson", title: "Smooth Criminal",     context: "the 1987 Bad track featuring the gravity-defying anti-gravity lean, achieved with special shoes anchored to the stage — a move that required a patented device" },
+  { tags: ["ed sheeran", "shape of you", "pop", "2010s"],               id: "JGwWNGJdvx8", artist: "Ed Sheeran", title: "Shape of You",             context: "the 2017 single that became the most-streamed song on Spotify for years, originally written for Rihanna before Sheeran decided to keep it" },
+  { tags: ["uptown funk", "bruno mars", "mark ronson", "pop", "funk"],  id: "OPf0YbXqDm0", artist: "Mark Ronson ft. Bruno Mars", title: "Uptown Funk", context: "the 2015 funk revival that spent 14 weeks at #1, blending James Brown-era funk with 80s pop production — and triggering a copyright lawsuit from the Gap Band" },
+  { tags: ["taylor swift", "shake it off", "pop", "2010s"],             id: "nfWlot6h_JM", artist: "Taylor Swift", title: "Shake It Off",           context: "Swift's 2014 pivot from country to pure pop, written as a direct response to critics who said she should quit the music industry" },
+  { tags: ["sia", "chandelier", "pop", "2010s", "vocal"],               id: "2vjPBrBU-TM", artist: "Sia", title: "Chandelier",                     context: "the 2014 anthem written from the perspective of a party girl in crisis, with a vocal range and control that established Sia as one of pop's most technically formidable singers" },
+  { tags: ["john legend", "all of me", "pop", "soul", "love song"],     id: "450p7goxZqg", artist: "John Legend", title: "All of Me",              context: "the 2013 love song written entirely about Legend's wife Chrissy Teigen that became a wedding staple, built on a simple piano motif that was one of Legend's first attempts at writing a song" },
+  // Hip-hop
+  { tags: ["eminem", "rap", "hip hop", "hip-hop", "2000s"],             id: "uelHwf8o7_U", artist: "Eminem ft. Rihanna", title: "Love The Way You Lie", context: "the 2010 track that became one of the best-selling singles in history by pairing Eminem's rapid-fire verses about a toxic relationship with Rihanna's hook, drawing on both their real experiences" },
+  { tags: ["wiz khalifa", "see you again", "hip hop", "rap", "tribute"], id: "RgKAFK5djSk", artist: "Wiz Khalifa ft. Charlie Puth", title: "See You Again", context: "the 2015 Fast & Furious tribute to Paul Walker that topped charts in 100 countries and made Charlie Puth a household name, becoming one of the most-watched YouTube videos ever" },
+  // Timeless
+  { tags: ["john lennon", "imagine", "beatles", "classic", "protest"],  id: "YkgkThdzX-8", artist: "John Lennon", title: "Imagine",                context: "Lennon's 1971 anthem often called the greatest protest song ever written, despite Lennon describing it as 'anti-religious, anti-nationalistic, anti-conventional, anti-capitalistic' — while recording it in his mansion" },
+  { tags: ["jeff buckley", "hallelujah", "classic", "cover", "Leonard cohen"], id: "y8AWFf7EAc4", artist: "Jeff Buckley", title: "Hallelujah",     context: "Buckley's 1994 cover of Leonard Cohen's 1984 song, which was barely noticed on release but became one of the most covered songs in history after Buckley's death in 1997" },
 ];
 
-function pickFallbackVideoId(topic: string): string {
+function pickVideoForTopic(topic: string): MusicVideo {
   const lower = topic.toLowerCase();
-  // Find best match by counting tag hits
   let best = VERIFIED_MUSIC_VIDEOS[0];
   let bestScore = 0;
   for (const v of VERIFIED_MUSIC_VIDEOS) {
     const score = v.tags.filter(t => lower.includes(t)).length;
     if (score > bestScore) { bestScore = score; best = v; }
   }
-  return best.id;
+  // If no tag matches at all, pick randomly to avoid always defaulting to index 0
+  if (bestScore === 0) {
+    return VERIFIED_MUSIC_VIDEOS[Math.floor(Math.random() * VERIFIED_MUSIC_VIDEOS.length)];
+  }
+  return best;
 }
 
-async function resolveYouTubeVideo(parsed: Record<string, unknown>, topic: string, useYouTube: boolean): Promise<Record<string, unknown>> {
+async function resolveYouTubeVideo(parsed: Record<string, unknown>, useYouTube: boolean, video: MusicVideo): Promise<Record<string, unknown>> {
   const card = parsed.card as Record<string, unknown> | undefined;
-  if (!card) return parsed;
-  if (!useYouTube) return parsed;
-
-  const videoId = card.youtubeVideoId as string | undefined;
-
-  let resolvedId: string | null = null;
-
-  // Try the AI's suggested ID first
-  if (videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)) {
-    try {
-      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-      if (res.ok) {
-        resolvedId = videoId;
-      } else {
-        console.warn(`[interests] YouTube ${videoId} unavailable (${res.status}) — using fallback`);
-      }
-    } catch {
-      console.warn(`[interests] YouTube oEmbed fetch failed — using fallback`);
-    }
-  }
-
-  // Fall back to a verified ID matched to the topic
-  if (!resolvedId) {
-    resolvedId = pickFallbackVideoId(topic);
-  }
-
-  if (!resolvedId) return parsed;
-
+  if (!card || !useYouTube) return parsed;
   delete card.youtubeVideoId;
-  card.mediaUrl = `https://www.youtube.com/embed/${resolvedId}?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1`;
+  card.mediaUrl = `https://www.youtube.com/embed/${video.id}?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1`;
   return parsed;
 }
 
@@ -276,12 +250,15 @@ Priority: latest choice > current focus > original intent. Follow the player —
   const isMusicSession = isMusicTopic(topic);
   // First card + every 3rd card in a music session gets YouTube multiple-choice
   const isMusicYouTubeCard = isMusicSession && (history.length === 0 || history.length % 3 === 2);
+  const musicVideo = isMusicYouTubeCard ? pickVideoForTopic(topic) : null;
 
-  const musicClause = isMusicYouTubeCard
-    ? `\nMUSIC YOUTUBE CARD — This is a music topic. You MUST:
+  const musicClause = musicVideo
+    ? `\nMUSIC YOUTUBE CARD — You MUST:
 1. Use mechanic: "multiple-choice"
-2. Include a "youtubeVideoId" field with an exact 11-character YouTube video ID of a well-known, widely available recording directly relevant to the question. Only include a video ID you are confident is correct (e.g. "fJ9rUzIMcZQ" for Bohemian Rhapsody by Queen). If you are not confident of any specific video ID for this topic, omit the field rather than guessing.
-3. Frame the question so the player can listen first, then answer.`
+2. Write the question specifically about this song: "${musicVideo.artist} — ${musicVideo.title}"
+   Context about this song: ${musicVideo.context}
+3. Frame the question so the player listens first, then answers. The question should teach something interesting and non-obvious about this specific song.
+4. Do NOT include a youtubeVideoId field — the video is already handled.`
     : isMusicSession
     ? `\nMUSIC SESSION — This is a music topic. Consider using image-matching, matching, grouping, or sequence to vary from multiple-choice.`
     : "";
@@ -314,7 +291,7 @@ Generate one high-quality question card and three next directions.`;
       await Promise.all([
         resolveImageMatching(parsed),
         resolveHeroImage(parsed),
-        resolveYouTubeVideo(parsed, topic, isMusicYouTubeCard),
+        resolveYouTubeVideo(parsed, isMusicYouTubeCard, musicVideo ?? VERIFIED_MUSIC_VIDEOS[0]),
       ]);
       fireEvaluation(parsed, topic, intent, currentFocus, history.length, completedQuestions, baseUrl, experiment);
       return NextResponse.json(parsed);
