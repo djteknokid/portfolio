@@ -121,6 +121,13 @@ export default function DrivePage() {
     };
   }, []);
 
+  // ── Request mic permission once on mount so browser caches the grant ───
+  useEffect(() => {
+    navigator.mediaDevices?.getUserMedia({ audio: true })
+      .then((stream) => { stream.getTracks().forEach((t) => t.stop()); })
+      .catch(() => { /* user denied — STT will handle gracefully */ });
+  }, []);
+
   // ── STT ────────────────────────────────────────────────────────────────
   const startListening = useCallback((onResult: (text: string) => void) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
