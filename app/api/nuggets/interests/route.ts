@@ -98,13 +98,27 @@ function isMusicTopic(topic: string): boolean {
   return MUSIC_KEYWORDS.some((kw) => lower.includes(kw));
 }
 
-function resolveYouTubeVideo(parsed: Record<string, unknown>): Record<string, unknown> {
+async function resolveYouTubeVideo(parsed: Record<string, unknown>): Promise<Record<string, unknown>> {
   const card = parsed.card as Record<string, unknown> | undefined;
   if (!card) return parsed;
   const videoId = card.youtubeVideoId as string | undefined;
   if (!videoId) return parsed;
-  // Validate: YouTube video IDs are exactly 11 chars, alphanumeric + - _
+  // Validate format: YouTube video IDs are exactly 11 chars, alphanumeric + - _
   if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+    delete card.youtubeVideoId;
+    return parsed;
+  }
+  // Verify the video is actually available via oEmbed (no API key needed)
+  try {
+    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+    const res = await fetch(oembedUrl);
+    if (!res.ok) {
+      console.warn(`[interests] YouTube video ${videoId} unavailable (oEmbed ${res.status}) — dropping`);
+      delete card.youtubeVideoId;
+      return parsed;
+    }
+  } catch {
+    // Network failure — don't block card generation, just drop the video
     delete card.youtubeVideoId;
     return parsed;
   }
@@ -247,8 +261,8 @@ Generate one high-quality question card and three next directions.`;
       const [resolved] = await Promise.all([
         resolveImageMatching(parsed),
         resolveHeroImage(parsed),
+        resolveYouTubeVideo(parsed),
       ]);
-      resolveYouTubeVideo(resolved);
       fireEvaluation(resolved, topic, intent, currentFocus, history.length, completedQuestions, baseUrl, experiment);
       return NextResponse.json(resolved);
     } catch (err) {
