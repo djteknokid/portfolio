@@ -85,6 +85,33 @@ async function resolveImageMatching(parsed: Record<string, unknown>) {
   return parsed;
 }
 
+const MUSIC_KEYWORDS = [
+  "music", "song", "songs", "band", "bands", "artist", "artists", "album", "albums",
+  "rock", "jazz", "pop", "hip hop", "hip-hop", "rap", "classical", "blues", "soul",
+  "country", "metal", "punk", "folk", "r&b", "rnb", "electronic", "edm", "techno",
+  "orchestra", "piano", "guitar", "drums", "violin", "concert", "genre", "genres",
+  "musician", "musicians", "singer", "singers", "composer", "composers",
+];
+
+function isMusicTopic(topic: string): boolean {
+  const lower = topic.toLowerCase();
+  return MUSIC_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
+function resolveYouTubeVideo(parsed: Record<string, unknown>): Record<string, unknown> {
+  const card = parsed.card as Record<string, unknown> | undefined;
+  if (!card) return parsed;
+  const videoId = card.youtubeVideoId as string | undefined;
+  if (!videoId) return parsed;
+  // Validate: YouTube video IDs are exactly 11 chars, alphanumeric + - _
+  if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+    delete card.youtubeVideoId;
+    return parsed;
+  }
+  card.mediaUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1`;
+  return parsed;
+}
+
 async function resolveHeroImage(parsed: Record<string, unknown>): Promise<Record<string, unknown>> {
   const card = parsed.card as Record<string, unknown> | undefined;
   if (!card) return parsed;
@@ -179,6 +206,15 @@ export async function POST(req: NextRequest) {
 Priority: latest choice > current focus > original intent. Follow the player — but a single choice does not permanently change the intent.${breadthClause}`
     : "";
 
+  const isMusicFirstCard = isMusicTopic(topic) && history.length === 0;
+
+  const musicClause = isMusicFirstCard
+    ? `\nMUSIC FIRST CARD — This is a music topic and the player's first card. You MUST:
+1. Use mechanic: "multiple-choice"
+2. Include a "youtubeVideoId" field with an exact 11-character YouTube video ID of a well-known, widely available recording directly relevant to the question. Only include a video ID you are confident is correct (e.g. "fJ9rUzIMcZQ" for Bohemian Rhapsody by Queen). If you are not confident of any specific video ID for this topic, omit the field rather than guessing.
+3. Frame the question so the player can listen first, then answer.`
+    : "";
+
   const qualityReminder = `\nBefore outputting, check:
 - matching: no left/right pair is a synonym or paraphrase of each other — connection must require knowledge.
 - grouping: question title describes what is being sorted, not just the topic name.
@@ -192,11 +228,11 @@ Priority: latest choice > current focus > original intent. Follow the player —
 
 IMPORTANT: The card's "question" field MUST be exactly: "${topic}"
 Do not rewrite, rephrase, or replace it. Build the interactive card around this exact question.
-${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause}${qualityReminder}
+${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause}${musicClause}${qualityReminder}
 
 Generate one high-quality question card and three next directions.`
     : `The learner wants to explore: "${topic}"
-${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause}${qualityReminder}
+${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause}${musicClause}${qualityReminder}
 
 Generate one high-quality question card and three next directions.`;
 
@@ -208,6 +244,7 @@ Generate one high-quality question card and three next directions.`;
         resolveImageMatching(parsed),
         resolveHeroImage(parsed),
       ]);
+      resolveYouTubeVideo(resolved);
       fireEvaluation(resolved, topic, intent, currentFocus, history.length, completedQuestions, baseUrl, experiment);
       return NextResponse.json(resolved);
     } catch (err) {

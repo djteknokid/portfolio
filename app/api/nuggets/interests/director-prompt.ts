@@ -172,6 +172,7 @@ This is a production card, not a sketch. Never return a card that is missing the
 - multiple-choice: options array with EXACTLY 4 objects (id,text) AND correctIds array containing EXACTLY ONE existing option id. NEVER omit either field, including when generating a conceptual question.
 - every card: nonempty id, question, mechanic, topic, thumbId, knowledgeReveal, conversationTakeaway, heroSearchTerm; nextDirections EXACTLY 3 objects with type, label, description, topic.
 **heroSearchTerm**: an exact Wikipedia article title (e.g. "Mona Lisa", "Coffee", "Led Zeppelin") that best illustrates the card's subject visually. Must be a real Wikipedia page likely to have a photograph or illustration.
+**youtubeVideoId** (MUSIC FIRST CARD ONLY): when the injected context says "MUSIC FIRST CARD — include youtubeVideoId", you MUST include this field. Use the exact 11-character YouTube video ID of a well-known, publicly available official upload or widely viewed recording directly relevant to the question. Only include this field when the context explicitly requests it. Never fabricate a video ID you are not confident about.
 If a field is missing, the question is NOT playable. Complete or redesign the card before output. Do not substitute explanation text for structured answer fields. Do not change the existing JSON output contract.
 
 MULTIPLE-CHOICE DISTRACTOR TEST: Each option must be a credible competing answer of the same grammatical form and specificity. Avoid a single moderate statement surrounded by 'always', 'never', 'all species', or absurd equipment. Ask a discriminating question with a defensible answer, not 'which statement is least obviously false?' Avoid 'best' without specifying circumstances; multiple choices may be context-dependent. The correct option must not be uniquely longer or more detailed. If two options are reasonably correct, rewrite the stem to specify a scenario or replace the options.
@@ -243,7 +244,7 @@ BETTER: A specific named invention ↔ its documented inventor, or a named album
 
 **MULTIPLE-CHOICE** — Four plausible, parallel options and exactly one correct answer. Use freely when it best teaches a concept, practical decision, misconception, or surprising fact. Do not force a weaker mechanic to avoid multiple-choice. Avoid obviously absurd distractors or answer-length clues.
 
-**MEDIA FIT** — Prefer sensory learning when a supported mechanic and verified asset make it possible. Music is best heard; paintings and food are often best seen; physical actions are often best demonstrated. The current schema only supports the five mechanics above; do not emit unsupported audio/video mechanics or fabricated media URLs. When media is unavailable, make the text interaction genuinely worthwhile rather than pretending a text description substitutes for hearing or seeing.
+**MEDIA FIT** — Prefer sensory learning when a supported mechanic and verified asset make it possible. Music is best heard; paintings and food are often best seen; physical actions are often best demonstrated. The current schema supports a youtubeVideoId field on multiple-choice cards only when the context explicitly requests it (MUSIC FIRST CARD). Do not emit this field otherwise, and never fabricate a video ID you are not confident is real.
 
 **ANSWER-KEY SELF-CHECK** — Before output, test every possible competing match, overlapping category, adjacent sequence swap, and plausible distractor. If an answer is arguable, redesign the task. A popular association is not necessarily an exclusive correct answer. For historical influence, test whether the alleged effect predates its cause. For categories that depend on conditions, define those conditions explicitly; if exceptions remain common, abandon grouping.
 ---
@@ -454,5 +455,32 @@ The exact structure depends on the mechanic. One complete example for each:
     {"type": "deeper",     "label": "Go deeper", "description": "How close did the world come to nuclear war during the Cuban Missile Crisis?",  "topic": "cuban missile crisis nuclear war risk"},
     {"type": "connection", "label": "Connection", "description": "How does nuclear deterrence still shape US and Russian foreign policy today?",  "topic": "nuclear deterrence modern geopolitics"},
     {"type": "surprise",   "label": "Surprise",   "description": "Why did a Soviet officer ignore a nuclear launch alarm in 1983 — and was he right?", "topic": "stanislav petrov nuclear false alarm 1983"}
+  ]
+}
+
+### multiple-choice with YouTube (MUSIC FIRST CARD only)
+{
+  "card": {
+    "id": "interest-bohemian-rhapsody-structure",
+    "question": "Listen to the opening 30 seconds. What makes Bohemian Rhapsody unlike almost every other rock song?",
+    "mechanic": "multiple-choice",
+    "topic": "interests",
+    "thumbId": "interests-default",
+    "knowledgeReveal": "Bohemian Rhapsody has no chorus. It is structured in five completely distinct sections — a ballad, guitar solo, opera, hard rock, and coda — that share no repeated hook. Queen wrote it as a mini-opera, and every major record label initially refused to release it because it broke every rule about how a hit single should work.",
+    "conversationTakeaway": "Bohemian Rhapsody was rejected by every label before release because it had no chorus, ran 6 minutes, and mixed opera with hard rock — and it became one of the best-selling singles ever recorded.",
+    "heroSearchTerm": "Queen (band)",
+    "youtubeVideoId": "fJ9rUzIMcZQ",
+    "options": [
+      {"id": "a", "text": "It has no chorus — the song never repeats the same section twice"},
+      {"id": "b", "text": "It was recorded with no overdubs — everything you hear is live"},
+      {"id": "c", "text": "The operatic section was added by a different band without Freddie Mercury's knowledge"},
+      {"id": "d", "text": "It was originally written as two separate songs that were accidentally combined"}
+    ],
+    "correctIds": ["a"]
+  },
+  "nextDirections": [
+    {"type": "deeper",     "label": "Go deeper", "description": "How many vocal overdubs did Queen layer in the operatic section of Bohemian Rhapsody?", "topic": "bohemian rhapsody recording vocal overdubs"},
+    {"type": "connection", "label": "Connection", "description": "Which other rock songs broke radio rules and became hits anyway?",                       "topic": "unconventional rock hits radio rules"},
+    {"type": "surprise",   "label": "Surprise",   "description": "Why did Wayne's World accidentally save Bohemian Rhapsody 17 years after its release?", "topic": "wayne's world bohemian rhapsody revival"}
   ]
 }`;

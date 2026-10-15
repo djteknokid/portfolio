@@ -446,7 +446,7 @@ function normalizeCard(raw: unknown): InterestCard | null {
     // Option texts must be unique
     const texts = options.map((o: { text: string }) => o.text?.trim().toLowerCase());
     if (new Set(texts).size !== texts.length) return null;
-    return { ...base, mechanic: "multiple-choice", options, correctIds } as InterestCard;
+    return { ...base, mechanic: "multiple-choice", options, correctIds, ...(c.mediaUrl ? { mediaUrl: c.mediaUrl as string } : {}) } as InterestCard;
   }
   return null;
 }
