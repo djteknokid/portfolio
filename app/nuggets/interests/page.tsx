@@ -409,7 +409,7 @@ function normalizeCard(raw: unknown): InterestCard | null {
   if (c.mechanic === "grouping") {
     const zones = Array.isArray(c.zones) ? c.zones : [];
     const items = Array.isArray(c.items) ? c.items : [];
-    if (zones.length < 2 || items.length < 4) return null;
+    if (zones.length !== 2 || items.length < 4) return null;
     // Every item must reference an existing zone
     const zoneIds = new Set(zones.map((z: { id: string }) => z.id));
     if (items.some((i: { correctGroup: string }) => !zoneIds.has(i.correctGroup))) return null;
