@@ -98,31 +98,82 @@ function isMusicTopic(topic: string): boolean {
   return MUSIC_KEYWORDS.some((kw) => lower.includes(kw));
 }
 
-async function resolveYouTubeVideo(parsed: Record<string, unknown>): Promise<Record<string, unknown>> {
+// Verified YouTube video IDs (checked via oEmbed 2026-10-15)
+// Format: { tags: string[], id: string, title: string }
+const VERIFIED_MUSIC_VIDEOS = [
+  // Jazz
+  { tags: ["jazz", "miles davis", "so what", "kind of blue"],       id: "zqNTltOGh5c", title: "Miles Davis - So What" },
+  { tags: ["jazz", "coltrane", "my favorite things"],               id: "XVw3A6VjsOE", title: "John Coltrane - My Favorite Things" },
+  { tags: ["jazz", "dave brubeck", "take five"],                    id: "vmDDOFXSgAs", title: "Dave Brubeck - Take Five" },
+  { tags: ["jazz", "louis armstrong", "wonderful world"],           id: "CaCSuzR4DwM", title: "Louis Armstrong - What A Wonderful World" },
+  { tags: ["jazz", "coltrane", "a love supreme"],                   id: "ni9Cp9mOOOg", title: "John Coltrane - A Love Supreme" },
+  { tags: ["jazz", "bill evans", "autumn leaves"],                  id: "IrAfjW5qiyo", title: "Bill Evans - Autumn Leaves" },
+  // Classic rock
+  { tags: ["queen", "bohemian rhapsody", "classic rock", "rock"],   id: "fJ9rUzIMcZQ", title: "Queen - Bohemian Rhapsody" },
+  { tags: ["nirvana", "smells like teen spirit", "grunge", "rock"], id: "hTWKbfoikeg", title: "Nirvana - Smells Like Teen Spirit" },
+  { tags: ["guns n roses", "sweet child", "rock"],                  id: "1w7OgIMMRc4", title: "Guns N' Roses - Sweet Child O' Mine" },
+  { tags: ["seven nation army", "white stripes", "rock"],           id: "0J2QdDbelmY", title: "The White Stripes - Seven Nation Army" },
+  { tags: ["linkin park", "in the end", "rock", "alternative"],     id: "eVTXPUF4Oz4", title: "Linkin Park - In The End" },
+  // Pop
+  { tags: ["michael jackson", "billie jean", "pop"],                id: "Zi_XLOBDo_Y", title: "Michael Jackson - Billie Jean" },
+  { tags: ["michael jackson", "smooth criminal", "pop"],            id: "h_D3VFfhvs4", title: "Michael Jackson - Smooth Criminal" },
+  { tags: ["ed sheeran", "shape of you", "pop"],                    id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You" },
+  { tags: ["uptown funk", "bruno mars", "mark ronson", "pop"],      id: "OPf0YbXqDm0", title: "Mark Ronson - Uptown Funk ft. Bruno Mars" },
+  { tags: ["taylor swift", "shake it off", "pop"],                  id: "nfWlot6h_JM", title: "Taylor Swift - Shake It Off" },
+  { tags: ["sia", "chandelier", "pop"],                             id: "2vjPBrBU-TM", title: "Sia - Chandelier" },
+  { tags: ["all of me", "john legend", "pop", "soul"],              id: "450p7goxZqg", title: "John Legend - All of Me" },
+  // Hip-hop / rap
+  { tags: ["eminem", "rap", "hip hop", "hip-hop"],                  id: "uelHwf8o7_U", title: "Eminem - Love The Way You Lie" },
+  { tags: ["wiz khalifa", "see you again", "hip hop", "rap"],       id: "RgKAFK5djSk", title: "Wiz Khalifa - See You Again" },
+  { tags: ["lean on", "major lazer", "dj snake", "edm", "pop"],     id: "YqeW9_5kURI", title: "Major Lazer - Lean On" },
+  // Classics / timeless
+  { tags: ["imagine", "john lennon", "beatles", "classic"],         id: "YkgkThdzX-8", title: "John Lennon - Imagine" },
+  { tags: ["jeff buckley", "hallelujah", "classic"],                id: "y8AWFf7EAc4", title: "Jeff Buckley - Hallelujah" },
+  { tags: ["thinking out loud", "ed sheeran", "pop"],               id: "lp-EO5I60KA", title: "Ed Sheeran - Thinking Out Loud" },
+];
+
+function pickFallbackVideoId(topic: string): string {
+  const lower = topic.toLowerCase();
+  // Find best match by counting tag hits
+  let best = VERIFIED_MUSIC_VIDEOS[0];
+  let bestScore = 0;
+  for (const v of VERIFIED_MUSIC_VIDEOS) {
+    const score = v.tags.filter(t => lower.includes(t)).length;
+    if (score > bestScore) { bestScore = score; best = v; }
+  }
+  return best.id;
+}
+
+async function resolveYouTubeVideo(parsed: Record<string, unknown>, topic: string): Promise<Record<string, unknown>> {
   const card = parsed.card as Record<string, unknown> | undefined;
   if (!card) return parsed;
   const videoId = card.youtubeVideoId as string | undefined;
-  if (!videoId) return parsed;
-  // Validate format: YouTube video IDs are exactly 11 chars, alphanumeric + - _
-  if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
-    delete card.youtubeVideoId;
-    return parsed;
-  }
-  // Verify the video is actually available via oEmbed (no API key needed)
-  try {
-    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-    const res = await fetch(oembedUrl);
-    if (!res.ok) {
-      console.warn(`[interests] YouTube video ${videoId} unavailable (oEmbed ${res.status}) — dropping`);
-      delete card.youtubeVideoId;
-      return parsed;
+
+  let resolvedId: string | null = null;
+
+  // Try the AI's suggested ID first
+  if (videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+    try {
+      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+      if (res.ok) {
+        resolvedId = videoId;
+      } else {
+        console.warn(`[interests] YouTube ${videoId} unavailable (${res.status}) — using fallback`);
+      }
+    } catch {
+      console.warn(`[interests] YouTube oEmbed fetch failed — using fallback`);
     }
-  } catch {
-    // Network failure — don't block card generation, just drop the video
-    delete card.youtubeVideoId;
-    return parsed;
   }
-  card.mediaUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1`;
+
+  // Fall back to a verified ID matched to the topic
+  if (!resolvedId && card.youtubeVideoId !== undefined) {
+    resolvedId = pickFallbackVideoId(topic);
+  }
+
+  if (!resolvedId) return parsed;
+
+  delete card.youtubeVideoId;
+  card.mediaUrl = `https://www.youtube.com/embed/${resolvedId}?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&cc_load_policy=0&fs=0&controls=1`;
   return parsed;
 }
 
@@ -261,7 +312,7 @@ Generate one high-quality question card and three next directions.`;
       await Promise.all([
         resolveImageMatching(parsed),
         resolveHeroImage(parsed),
-        resolveYouTubeVideo(parsed),
+        resolveYouTubeVideo(parsed, topic),
       ]);
       fireEvaluation(parsed, topic, intent, currentFocus, history.length, completedQuestions, baseUrl, experiment);
       return NextResponse.json(parsed);
