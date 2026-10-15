@@ -258,13 +258,13 @@ Generate one high-quality question card and three next directions.`;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const parsed = await generate(userPrompt);
-      const [resolved] = await Promise.all([
+      await Promise.all([
         resolveImageMatching(parsed),
         resolveHeroImage(parsed),
         resolveYouTubeVideo(parsed),
       ]);
-      fireEvaluation(resolved, topic, intent, currentFocus, history.length, completedQuestions, baseUrl, experiment);
-      return NextResponse.json(resolved);
+      fireEvaluation(parsed, topic, intent, currentFocus, history.length, completedQuestions, baseUrl, experiment);
+      return NextResponse.json(parsed);
     } catch (err) {
       if (attempt === 1) {
         console.error("[interests] Both generation attempts failed:", err);
