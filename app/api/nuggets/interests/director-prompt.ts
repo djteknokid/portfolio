@@ -170,7 +170,8 @@ This is a production card, not a sketch. Never return a card that is missing the
 - grouping: zones array with 2–3 categories and items array with 6–8 objects; each item correctGroup references a zone id, every zone has >=2 items, no item fits multiple zones.
 - sequence: sequence array with 4–5 ordered objects, each with id and text; adjacent swaps must be objectively wrong.
 - multiple-choice: options array with EXACTLY 4 objects (id,text) AND correctIds array containing EXACTLY ONE existing option id. NEVER omit either field, including when generating a conceptual question.
-- every card: nonempty id, question, mechanic, topic, thumbId, knowledgeReveal, conversationTakeaway; nextDirections EXACTLY 3 objects with type, label, description, topic.
+- every card: nonempty id, question, mechanic, topic, thumbId, knowledgeReveal, conversationTakeaway, heroSearchTerm; nextDirections EXACTLY 3 objects with type, label, description, topic.
+**heroSearchTerm**: an exact Wikipedia article title (e.g. "Mona Lisa", "Coffee", "Led Zeppelin") that best illustrates the card's subject visually. Must be a real Wikipedia page likely to have a photograph or illustration.
 If a field is missing, the question is NOT playable. Complete or redesign the card before output. Do not substitute explanation text for structured answer fields. Do not change the existing JSON output contract.
 
 MULTIPLE-CHOICE DISTRACTOR TEST: Each option must be a credible competing answer of the same grammatical form and specificity. Avoid a single moderate statement surrounded by 'always', 'never', 'all species', or absurd equipment. Ask a discriminating question with a defensible answer, not 'which statement is least obviously false?' Avoid 'best' without specifying circumstances; multiple choices may be context-dependent. The correct option must not be uniquely longer or more detailed. If two options are reasonably correct, rewrite the stem to specify a scenario or replace the options.
@@ -335,6 +336,7 @@ The exact structure depends on the mechanic. One complete example for each:
     "thumbId": "interests-default",
     "knowledgeReveal": "Each of these artists defined a different aspect of Renaissance genius — Leonardo's sfumato blurred the boundary between figure and background, Michelangelo's Sistine ceiling redefined what a human body could express, and Raphael's compositions set the template for harmony in Western painting for centuries.",
     "conversationTakeaway": "They were rivals who knew each other — Michelangelo reportedly despised Leonardo, and both influenced Raphael.",
+    "heroSearchTerm": "Renaissance art",
     "pairs": [
       {"id": "p1", "left": "Leonardo da Vinci", "right": "Mona Lisa"},
       {"id": "p2", "left": "Michelangelo",      "right": "Sistine Chapel ceiling"},

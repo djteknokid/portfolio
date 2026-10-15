@@ -85,6 +85,21 @@ async function resolveImageMatching(parsed: Record<string, unknown>) {
   return parsed;
 }
 
+async function resolveHeroImage(parsed: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const card = parsed.card as Record<string, unknown> | undefined;
+  if (!card) return parsed;
+  const searchTerm = card.heroSearchTerm as string | undefined;
+  if (!searchTerm) return parsed;
+  try {
+    const images = await resolveWikimediaImages([searchTerm], 800);
+    const url = images[searchTerm];
+    if (url) card.heroImageUrl = url;
+  } catch {
+    // non-fatal — hero falls back to gradient
+  }
+  return parsed;
+}
+
 type SessionIntent = {
   learningIntent: string;
   learningOrientation: string;
@@ -189,7 +204,10 @@ Generate one high-quality question card and three next directions.`;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const parsed = await generate(userPrompt);
-      const resolved = await resolveImageMatching(parsed);
+      const [resolved] = await Promise.all([
+        resolveImageMatching(parsed),
+        resolveHeroImage(parsed),
+      ]);
       fireEvaluation(resolved, topic, intent, currentFocus, history.length, completedQuestions, baseUrl, experiment);
       return NextResponse.json(resolved);
     } catch (err) {
