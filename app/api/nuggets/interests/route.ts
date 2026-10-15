@@ -144,9 +144,11 @@ function pickFallbackVideoId(topic: string): string {
   return best.id;
 }
 
-async function resolveYouTubeVideo(parsed: Record<string, unknown>, topic: string): Promise<Record<string, unknown>> {
+async function resolveYouTubeVideo(parsed: Record<string, unknown>, topic: string, useYouTube: boolean): Promise<Record<string, unknown>> {
   const card = parsed.card as Record<string, unknown> | undefined;
   if (!card) return parsed;
+  if (!useYouTube) return parsed;
+
   const videoId = card.youtubeVideoId as string | undefined;
 
   let resolvedId: string | null = null;
@@ -166,7 +168,7 @@ async function resolveYouTubeVideo(parsed: Record<string, unknown>, topic: strin
   }
 
   // Fall back to a verified ID matched to the topic
-  if (!resolvedId && card.youtubeVideoId !== undefined) {
+  if (!resolvedId) {
     resolvedId = pickFallbackVideoId(topic);
   }
 
@@ -312,7 +314,7 @@ Generate one high-quality question card and three next directions.`;
       await Promise.all([
         resolveImageMatching(parsed),
         resolveHeroImage(parsed),
-        resolveYouTubeVideo(parsed, topic),
+        resolveYouTubeVideo(parsed, topic, isMusicYouTubeCard),
       ]);
       fireEvaluation(parsed, topic, intent, currentFocus, history.length, completedQuestions, baseUrl, experiment);
       return NextResponse.json(parsed);
