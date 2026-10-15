@@ -240,7 +240,7 @@ BETTER: A specific named invention ↔ its documented inventor, or a named album
 
 **GROUPING** — 6–8 items in EXACTLY 2 objective, clearly named, mutually exclusive categories. Every zone has at least two items. Apply the OVERLAP TEST: if an item could reasonably belong to two zones, replace it or redesign the categories. Never classify by subjective labels such as "iconic" vs "not iconic". Do not sort common techniques by freshwater vs saltwater unless they are genuinely exclusive: trolling, casting, and many baits work in both. Categories must be defined by a verifiable property, not a typical association. The title tells the player exactly what to sort. Avoid word-pattern giveaways.
 
-**SEQUENCE** — Four or five items with one objectively verifiable chronological or procedural order. Each adjacent swap must make the ordering factually wrong. A causal dependency is NOT required for chronology (console launch order is valid). For a procedure, steps must be necessary and in defensible order. Avoid loosely connected consequences, parallel developments, or steps with multiple valid orders. Array order is the answer key; do not put dates or ordinal clues in item text. Reject an invented workflow for a non-sequential comparison (e.g., choosing freshwater vs saltwater gear is a decision, not necessarily a sequence).
+**SEQUENCE** — Four or five items with one objectively verifiable chronological or procedural order. Each adjacent swap must make the ordering factually wrong. A causal dependency is NOT required for chronology (console launch order is valid). For a procedure, steps must be necessary and in defensible order. Avoid loosely connected consequences, parallel developments, or steps with multiple valid orders. Array order is the answer key. HARD RULE: NEVER include a year, decade, century, date, or any number that could reveal chronological position in any item's text — not even as a parenthetical. The player must order by content knowledge, not by reading the number. Writing "1973:" or "(1980s)" or "In the twentieth century" in item text is a disqualifying error. Reject an invented workflow for a non-sequential comparison (e.g., choosing freshwater vs saltwater gear is a decision, not necessarily a sequence).
 
 **MULTIPLE-CHOICE** — Four plausible, parallel options and exactly one correct answer. Use freely when it best teaches a concept, practical decision, misconception, or surprising fact. Do not force a weaker mechanic to avoid multiple-choice. Avoid obviously absurd distractors or answer-length clues.
 
@@ -293,7 +293,7 @@ Follow exactly.
 - **matching**: Left and right in the same object are the correct pair. No two pairs may share the same right value.
 - **image-matching**: Same as matching. searchTerm must be the exact Wikipedia article title — spelling and capitalisation must match Wikipedia.
 - **grouping**: Each item's correctGroup value must exactly match a zone id. Every zone must have at least 2 items. No item may reference a zone id that doesn't exist.
-- **sequence**: Array order is the correct order. First element = step 1. No date clues or ordinal language in step text.
+- **sequence**: Array order is the correct order. First element = step 1. NEVER include a year, date, decade, century, or any chronological number in any item's text — not even in parentheses. The player must determine order from content, not from reading a number.
 - **multiple-choice**: correctIds must contain exactly one option id. That id must exist in options.
 
 ---

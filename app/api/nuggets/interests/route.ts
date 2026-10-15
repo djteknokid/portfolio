@@ -197,6 +197,7 @@ export async function POST(req: NextRequest) {
     intent = null,
     currentFocus = null,
     experiment = null,
+    driveMode = false,
   } = await req.json() as {
     topic: string;
     history?: string[];
@@ -205,6 +206,7 @@ export async function POST(req: NextRequest) {
     intent?: SessionIntent | null;
     currentFocus?: string | null;
     experiment?: "intent-recovery" | null;
+    driveMode?: boolean;
   };
 
   const historyClause = history.length > 0
@@ -260,8 +262,12 @@ Priority: latest choice > current focus > original intent. Follow the player —
 
   const isMusicSession = isMusicTopic(topic);
   // First card + every 3rd card in a music session gets YouTube multiple-choice
-  const isMusicYouTubeCard = isMusicSession && (history.length === 0 || history.length % 3 === 2);
+  const isMusicYouTubeCard = !driveMode && isMusicSession && (history.length === 0 || history.length % 3 === 2);
   const musicVideo = isMusicYouTubeCard ? pickVideoForTopic(topic) : null;
+
+  const driveModeClause = driveMode
+    ? `\nDRIVING MODE — You MUST use mechanic: "multiple-choice" only. No image-matching, sequence, grouping, or matching. The question will be read aloud — keep it under 20 words. Each option must be under 6 words. No markdown, no formatting symbols.`
+    : "";
 
   const musicClause = musicVideo
     ? `\nMUSIC YOUTUBE CARD — You MUST:
@@ -287,11 +293,11 @@ Priority: latest choice > current focus > original intent. Follow the player —
 
 IMPORTANT: The card's "question" field MUST be exactly: "${topic}"
 Do not rewrite, rephrase, or replace it. Build the interactive card around this exact question.
-${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause}${musicClause}${qualityReminder}
+${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause}${musicClause}${driveModeClause}${qualityReminder}
 
 Generate one high-quality question card and three next directions.`
     : `The learner wants to explore: "${topic}"
-${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause}${musicClause}${qualityReminder}
+${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause}${musicClause}${driveModeClause}${qualityReminder}
 
 Generate one high-quality question card and three next directions.`;
 
@@ -299,11 +305,13 @@ Generate one high-quality question card and three next directions.`;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const parsed = await generate(userPrompt);
-      await Promise.all([
-        resolveImageMatching(parsed),
-        resolveHeroImage(parsed),
-        resolveYouTubeVideo(parsed, isMusicYouTubeCard, musicVideo ?? VERIFIED_MUSIC_VIDEOS[0]),
-      ]);
+      if (!driveMode) {
+        await Promise.all([
+          resolveImageMatching(parsed),
+          resolveHeroImage(parsed),
+          resolveYouTubeVideo(parsed, isMusicYouTubeCard, musicVideo ?? VERIFIED_MUSIC_VIDEOS[0]),
+        ]);
+      }
       fireEvaluation(parsed, topic, intent, currentFocus, history.length, completedQuestions, baseUrl, experiment);
       return NextResponse.json(parsed);
     } catch (err) {

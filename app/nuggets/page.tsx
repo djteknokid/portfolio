@@ -380,6 +380,34 @@ export default function NuggetsPage() {
             <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "18px", flexShrink: 0 }}>›</div>
           </button>
 
+          {/* Driving Mode entry card */}
+          <button
+            onClick={() => router.push("/nuggets/drive")}
+            style={{
+              width: "100%",
+              borderRadius: "20px",
+              border: "1px solid rgba(255,180,0,0.22)",
+              background: "linear-gradient(135deg, #1a1200 0%, #1f1800 50%, #2a1f00 100%)",
+              cursor: "pointer",
+              textAlign: "left",
+              padding: "20px 22px",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "rgba(255,180,0,0.10)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>
+              🚗
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,180,0,0.45)", marginBottom: "4px" }}>Voice Only</div>
+              <div style={{ fontSize: "18px", fontWeight: "800", color: "#fff8e1", letterSpacing: "-0.02em", lineHeight: 1.2 }}>Driving Mode</div>
+              <div style={{ fontSize: "12px", color: "rgba(255,220,100,0.4)", marginTop: "3px", lineHeight: 1.4 }}>Hands-free audio quiz. Eyes on the road.</div>
+            </div>
+            <div style={{ color: "rgba(255,180,0,0.25)", fontSize: "18px", flexShrink: 0 }}>›</div>
+          </button>
+
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {incompleteSets.map((set) => (
               <PackCard key={set.slug} slug={set.slug} number={set.number} name={set.name} description={set.description} thumbId={set.thumbId} cardCount={totalCardsForSet(set)} solvedCount={solvedCountForSet(set)} />
