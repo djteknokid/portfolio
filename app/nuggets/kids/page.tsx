@@ -178,13 +178,13 @@ function CardSkeleton({ topic }: { topic: string }) {
 
 function GameRenderer({ card, onComplete }: { card: KidsCard; onComplete: (attempts: number) => void }) {
   if (card.mechanic === "sequence")
-    return <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} autoComplete />;
+    return <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
   if (card.mechanic === "grouping")
-    return <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} autoComplete />;
+    return <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
   if (card.mechanic === "matching")
-    return <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} autoComplete />;
+    return <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
   if (card.mechanic === "multiple-choice")
-    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} autoComplete />;
+    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
   return null;
 }
 
