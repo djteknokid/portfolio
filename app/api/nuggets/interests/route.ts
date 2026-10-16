@@ -375,23 +375,10 @@ ${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause
 Generate one high-quality question card and three next directions.`;
 
   // Kids Amazing People path uses a dedicated prompt tuned for inspiring historic people
-  const cardIndex = history.length; // 0 = intro card, 1+ = course questions
   const lastMechanic = recentMechanics[recentMechanics.length - 1] ?? "";
 
-  // Visual rule: only the intro card (cardIndex 0) forces image-matching.
   // Course cards pick their own mechanic based on the question — we just prevent repetition.
-  const visualRule = cardIndex === 0
-    ? `\nMECHANIC — REQUIRED: "multiple-choice"
-This is the introduction card. Show the person's face and ask the player to identify them from 4 choices.
-- Set heroSearchTerm to the exact Wikipedia article title for ${currentFocus ?? topic} (e.g. "Leonardo da Vinci")
-- mediaUrl will be resolved from heroSearchTerm — do NOT set it yourself
-- options: EXACTLY 4 options. Each option is a real famous person from a similar field or era.
-  - One option must be "${currentFocus ?? topic}" — this is the correct answer (set correctIds to its id)
-  - The other 3 must be real people the player might plausibly confuse this person with
-- The question must be: "Which of these people is ${currentFocus ?? topic}?" (or age-appropriate equivalent)
-- knowledgeReveal: one sentence about what makes ${currentFocus ?? topic} amazing
-- conversationTakeaway: one vivid fact they can share with a parent`
-    : lastMechanic
+  const visualRule = lastMechanic
     ? `\nMECHANIC: Last mechanic was "${lastMechanic}". Pick the mechanic that best fits the question — multiple-choice, sequence, grouping, or image-matching. Do NOT repeat "${lastMechanic}" unless it is clearly the best fit.`
     : `\nMECHANIC: Pick the mechanic that best fits the question — multiple-choice, sequence, grouping, or image-matching.`;
 
