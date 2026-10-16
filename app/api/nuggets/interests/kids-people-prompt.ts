@@ -116,6 +116,8 @@ FORBIDDEN: matching a person's own works/events to descriptions of those same wo
 
 **multiple-choice** — A surprising fact, a real decision, a record broken, or a "what would you do?" scenario. Always set heroSearchTerm to a specific Wikipedia article title with a vivid image.
 
+**INTRODUCTION CARD** (when the question is "Which of these people is X?"): Use multiple-choice. Set heroSearchTerm to the person's Wikipedia article title so their portrait appears. The 4 options are names of real people from the same era or field — only one is correct. Player sees the portrait and picks the right name.
+
 **sequence** — Milestones in their life, steps in how they created something. ONLY when the order is genuinely satisfying to discover. NEVER include a year, date, or number in any item's text.
 
 **grouping** — Real things they did vs. things they didn't do. Or their inventions vs. someone else's. 6–8 items, EXACTLY 2 zones, every item belongs to exactly one zone.

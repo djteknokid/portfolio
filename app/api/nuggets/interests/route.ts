@@ -381,12 +381,16 @@ Generate one high-quality question card and three next directions.`;
   // Visual rule: only the intro card (cardIndex 0) forces image-matching.
   // Course cards pick their own mechanic based on the question — we just prevent repetition.
   const visualRule = cardIndex === 0
-    ? `\nMECHANIC — REQUIRED: "image-matching"
-Show FOUR DIFFERENT famous people as images. The player must identify which one is ${currentFocus ?? topic}.
-pairs must have EXACTLY 4 entries. Each searchTerm must be the exact Wikipedia article title of a real famous person (e.g. "Serena Williams", "Venus Williams", "Naomi Osaka", "Maria Sharapova").
-The correct person is "${currentFocus ?? topic}" — the other three must be real people from a similar field or era so the player has to actually think.
-The "right" label for the correct person is their name. The "right" labels for the others are also their names.
-This is the introduction card — seeing the person's face IS the experience.`
+    ? `\nMECHANIC — REQUIRED: "multiple-choice"
+This is the introduction card. Show the person's face and ask the player to identify them from 4 choices.
+- Set heroSearchTerm to the exact Wikipedia article title for ${currentFocus ?? topic} (e.g. "Leonardo da Vinci")
+- mediaUrl will be resolved from heroSearchTerm — do NOT set it yourself
+- options: EXACTLY 4 options. Each option is a real famous person from a similar field or era.
+  - One option must be "${currentFocus ?? topic}" — this is the correct answer (set correctIds to its id)
+  - The other 3 must be real people the player might plausibly confuse this person with
+- The question must be: "Which of these people is ${currentFocus ?? topic}?" (or age-appropriate equivalent)
+- knowledgeReveal: one sentence about what makes ${currentFocus ?? topic} amazing
+- conversationTakeaway: one vivid fact they can share with a parent`
     : lastMechanic
     ? `\nMECHANIC: Last mechanic was "${lastMechanic}". Pick the mechanic that best fits the question — multiple-choice, sequence, grouping, or image-matching. Do NOT repeat "${lastMechanic}" unless it is clearly the best fit.`
     : `\nMECHANIC: Pick the mechanic that best fits the question — multiple-choice, sequence, grouping, or image-matching.`;
