@@ -117,17 +117,27 @@ function normalizeCard(raw: unknown): KidsCard | null {
     return { ...base, mechanic: "grouping", zones, items } as KidsCard;
   }
   if (c.mechanic === "matching") {
-    const pairs = Array.isArray(c.pairs) ? c.pairs : [];
-    if (pairs.length < 2) return null;
-    // Normalize: if right is missing, default to the person's name (left/searchTerm)
-    const normalizedPairs = pairs.map((p: { id: string; left?: string; searchTerm?: string; right?: string; imageUrl?: string }) => ({
+    // Accept both pairs[] and items[] formats — AI sometimes returns items[].searchTerm+label
+    const rawPairs = Array.isArray(c.pairs) && (c.pairs as unknown[]).length > 0
+      ? c.pairs as { id?: string; left?: string; searchTerm?: string; right?: string; label?: string; imageUrl?: string }[]
+      : Array.isArray(c.items)
+      ? (c.items as { searchTerm?: string; label?: string }[]).map((item, i) => ({
+          id: `p${i + 1}`,
+          searchTerm: item.searchTerm,
+          right: item.label,
+        }))
+      : [];
+    if (rawPairs.length < 2) return null;
+    // Normalize: left = searchTerm or left; right = label or right or name fallback
+    const normalizedPairs = rawPairs.map((p: Record<string, unknown>) => ({
       ...p,
-      left: p.left ?? p.searchTerm ?? "",
-      right: p.right ?? p.left ?? p.searchTerm ?? "",
+      id: (p.id as string) ?? String(Math.random()),
+      left: (p.left as string) ?? (p.searchTerm as string) ?? "",
+      right: (p.right as string) ?? (p.label as string) ?? (p.left as string) ?? (p.searchTerm as string) ?? "",
     }));
-    const rights = normalizedPairs.map((p: { right: string }) => p.right.trim().toLowerCase());
+    const rights = normalizedPairs.map((p) => p.right.trim().toLowerCase());
     if (new Set(rights).size !== rights.length) return null;
-    const lefts = normalizedPairs.map((p: { left: string }) => p.left.trim().toLowerCase());
+    const lefts = normalizedPairs.map((p) => p.left.trim().toLowerCase());
     if (new Set(lefts).size !== lefts.length) return null;
     return { ...base, mechanic: "matching", pairs: normalizedPairs } as KidsCard;
   }

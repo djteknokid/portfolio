@@ -375,12 +375,11 @@ ${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause
 Generate one high-quality question card and three next directions.`;
 
   // Kids Amazing People path uses a dedicated prompt tuned for inspiring historic people
-  const cardIndex = history.length; // 0 = first card (intro), 1+ = course questions
+  const cardIndex = history.length; // 0 = intro card, 1+ = course questions
   const lastMechanic = recentMechanics[recentMechanics.length - 1] ?? "";
 
-  // Visual mechanic rules for course cards (cardIndex >= 1):
-  // every even index (1, 3, 5...) gets image-matching, odd gets MC/sequence/grouping
-  const courseCardIndex = cardIndex - 1; // intro is card 0, course starts at 1
+  // Visual rule: only the intro card (cardIndex 0) forces image-matching.
+  // Course cards pick their own mechanic based on the question — we just prevent repetition.
   const visualRule = cardIndex === 0
     ? `\nMECHANIC — REQUIRED: "image-matching"
 Show FOUR DIFFERENT famous people as images. The player must identify which one is ${currentFocus ?? topic}.
@@ -388,12 +387,9 @@ pairs must have EXACTLY 4 entries. Each searchTerm must be the exact Wikipedia a
 The correct person is "${currentFocus ?? topic}" — the other three must be real people from a similar field or era so the player has to actually think.
 The "right" label for the correct person is their name. The "right" labels for the others are also their names.
 This is the introduction card — seeing the person's face IS the experience.`
-    : courseCardIndex % 2 === 0
-    ? `\nMECHANIC — REQUIRED: "image-matching"
-Use 4 real visual subjects related to the question. Each searchTerm must be an exact Wikipedia article title with a recognizable image.
-The right labels must come from a DIFFERENT category than the images (e.g. image of a work → its creator, image of a person → their achievement, image of a place → what it is famous for).
-NEVER match a subject to a description of itself (TAUTOLOGY BAN).`
-    : `\nMECHANIC: Last mechanic was "${lastMechanic}". Pick a different one from: multiple-choice, sequence, grouping. Do NOT use image-matching here (it was just used or will be used next).`;
+    : lastMechanic
+    ? `\nMECHANIC: Last mechanic was "${lastMechanic}". Pick the mechanic that best fits the question — multiple-choice, sequence, grouping, or image-matching. Do NOT repeat "${lastMechanic}" unless it is clearly the best fit.`
+    : `\nMECHANIC: Pick the mechanic that best fits the question — multiple-choice, sequence, grouping, or image-matching.`;
 
   const kidsPeoplePrompt = kidsPeople
     ? `Person: "${currentFocus ?? topic}"
