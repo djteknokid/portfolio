@@ -17,11 +17,20 @@ type SessionIntent = {
   avoidDrift: string[];
 };
 
-async function generatePills(topic: string, history: string[]): Promise<{ label: string; bridge: boolean }[]> {
+async function generatePills(topic: string, history: string[], kidsMode = false, kidAge: number | null = null): Promise<{ label: string; bridge: boolean }[]> {
   const historyClause = history.length > 0
     ? `The learner has previously answered questions on: ${history.slice(-20).join(", ")}.
 
 Generate exactly 3 of the 12 questions that create a surprising bridge between that history and the new topic — something the learner would not have thought to ask themselves. Label these with "bridge": true.`
+    : "";
+
+  const kidsModeClause = kidsMode
+    ? `\nIMPORTANT — This is a children's section (age ${kidAge ?? "6–10"}). Every pill label must be:
+- Fun, concrete, and immediately interesting to a child of that age
+- Simple words only — nothing abstract or academic
+- Safe: no violence, scary things, or adult topics
+- Examples of good kids pills: "Baby animals", "How rainbows work", "Dinosaur facts", "Why is the sky blue", "Fastest animals"
+- Examples of bad kids pills: "Societal impact", "Historical context", "Economic factors"\n`
     : "";
 
   const prompt = `The learner typed: "${topic}"
@@ -29,7 +38,7 @@ Generate exactly 3 of the 12 questions that create a surprising bridge between t
 Generate exactly 12 short pill labels for specific, concrete sub-topics they can explore about "${topic}". Each label must be 1–3 words maximum — like a chip button, not a sentence.
 
 ${historyClause}
-
+${kidsModeClause}
 Rules:
 - 1–3 words only — no questions, no full sentences
 - Every label must be specific to "${topic}" — if it could appear on a pill for a completely different topic (e.g. "Key figures", "History", "Cultural impact", "Famous people"), it is too generic. Reject it.
@@ -87,17 +96,19 @@ async function interpretIntent(topic: string): Promise<SessionIntent | null> {
 }
 
 export async function POST(req: NextRequest) {
-  const { topic, history = [] } = await req.json() as {
+  const { topic, history = [], kidsMode = false, kidAge = null } = await req.json() as {
     topic: string;
     history?: string[];
+    kidsMode?: boolean;
+    kidAge?: number | null;
   };
 
   if (!topic) return NextResponse.json({ error: "Missing topic" }, { status: 400 });
 
   try {
     const [pills, intent] = await Promise.all([
-      generatePills(topic, history),
-      interpretIntent(topic),
+      generatePills(topic, history, kidsMode, kidAge),
+      kidsMode ? Promise.resolve(null) : interpretIntent(topic),
     ]);
 
     return NextResponse.json({ pills, intent });

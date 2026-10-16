@@ -16,7 +16,7 @@ export interface MatchPair {
 interface Props {
   question: string;
   pairs: MatchPair[];
-  onComplete: () => void;
+  onComplete: (attempts: number) => void;
   onSkip?: () => void;
   loadingSkip?: boolean;
   suggestions?: Suggestion[];
@@ -42,6 +42,7 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
   const [connections, setConnections] = useState<Record<string, string>>({});
   const [evalResults, setEvalResults] = useState<EvalResult[] | null>(null);
   const [allDone, setAllDone] = useState(false);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   const dragging = useRef(false);
   const dragLeftId = useRef<string | null>(null);
@@ -128,6 +129,8 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
       setAllDone(true);
       playCorrectBeep();
       playVictory();
+    } else {
+      setWrongAttempts((n) => n + 1);
     }
   }
 
@@ -219,7 +222,10 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
                 {p.imageUrl ? (
                   <div style={{ borderRadius: brand.radius.item, overflow: "hidden" }}>
                     <img src={p.imageUrl} alt={p.left}
-                      style={{ width: "100%", height: "72px", objectFit: "cover", display: "block", pointerEvents: "none" }} />
+                      style={{ width: "100%", height: "72px", objectFit: "cover", objectPosition: "center top", display: "block", pointerEvents: "none" }} />
+                    <div style={{ padding: "5px 8px", fontSize: "11px", fontWeight: "600", color: c.text, textAlign: "center", lineHeight: 1.3, transition: "color 300ms ease", background: c.bg }}>
+                      {p.left}
+                    </div>
                   </div>
                 ) : (
                   <span style={{ fontSize: "13px", fontWeight: "500", color: c.text, lineHeight: 1.4, transition: "color 300ms ease" }}>{p.left}</span>
@@ -313,7 +319,7 @@ export default function MatchingGame({ pairs, onComplete, onSkip, loadingSkip = 
           )}
         </div>
       ) : (
-        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} autoComplete={autoComplete} />
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={() => onComplete(wrongAttempts + 1)} autoComplete={autoComplete} />
       )}
     </div>
   );

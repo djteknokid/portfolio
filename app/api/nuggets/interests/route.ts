@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { DIRECTOR_PROMPT } from "./director-prompt";
+import { KIDS_PEOPLE_PROMPT } from "./kids-people-prompt";
 import { resolveWikimediaImages } from "./resolve-images";
 
 function fireEvaluation(
@@ -45,11 +46,11 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 type ImageMatchPair = { id: string; searchTerm: string; right: string };
 type ResolvedPair  = { id: string; left: string; right: string; imageUrl?: string };
 
-async function generate(userPrompt: string) {
+async function generate(userPrompt: string, systemPrompt: string = DIRECTOR_PROMPT) {
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
-      { role: "system", content: DIRECTOR_PROMPT },
+      { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ],
     max_tokens: 2500,
@@ -218,6 +219,11 @@ export async function POST(req: NextRequest) {
     currentFocus = null,
     experiment = null,
     driveMode = false,
+    kidsMode = false,
+    kidsPeople = false,
+    courseHook = null,
+    courseTitle = null,
+    kidAge = null,
   } = await req.json() as {
     topic: string;
     history?: string[];
@@ -227,6 +233,11 @@ export async function POST(req: NextRequest) {
     currentFocus?: string | null;
     experiment?: "intent-recovery" | null;
     driveMode?: boolean;
+    kidsMode?: boolean;
+    kidsPeople?: boolean;
+    courseHook?: string | null;
+    courseTitle?: string | null;
+    kidAge?: number | null;
   };
 
   const historyClause = history.length > 0
@@ -237,11 +248,47 @@ export async function POST(req: NextRequest) {
     ? `\nQuestions the learner has already answered. Do not repeat any of these — and do not generate a question that covers the same core subject or mechanic structure as any of them, even with different examples:\n${completedQuestions.slice(-20).map((q) => `- "${q}"`).join("\n")}`
     : "";
 
-  const mechanicsClause = recentMechanics.length > 0
+  const mechanicsClause = kidsMode
+    ? `\nKIDS MODE — mechanic variety is required. Recent mechanics used: ${recentMechanics.length > 0 ? recentMechanics.slice(-3).join(", ") : "none"}. You MUST pick a different mechanic from the most recent one.
+
+Priority order (highest to lowest preference):
+1. image-matching — use whenever the topic has 4 recognisable visual subjects that can be matched to a DIFFERENT category (e.g. animals → their habitat, paintings → their artist, inventors → their invention). The "right" side must NOT repeat or paraphrase the "searchTerm".
+2. grouping — sort 6–8 items into 2 fun, clearly named categories (e.g. "lives in water" vs "lives on land").
+3. matching — pair 4 items across two different categories (e.g. animal → sound it makes, planet → its defining feature). Never match a subject to a description of itself.
+4. sequence — only when there is a clear chronological or step-by-step order a child would find satisfying (life cycle, how something is made, famous person's milestones).
+5. multiple-choice — use freely, but set heroSearchTerm so a relevant image appears. Do NOT use multiple-choice if the previous card was also multiple-choice.
+
+SINGLE-PERSON RULE (HARD BAN): If the topic is one named person (e.g. "Leonardo da Vinci", "Walt Disney"), you MUST NOT use "matching" or "image-matching" AT ALL — not for their works, not for their milestones, not for their photos. These mechanics always produce trivially obvious pairs when left and right are both about the same person (e.g. "Leonardo da Vinci - The Flying Machine" → "Silly Flying Machine" is just a rename, not a match). For a single-person topic, ONLY use: multiple-choice (a surprising fact or record), sequence (milestones in their life), or grouping (their real achievements vs. things they didn't do).
+
+NEVER use: pronunciation, ranked-list.`
+    : recentMechanics.length > 0
     ? `\nRecent mechanics used: ${recentMechanics.slice(-3).join(", ")}. You MUST pick a different mechanic — do NOT use multiple-choice if it appears in this list unless all other mechanics are clearly unsuitable.`
     : "\nThis is the first card. Prefer image-matching, matching, grouping, or sequence over multiple-choice.";
 
-  const depthClause = history.length === 0
+  const ageLabel = kidAge === 5 ? "5-year-old (Kindergarten)" : kidAge === 6 ? "6-year-old (1st grade)" : kidAge === 7 ? "7-year-old (2nd grade)" : kidAge === 8 ? "8-year-old (3rd grade)" : kidAge === 9 ? "9-year-old (4th grade)" : kidAge === 10 ? "10+ year-old (5th grade)" : "9–10-year-old (4th grade)";
+
+  const depthClause = kidsMode
+    ? `\nAUDIENCE: ${ageLabel}. This is the MOST IMPORTANT instruction — override everything else if there is a conflict.
+
+DIFFICULTY TARGET — matched to age ${kidAge ?? 9}:
+- Vocabulary: words this child knows from everyday life and school. No Latin roots, no scientific jargon, no abstract concepts.
+- ${(kidAge ?? 9) <= 6 ? "VERY simple: 1-2 word options, short sentences, concrete and visual. Think sesame-street level." : (kidAge ?? 9) <= 8 ? "Simple and concrete: common words, everyday comparisons, visual examples." : "Clear and interesting: can handle one surprising fact, but no chains of logic."}
+- GOOD question: "Which dinosaur was the biggest meat-eater?" — simple, concrete, surprising
+- BAD question: "Which theropod dominated the Cretaceous epoch?" — jargon, too complex
+
+CONTENT RULES — no exceptions:
+- Focus on: world records, cool abilities, amazing creations, surprising facts, funny moments, how things work
+- For people topics: focus on what they MADE, DISCOVERED, or ACHIEVED — not the political/historical context around them
+- NEVER mention: war, violence, death, slavery, discrimination, politics, alcohol, drugs, anything scary or sad
+- Even if the person's story involves dark history, find the inspiring/fun angle instead (e.g. for Lincoln: "He was the tallest US president and loved wrestling" not "He freed enslaved people")
+- Wrong answer choices must be obviously wrong to a ${kidAge ?? 9}-year-old — not tricky adult-level distractors
+- Correct answer reveal: one sentence, "Wow!" energy, starts with the surprising fact
+
+FORMAT:
+- Question: under 12 words
+- Answer options: 1–4 words each, no sentences
+- Tone: enthusiastic and warm, like a fun teacher — never dry or academic`
+    : history.length === 0
     ? "\nSession depth: FIRST question — beginner level. No specialist names or jargon. The player should be able to attempt this without any prior knowledge of the topic."
     : history.length <= 2
     ? `\nSession depth: early (${history.length} questions in) — introduce one new concept but keep familiar anchors.`
@@ -283,7 +330,8 @@ Priority: latest choice > current focus > original intent. Follow the player —
   const isMusicSession = isMusicTopic(topic);
   // First card + every 3rd card in a music session gets YouTube multiple-choice
   // Only when the topic is actually about the music itself (not economics, history, politics, etc.)
-  const isMusicYouTubeCard = !driveMode && isMusicVideoAppropriate(topic) && (history.length === 0 || history.length % 3 === 2);
+  // Never in kids mode — the video library isn't curated for children
+  const isMusicYouTubeCard = !driveMode && !kidsMode && isMusicVideoAppropriate(topic) && (history.length === 0 || history.length % 3 === 2);
   // Detect which videos were already shown by checking if their artist/title appears in session history
   const usedVideoIds = VERIFIED_MUSIC_VIDEOS
     .filter((v) => history.some((h) => h.toLowerCase().includes(v.artist.toLowerCase()) || h.toLowerCase().includes(v.title.toLowerCase())))
@@ -326,10 +374,46 @@ ${historyClause}${completedClause}${mechanicsClause}${depthClause}${intentClause
 
 Generate one high-quality question card and three next directions.`;
 
+  // Kids Amazing People path uses a dedicated prompt tuned for inspiring historic people
+  const cardIndex = history.length; // 0 = first card
+  const lastMechanic = recentMechanics[recentMechanics.length - 1] ?? "";
+
+  // Visual mechanic rules: card 1 always image-matching (4 people, pick the right one),
+  // then every 2nd card must be image-matching or grouping with heroSearchTerm.
+  const visualRule = cardIndex === 0
+    ? `\nMECHANIC — REQUIRED: "image-matching"
+Show FOUR DIFFERENT famous people as images. The player must identify which one is ${currentFocus ?? topic}.
+pairs must have EXACTLY 4 entries. Each searchTerm must be the exact Wikipedia article title of a real famous person (e.g. "Serena Williams", "Venus Williams", "Naomi Osaka", "Maria Sharapova").
+The correct person is "${currentFocus ?? topic}" — the other three must be real people from a similar field or era so the player has to actually think.
+The "right" label for the correct person is their name. The "right" labels for the others are also their names.
+This is the introduction card — seeing the person's face IS the experience.`
+    : cardIndex % 2 === 0
+    ? `\nMECHANIC — REQUIRED: "image-matching"
+Use 4 real visual subjects related to the question. Each searchTerm must be an exact Wikipedia article title with a recognizable image.
+The right labels must come from a DIFFERENT category than the images (e.g. image of a work → its creator, image of a person → their achievement, image of a place → what it is famous for).
+NEVER match a subject to a description of itself (TAUTOLOGY BAN).`
+    : `\nMECHANIC: Last mechanic was "${lastMechanic}". Pick a different one from: multiple-choice, sequence, grouping. Do NOT use image-matching here (it was just used or will be used next).`;
+
+  const kidsPeoplePrompt = kidsPeople
+    ? `Person: "${currentFocus ?? topic}"
+Child age: ${kidAge ?? 8}
+Questions already answered (do not repeat):
+${completedQuestions.length > 0 ? completedQuestions.slice(-10).map((q) => `- "${q}"`).join("\n") : "none"}
+
+QUESTION TO ASK (show this to the player — do NOT reveal the answer in it): "${courseTitle ?? topic}"
+ANSWER / WOW FACT (the hook — never put this in the question, only in the reveal after they answer): "${courseHook ?? topic}"
+
+Build the card around this question and answer. The question must not contain or imply the answer.
+${visualRule}`
+    : null;
+
+  const activeSystemPrompt = kidsPeoplePrompt ? KIDS_PEOPLE_PROMPT : DIRECTOR_PROMPT;
+  const activeUserPrompt = kidsPeoplePrompt ?? userPrompt;
+
   // Attempt generation with one retry on parse or structural failure
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const parsed = await generate(userPrompt);
+      const parsed = await generate(activeUserPrompt, activeSystemPrompt);
       if (!driveMode) {
         await Promise.all([
           resolveImageMatching(parsed),
