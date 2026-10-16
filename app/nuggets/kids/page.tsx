@@ -347,8 +347,14 @@ export default function KidsPage() {
 
       setCard(normalized);
       setNextDirections(data.nextDirections ?? []);
-      setHistory((prev) => [...prev, topic]);
-      setRecentMechanics((prev) => [...prev, data.card.mechanic]);
+      // Only update history/mechanics here in free-explore mode.
+      // In course mode, handleNextCard already manages history before calling generate().
+      if (!courseQuestion) {
+        setHistory((prev) => [...prev, topic]);
+        setRecentMechanics((prev) => [...prev, data.card.mechanic]);
+      } else {
+        setRecentMechanics((prev) => [...prev, data.card.mechanic]);
+      }
       setPhase("card");
     } catch (err) {
       if ((err as Error)?.name === "AbortError") return;
@@ -396,7 +402,7 @@ export default function KidsPage() {
     setSelectedPerson(person);
     setAnchorTopic(person.name);
     setCourseQuestions([]);
-    setCourseIndex(0);
+    setCourseIndex(-1);
     setGeneratedCards({});
     setHistory([]);
     setRecentMechanics([]);
