@@ -11,6 +11,7 @@ import GroupingGame from "../GroupingGame";
 import MatchingGame from "../MatchingGame";
 import MultipleChoiceGame from "../MultipleChoiceGame";
 import type { Question } from "../games/questions";
+import LeaderboardPanel from "../LeaderboardPanel";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -577,6 +578,7 @@ export default function InterestsPage() {
   const [nextSelected, setNextSelected] = useState<string | null>(null);
   const [forYouTopics, setForYouTopics] = useState<string[]>([]);
   const [forYouLoading, setForYouLoading] = useState(true);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [cardsAnswered, setCardsAnswered] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -712,6 +714,7 @@ export default function InterestsPage() {
   }
 
   return (
+    <>
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
       <ShellBar
         title="Topics"
@@ -719,7 +722,7 @@ export default function InterestsPage() {
         right={
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <button
-              onClick={() => router.push("/nuggets/leaderboard")}
+              onClick={() => setLeaderboardOpen(true)}
               style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}
             >
               <span style={{ fontSize: "16px", lineHeight: 1 }}>🏆</span>
@@ -1042,5 +1045,8 @@ export default function InterestsPage() {
         </div>
       </main>
     </div>
+
+    <LeaderboardPanel open={leaderboardOpen} onClose={() => setLeaderboardOpen(false)} />
+    </>
   );
 }
