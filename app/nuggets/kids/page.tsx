@@ -438,9 +438,17 @@ export default function KidsPage() {
       });
       const firstCardData = await firstCardRes.json() as GenerateResponse;
       console.log(`🃏 Card 1 returned: "${firstCardData.card?.question}" [${firstCardData.card?.mechanic}]`);
+      if (firstCardData.card?.mechanic === "matching") {
+        const c = firstCardData.card as unknown as Record<string, unknown>;
+        const pairs = Array.isArray(c.pairs) ? c.pairs as Record<string, unknown>[] : [];
+        console.log(`🔍 Matching pairs (${pairs.length}):`, pairs.map(p => ({ id: p.id, left: p.left ?? p.searchTerm, right: p.right, hasImage: !!p.imageUrl })));
+      }
 
       const normalized = normalizeCard(firstCardData.card);
-      if (!normalized) throw new Error("Invalid card");
+      if (!normalized) {
+        console.error("❌ normalizeCard rejected card:", JSON.stringify(firstCardData.card, null, 2));
+        throw new Error("Invalid card");
+      }
 
       setCourseQuestions(questions);
       setCourseIndex(0);
@@ -1059,7 +1067,19 @@ export default function KidsPage() {
           {phase === "loading" && !generateError && <CardSkeleton topic={loadingTopic} />}
           {phase === "loading" && generateError && (
             <button
-              onClick={() => generate(loadingTopic)}
+              onClick={() => {
+                setGenerateError(null);
+                if (selectedPerson && courseQuestions.length === 0) {
+                  // Failed during course outline or card 1 — retry the whole course
+                  startPersonCourse(selectedPerson);
+                } else if (selectedPerson && courseIndex < courseQuestions.length) {
+                  // Failed mid-course — retry current course card
+                  const q = courseQuestions[courseIndex];
+                  generate(q.topic, anchorTopic ?? undefined, q);
+                } else {
+                  generate(loadingTopic);
+                }
+              }}
               style={{
                 marginTop: "40px", padding: "18px 20px", borderRadius: brand.radius.item,
                 background: brand.bg.raised, border: `1px solid ${brand.border.item}`,
