@@ -93,9 +93,23 @@ const MUSIC_KEYWORDS = [
   "musician", "musicians", "singer", "singers", "composer", "composers",
 ];
 
+// Angles that shift a music topic away from the music itself — skip YouTube card
+const NON_MUSIC_ANGLES = [
+  "econom", "financ", "market", "business", "industry", "revenue", "money",
+  "politic", "social", "society", "culture", "cultural", "impact", "influence",
+  "history", "historic", "movement", "protest", "activism", "gender", "race",
+  "technolog", "algorithm", "streaming", "copyright", "legal",
+];
+
 function isMusicTopic(topic: string): boolean {
   const lower = topic.toLowerCase();
   return MUSIC_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
+function isMusicVideoAppropriate(topic: string): boolean {
+  const lower = topic.toLowerCase();
+  // Topic must be music AND not primarily about a non-musical angle
+  return isMusicTopic(lower) && !NON_MUSIC_ANGLES.some((a) => lower.includes(a));
 }
 
 // Verified YouTube video IDs (checked via oEmbed 2026-10-15)
@@ -141,21 +155,23 @@ const VERIFIED_MUSIC_VIDEOS: MusicVideo[] = [
   { tags: ["jeff buckley", "hallelujah", "classic", "cover", "leonard cohen", "vocal"],   id: "y8AWFf7EAc4", artist: "Jeff Buckley", title: "Hallelujah",             context: "Buckley's 1994 cover of Leonard Cohen's 1984 song, which was barely noticed on release but became one of the most covered songs in history after Buckley's death in 1997" },
 ];
 
-function pickVideoForTopic(topic: string): MusicVideo {
+function pickVideoForTopic(topic: string, usedIds: string[] = []): MusicVideo {
   const lower = topic.toLowerCase();
-  let best = VERIFIED_MUSIC_VIDEOS[0];
+  const pool = VERIFIED_MUSIC_VIDEOS.filter((v) => !usedIds.includes(v.id));
+  const candidates = pool.length > 0 ? pool : VERIFIED_MUSIC_VIDEOS; // fall back to full list if all used
+
+  let best = candidates[0];
   let bestScore = -1;
-  for (const v of VERIFIED_MUSIC_VIDEOS) {
-    // Score: exact multi-word tag matches count double
+  for (const v of candidates) {
     const score = v.tags.reduce((acc, t) => {
       if (!lower.includes(t)) return acc;
       return acc + (t.includes(" ") ? 2 : 1);
     }, 0);
     if (score > bestScore) { bestScore = score; best = v; }
   }
-  // No match — pick randomly from the full list
+  // No match — pick randomly from the filtered pool
   if (bestScore <= 0) {
-    return VERIFIED_MUSIC_VIDEOS[Math.floor(Math.random() * VERIFIED_MUSIC_VIDEOS.length)];
+    return candidates[Math.floor(Math.random() * candidates.length)];
   }
   return best;
 }
@@ -266,8 +282,13 @@ Priority: latest choice > current focus > original intent. Follow the player —
 
   const isMusicSession = isMusicTopic(topic);
   // First card + every 3rd card in a music session gets YouTube multiple-choice
-  const isMusicYouTubeCard = !driveMode && isMusicSession && (history.length === 0 || history.length % 3 === 2);
-  const musicVideo = isMusicYouTubeCard ? pickVideoForTopic(topic) : null;
+  // Only when the topic is actually about the music itself (not economics, history, politics, etc.)
+  const isMusicYouTubeCard = !driveMode && isMusicVideoAppropriate(topic) && (history.length === 0 || history.length % 3 === 2);
+  // Detect which videos were already shown by checking if their artist/title appears in session history
+  const usedVideoIds = VERIFIED_MUSIC_VIDEOS
+    .filter((v) => history.some((h) => h.toLowerCase().includes(v.artist.toLowerCase()) || h.toLowerCase().includes(v.title.toLowerCase())))
+    .map((v) => v.id);
+  const musicVideo = isMusicYouTubeCard ? pickVideoForTopic(topic, usedVideoIds) : null;
 
   const driveModeClause = driveMode
     ? `\nDRIVING MODE — You MUST use mechanic: "multiple-choice" only. No image-matching, sequence, grouping, or matching. The question will be read aloud — keep it under 20 words. Each option must be under 6 words. No markdown, no formatting symbols.`
