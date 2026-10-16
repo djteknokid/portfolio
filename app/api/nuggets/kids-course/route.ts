@@ -11,11 +11,15 @@ export type CourseQuestion = {
 };
 
 export async function POST(req: NextRequest) {
-  const { personName, kidAge = 8 } = await req.json() as { personName: string; kidAge?: number };
+  const { personName, kidAge = 8, answeredQuestions = [] } = await req.json() as { personName: string; kidAge?: number; answeredQuestions?: string[] };
 
   if (!personName) return NextResponse.json({ error: "Missing personName" }, { status: 400 });
 
-  const prompt = `You are a curriculum designer creating a 10-question course about "${personName}" for a ${kidAge}-year-old child.
+  const answeredClause = answeredQuestions.length > 0
+    ? `\nIMPORTANT — This child has already answered these questions about ${personName}. Do NOT repeat or closely overlap any of these topics:\n${answeredQuestions.slice(0, 30).map((q, i) => `${i + 1}. ${q}`).join("\n")}\n\nDesign the 10 new questions to cover ground they have NOT explored yet.\n`
+    : "";
+
+  const prompt = `You are a curriculum designer creating a 10-question course about "${personName}" for a ${kidAge}-year-old child.${answeredClause}
 
 Your job is to design a journey — a sequence of 10 questions that builds from "who is this person?" to "now I understand why they matter."
 

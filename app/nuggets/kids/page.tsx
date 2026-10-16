@@ -392,10 +392,15 @@ export default function KidsPage() {
 
     try {
       // Step 1: fetch the course outline first so we use the designed topic for card 1
+      // Pass previously answered questions about this person so the outline avoids repetition
+      const personAnswered = completedQuestions.filter(q =>
+        q.toLowerCase().includes(person.name.toLowerCase().split(" ")[0])
+      );
+      if (personAnswered.length > 0) console.log(`📖 Found ${personAnswered.length} prior answers about ${person.name} — outline will skip these topics`);
       const courseRes = await fetch("/api/nuggets/kids-course", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ personName: person.name, kidAge: kidAge ?? 8 }),
+        body: JSON.stringify({ personName: person.name, kidAge: kidAge ?? 8, answeredQuestions: personAnswered }),
       });
       const courseData = await courseRes.json() as { questions: CourseQuestion[] };
       const questions: CourseQuestion[] = Array.isArray(courseData.questions) ? courseData.questions : [];
