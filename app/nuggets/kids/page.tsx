@@ -414,14 +414,44 @@ export default function KidsPage() {
       questions.forEach((q, i) => console.log(`Q${i + 1} [${q.pillar ?? "?"}] ${q.title}\n   → topic: "${q.topic}"`));
       console.groupEnd();
 
-      // Step 2: generate card 1 using the designed topic from the outline
+      // Step 2: generate intro card (card 0) — pure "identify this person" image-matching
+      // No courseTitle/courseHook here — this is NOT a course question, just the introduction
+      console.log(`🃏 Generating intro card for ${person.name}`);
+      const introRes = await fetch("/api/nuggets/interests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: `${person.name} — introduction`,
+          courseTitle: `Which of these people is ${person.name}?`,
+          courseHook: person.name,
+          history: [],           // empty → cardIndex=0 → forced image-matching intro
+          completedQuestions,
+          recentMechanics: [],
+          intent: null,
+          currentFocus: person.name,
+          experiment: null,
+          kidsMode: true,
+          kidsPeople: true,
+          kidAge,
+        }),
+      });
+      const introData = await introRes.json() as GenerateResponse;
+      console.log(`🃏 Intro card returned: [${introData.card?.mechanic}]`);
+
+      const introNormalized = normalizeCard(introData.card);
+      if (!introNormalized) {
+        console.error("❌ intro normalizeCard rejected:", JSON.stringify(introData.card, null, 2));
+        throw new Error("Invalid intro card");
+      }
+
+      // Step 3: generate course Q1 card — cardIndex=1 (history has intro topic)
       const q0 = questions[0];
       const firstTopic = q0?.topic ?? `${person.name} — most jaw-dropping fact`;
-      // Q1 title must always name the person
       const firstTitle = q0?.title
         ? (q0.title.toLowerCase().includes(person.name.toLowerCase()) ? q0.title : `${person.name}: ${q0.title}`)
         : `What is the most amazing thing about ${person.name}?`;
-      console.log(`🃏 Generating card 1 with topic: "${firstTopic}" | question: "${firstTitle}"`);
+      console.log(`🃏 Generating Q1 with topic: "${firstTopic}" | question: "${firstTitle}"`);
+      const introTopic = `${person.name} — introduction`;
       const firstCardRes = await fetch("/api/nuggets/interests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -429,9 +459,9 @@ export default function KidsPage() {
           topic: firstTopic,
           courseTitle: firstTitle,
           courseHook: q0?.hook ?? firstTopic,
-          history: [],
+          history: [introTopic],    // cardIndex=1 → course question mechanic rotation starts
           completedQuestions,
-          recentMechanics: [],
+          recentMechanics: [introData.card?.mechanic ?? "matching"],
           intent: null,
           currentFocus: person.name,
           experiment: null,
@@ -454,17 +484,22 @@ export default function KidsPage() {
         throw new Error("Invalid card");
       }
 
+      // courseIndex -1 = intro card, 0..9 = course questions
+      const introTopic2 = `${person.name} — introduction`;
+      const introMechanic = introData.card?.mechanic ?? "matching";
       setCourseQuestions(questions);
-      setCourseIndex(0);
-      setGeneratedCards({ 0: normalized });
-      setCard(normalized);
-      setHistory([firstTopic]);
-      setRecentMechanics([firstCardData.card?.mechanic ?? "multiple-choice"]);
+      setCourseIndex(-1);
+      setGeneratedCards({ [-1]: introNormalized, 0: normalized });
+      setCard(introNormalized);
+      setHistory([introTopic2]);
+      setRecentMechanics([introMechanic]);
       setPhase("card");
 
-      // Pre-generate card 1 in background
+      // Pre-generate course card 1 in background
       if (questions.length > 1) {
-        preGenerateCourseCard(1, questions, person.name, [firstTopic], [firstCardData.card?.mechanic ?? "multiple-choice"]);
+        const q1history = [introTopic2, firstTopic];
+        const q1mechanics = [introMechanic, firstCardData.card?.mechanic ?? "multiple-choice"];
+        preGenerateCourseCard(1, questions, person.name, q1history, q1mechanics);
       }
     } catch (err) {
       if ((err as Error)?.name === "AbortError") return;
@@ -513,6 +548,7 @@ export default function KidsPage() {
   function handleNextCard() {
     if (courseQuestions.length > 0) {
       // Course mode — advance to next course question
+      // courseIndex -1 = intro card, 0..N-1 = course questions
       const nextIndex = courseIndex + 1;
       if (nextIndex >= courseQuestions.length) {
         // Course complete — back to people list or theme
@@ -526,7 +562,9 @@ export default function KidsPage() {
       }
       setCourseIndex(nextIndex);
       const nextCard = generatedCards[nextIndex];
-      const nextHistory = [...history, courseQuestions[courseIndex]?.topic ?? ""];
+      // When leaving intro (courseIndex === -1), don't add a topic to history (intro has no course topic)
+      const completedTopic = courseIndex >= 0 ? (courseQuestions[courseIndex]?.topic ?? "") : "";
+      const nextHistory = completedTopic ? [...history, completedTopic] : history;
       const nextMechanics = [...recentMechanics, card?.mechanic ?? "multiple-choice"];
       if (nextCard) {
         // Already generated — show immediately
