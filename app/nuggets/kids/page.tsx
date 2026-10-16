@@ -106,6 +106,7 @@ function normalizeCard(raw: unknown): KidsCard | null {
     thumbId: "kids-default",
     knowledgeReveal: (c.knowledgeReveal as string) ?? undefined,
     conversationTakeaway: (c.conversationTakeaway as string) ?? undefined,
+    ...(c.heroImageUrl ? { heroImageUrl: c.heroImageUrl as string } : {}),
   };
 
   if (c.mechanic === "grouping") {
