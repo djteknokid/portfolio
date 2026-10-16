@@ -253,7 +253,7 @@ const KIDS_TOPICS = [
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-type Phase = "age" | "theme" | "people" | "people-list" | "input" | "refining" | "loading" | "card";
+type Phase = "age" | "theme" | "people" | "people-list" | "input" | "refining" | "loading" | "intro" | "card";
 
 const AGE_OPTIONS = [
   { age: 5, emoji: "🐣", label: "5" },
@@ -295,6 +295,7 @@ export default function KidsPage() {
   // Pre-generated cards: index → card (populated ahead of current position)
   const [generatedCards, setGeneratedCards] = useState<Record<number, KidsCard>>({});
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
+  const [introPortraitUrl, setIntroPortraitUrl] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -309,6 +310,16 @@ export default function KidsPage() {
       setTimeout(() => cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     }
   }, [phase, card]);
+
+  // If we're on the loading phase waiting for Q1 and it arrives, auto-advance to card
+  useEffect(() => {
+    if (phase === "loading" && courseQuestions.length > 0 && generatedCards[0]) {
+      setCard(generatedCards[0]);
+      setCourseIndex(0);
+      setCardCompleted(false);
+      setPhase("card");
+    }
+  }, [phase, generatedCards, courseQuestions.length]);
 
   const completedQuestions = profile.history.map((h) => h.question);
 
@@ -403,7 +414,7 @@ export default function KidsPage() {
     setSelectedPerson(person);
     setAnchorTopic(person.name);
     setCourseQuestions([]);
-    setCourseIndex(-1);
+    setCourseIndex(0);
     setGeneratedCards({});
     setHistory([]);
     setRecentMechanics([]);
@@ -411,10 +422,10 @@ export default function KidsPage() {
     setPhase("loading");
     setLoadingTopic(person.name);
     setGenerateError(null);
+    setIntroPortraitUrl(null);
 
     try {
-      // Step 1: fetch the course outline first so we use the designed topic for card 1
-      // Pass previously answered questions about this person so the outline avoids repetition
+      // Fetch course outline (also returns portrait URL)
       const personAnswered = completedQuestions.filter(q =>
         q.toLowerCase().includes(person.name.toLowerCase().split(" ")[0])
       );
@@ -424,99 +435,59 @@ export default function KidsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ personName: person.name, kidAge: kidAge ?? 8, answeredQuestions: personAnswered }),
       });
-      const courseData = await courseRes.json() as { questions: CourseQuestion[] };
+      const courseData = await courseRes.json() as { questions: CourseQuestion[]; portraitUrl?: string | null };
       const questions: CourseQuestion[] = Array.isArray(courseData.questions) ? courseData.questions : [];
 
       console.group(`📚 Course outline: ${person.name}`);
       questions.forEach((q, i) => console.log(`Q${i + 1} [${q.pillar ?? "?"}] ${q.title}\n   → topic: "${q.topic}"`));
       console.groupEnd();
 
-      // Step 2: generate intro card (card 0) — pure "identify this person" image-matching
-      // No courseTitle/courseHook here — this is NOT a course question, just the introduction
-      console.log(`🃏 Generating intro card for ${person.name}`);
-      const introRes = await fetch("/api/nuggets/interests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic: `${person.name} — introduction`,
-          courseTitle: `Which of these people is ${person.name}?`,
-          courseHook: person.name,
-          history: [],           // empty → cardIndex=0 → forced image-matching intro
-          completedQuestions,
-          recentMechanics: [],
-          intent: null,
-          currentFocus: person.name,
-          experiment: null,
-          kidsMode: true,
-          kidsPeople: true,
-          kidAge,
-        }),
-      });
-      const introData = await introRes.json() as GenerateResponse;
-      console.log(`🃏 Intro card returned: [${introData.card?.mechanic}]`);
-
-      const introNormalized = normalizeCard(introData.card);
-      if (!introNormalized) {
-        console.error("❌ intro normalizeCard rejected:", JSON.stringify(introData.card, null, 2));
-        throw new Error("Invalid intro card");
-      }
-
-      // Step 3: generate course Q1 card — cardIndex=1 (history has intro topic)
-      const q0 = questions[0];
-      const firstTopic = q0?.topic ?? `${person.name} — most jaw-dropping fact`;
-      const firstTitle = q0?.title
-        ? (q0.title.toLowerCase().includes(person.name.toLowerCase()) ? q0.title : `${person.name}: ${q0.title}`)
-        : `What is the most amazing thing about ${person.name}?`;
-      console.log(`🃏 Generating Q1 with topic: "${firstTopic}" | question: "${firstTitle}"`);
-      const introTopic = `${person.name} — introduction`;
-      const firstCardRes = await fetch("/api/nuggets/interests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic: firstTopic,
-          courseTitle: firstTitle,
-          courseHook: q0?.hook ?? firstTopic,
-          history: [introTopic],    // cardIndex=1 → course question mechanic rotation starts
-          completedQuestions,
-          recentMechanics: [introData.card?.mechanic ?? "matching"],
-          intent: null,
-          currentFocus: person.name,
-          experiment: null,
-          kidsMode: true,
-          kidsPeople: true,
-          kidAge,
-        }),
-      });
-      const firstCardData = await firstCardRes.json() as GenerateResponse;
-      console.log(`🃏 Card 1 returned: "${firstCardData.card?.question}" [${firstCardData.card?.mechanic}]`);
-      if (firstCardData.card?.mechanic === "matching") {
-        const c = firstCardData.card as unknown as Record<string, unknown>;
-        const pairs = Array.isArray(c.pairs) ? c.pairs as Record<string, unknown>[] : [];
-        console.log(`🔍 Matching pairs (${pairs.length}):`, pairs.map(p => ({ id: p.id, left: p.left ?? p.searchTerm, right: p.right, hasImage: !!p.imageUrl })));
-      }
-
-      const normalized = normalizeCard(firstCardData.card);
-      if (!normalized) {
-        console.error("❌ normalizeCard rejected card:", JSON.stringify(firstCardData.card, null, 2));
-        throw new Error("Invalid card");
-      }
-
-      // courseIndex -1 = intro card, 0..9 = course questions
-      const introTopic2 = `${person.name} — introduction`;
-      const introMechanic = introData.card?.mechanic ?? "matching";
+      // Show intro splash immediately — no extra API call needed
+      setIntroPortraitUrl(courseData.portraitUrl ?? null);
       setCourseQuestions(questions);
       setCourseIndex(-1);
-      setGeneratedCards({ [-1]: introNormalized, 0: normalized });
-      setCard(introNormalized);
-      setHistory([introTopic2]);
-      setRecentMechanics([introMechanic]);
-      setPhase("card");
+      setPhase("intro");
 
-      // Pre-generate course card 1 in background
-      if (questions.length > 1) {
-        const q1history = [introTopic2, firstTopic];
-        const q1mechanics = [introMechanic, firstCardData.card?.mechanic ?? "multiple-choice"];
-        preGenerateCourseCard(1, questions, person.name, q1history, q1mechanics);
+      // Generate Q1 card in background while user reads the intro
+      if (questions.length > 0) {
+        const q0 = questions[0];
+        const firstTopic = q0.topic;
+        const firstTitle = q0.title.toLowerCase().includes(person.name.toLowerCase())
+          ? q0.title
+          : `${person.name}: ${q0.title}`;
+        console.log(`🃏 Generating Q1 with topic: "${firstTopic}" | question: "${firstTitle}"`);
+        const firstCardRes = await fetch("/api/nuggets/interests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic: firstTopic,
+            courseTitle: firstTitle,
+            courseHook: q0.hook,
+            history: [],
+            completedQuestions,
+            recentMechanics: [],
+            intent: null,
+            currentFocus: person.name,
+            experiment: null,
+            kidsMode: true,
+            kidsPeople: true,
+            kidAge,
+          }),
+        });
+        const firstCardData = await firstCardRes.json() as GenerateResponse;
+        console.log(`🃏 Q1 returned: "${firstCardData.card?.question}" [${firstCardData.card?.mechanic}]`);
+
+        const normalized = normalizeCard(firstCardData.card);
+        if (!normalized) {
+          console.error("❌ normalizeCard rejected Q1:", JSON.stringify(firstCardData.card, null, 2));
+        } else {
+          setGeneratedCards({ 0: normalized });
+          setRecentMechanics([firstCardData.card?.mechanic ?? "multiple-choice"]);
+          // Pre-generate Q2
+          if (questions.length > 1) {
+            preGenerateCourseCard(1, questions, person.name, [firstTopic], [firstCardData.card?.mechanic ?? "multiple-choice"]);
+          }
+        }
       }
     } catch (err) {
       if ((err as Error)?.name === "AbortError") return;
@@ -562,10 +533,24 @@ export default function KidsPage() {
     if (card) recordCorrect(card.question, undefined, undefined, points);
   }
 
+  function handleStartCourse() {
+    // Transition from intro splash to Q1
+    setCourseIndex(0);
+    const q1 = generatedCards[0];
+    if (q1) {
+      setCard(q1);
+      setCardCompleted(false);
+      setPhase("card");
+    } else {
+      // Q1 not yet generated (still loading) — show loading state
+      setPhase("loading");
+      setLoadingTopic(selectedPerson?.name ?? "");
+    }
+  }
+
   function handleNextCard() {
     if (courseQuestions.length > 0) {
       // Course mode — advance to next course question
-      // courseIndex -1 = intro card, 0..N-1 = course questions
       const nextIndex = courseIndex + 1;
       if (nextIndex >= courseQuestions.length) {
         // Course complete — back to people list or theme
@@ -579,7 +564,6 @@ export default function KidsPage() {
       }
       setCourseIndex(nextIndex);
       const nextCard = generatedCards[nextIndex];
-      // When leaving intro (courseIndex === -1), don't add a topic to history (intro has no course topic)
       const completedTopic = courseIndex >= 0 ? (courseQuestions[courseIndex]?.topic ?? "") : "";
       const nextHistory = completedTopic ? [...history, completedTopic] : history;
       const nextMechanics = [...recentMechanics, card?.mechanic ?? "multiple-choice"];
@@ -1149,6 +1133,87 @@ export default function KidsPage() {
             >
               {generateError}
             </button>
+          )}
+
+          {/* ── Intro splash phase ── */}
+          {phase === "intro" && selectedPerson && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
+              {/* Portrait */}
+              <div style={{
+                width: "100%",
+                height: "280px",
+                borderRadius: "20px",
+                overflow: "hidden",
+                background: brand.bg.raised,
+                position: "relative",
+                marginBottom: "24px",
+              }}>
+                {introPortraitUrl
+                  ? <img src={introPortraitUrl} alt={selectedPerson.name} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center" }} />
+                  : <div style={{ position: "absolute", inset: 0, background: kids.cardGradient }} />
+                }
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.85) 100%)" }} />
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px 20px 22px" }}>
+                  <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "6px" }}>
+                    Amazing People · 10-question course
+                  </div>
+                  <div style={{ fontSize: "clamp(1.4rem, 6vw, 1.7rem)", fontWeight: "900", color: "#ffffff", lineHeight: 1.1, letterSpacing: "-0.03em" }}>
+                    {selectedPerson.name}
+                  </div>
+                  {selectedPerson.tagline && (
+                    <div style={{ fontSize: "13px", fontWeight: "500", color: "rgba(255,255,255,0.7)", marginTop: "5px", lineHeight: 1.4 }}>
+                      {selectedPerson.tagline}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Hook teaser */}
+              {courseQuestions[0]?.hook && (
+                <div style={{
+                  background: brand.bg.raised,
+                  border: `1px solid ${brand.border.item}`,
+                  borderRadius: "14px",
+                  padding: "16px 18px",
+                  marginBottom: "20px",
+                }}>
+                  <div style={{ fontSize: "10px", fontWeight: "600", letterSpacing: "0.12em", textTransform: "uppercase", color: kids.accentText, marginBottom: "8px" }}>
+                    Did you know?
+                  </div>
+                  <div style={{ fontSize: "15px", fontWeight: "500", color: brand.text.primary, lineHeight: 1.55, letterSpacing: "-0.01em" }}>
+                    {courseQuestions[0].hook}
+                  </div>
+                </div>
+              )}
+
+              {/* Start button */}
+              <button
+                onClick={handleStartCourse}
+                style={{
+                  width: "100%",
+                  padding: "17px 16px",
+                  borderRadius: brand.radius.button,
+                  background: generatedCards[0] ? kids.accent : brand.bg.raised,
+                  border: generatedCards[0] ? "none" : `1px solid ${brand.border.item}`,
+                  color: generatedCards[0] ? "#fff" : brand.text.secondary,
+                  fontSize: "16px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  WebkitTapHighlightColor: "transparent",
+                  letterSpacing: "-0.01em",
+                  transition: "background 300ms ease, color 300ms ease",
+                }}
+              >
+                {generatedCards[0] ? `Start course →` : `Preparing course…`}
+              </button>
+
+              <button
+                onClick={() => setPhase("people-list")}
+                style={{ marginTop: "12px", background: "none", border: "none", color: brand.text.muted, fontSize: "13px", cursor: "pointer", padding: 0, textAlign: "center", width: "100%" }}
+              >
+                ← Choose someone else
+              </button>
+            </div>
           )}
 
           {/* ── Card phase ── */}

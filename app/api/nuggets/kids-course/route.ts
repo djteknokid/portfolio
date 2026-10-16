@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { resolveWikimediaImages } from "../interests/resolve-images";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -88,7 +89,16 @@ Q5: { "hook": "Serena won her first professional tournament at age 14", "title":
     const parsed = JSON.parse(raw) as { questions: CourseQuestion[] };
     const questions: CourseQuestion[] = Array.isArray(parsed.questions) ? parsed.questions.slice(0, 10) : [];
 
-    return NextResponse.json({ questions });
+    // Resolve portrait image in parallel with nothing else to wait on
+    let portraitUrl: string | null = null;
+    try {
+      const portraits = await resolveWikimediaImages([personName], 800);
+      portraitUrl = portraits[personName] ?? null;
+    } catch {
+      // non-fatal
+    }
+
+    return NextResponse.json({ questions, portraitUrl });
   } catch (err) {
     console.error("[kids-course]", err);
     return NextResponse.json({ error: "Failed to generate course" }, { status: 500 });
