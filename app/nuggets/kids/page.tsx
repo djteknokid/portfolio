@@ -119,13 +119,17 @@ function normalizeCard(raw: unknown): KidsCard | null {
   if (c.mechanic === "matching") {
     const pairs = Array.isArray(c.pairs) ? c.pairs : [];
     if (pairs.length < 2) return null;
-    const rights = pairs.map((p: { right: string }) => p.right?.trim().toLowerCase());
+    // Normalize: if right is missing, default to the person's name (left/searchTerm)
+    const normalizedPairs = pairs.map((p: { id: string; left?: string; searchTerm?: string; right?: string; imageUrl?: string }) => ({
+      ...p,
+      left: p.left ?? p.searchTerm ?? "",
+      right: p.right ?? p.left ?? p.searchTerm ?? "",
+    }));
+    const rights = normalizedPairs.map((p: { right: string }) => p.right.trim().toLowerCase());
     if (new Set(rights).size !== rights.length) return null;
-    const lefts = pairs.map((p: { left: string; searchTerm?: string }) =>
-      (p.left ?? p.searchTerm ?? "").trim().toLowerCase()
-    );
+    const lefts = normalizedPairs.map((p: { left: string }) => p.left.trim().toLowerCase());
     if (new Set(lefts).size !== lefts.length) return null;
-    return { ...base, mechanic: "matching", pairs } as KidsCard;
+    return { ...base, mechanic: "matching", pairs: normalizedPairs } as KidsCard;
   }
   if (c.mechanic === "sequence") {
     const sequence = Array.isArray(c.sequence) ? c.sequence : [];
