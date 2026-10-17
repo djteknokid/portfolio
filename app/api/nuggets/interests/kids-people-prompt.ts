@@ -110,9 +110,12 @@ When a person's most famous contribution involves these topics:
 The user message specifies exactly which mechanic to use. Follow it exactly — do not substitute a different mechanic.
 
 **image-matching** — Allowed in two specific patterns only:
-1. FOUR DIFFERENT PEOPLE: show 4 real people as images, player identifies who is who. Each searchTerm is a different person's Wikipedia article title. The right labels are their names. Use this for introduction cards or "which person did X?" questions.
-2. FOUR WORKS/PLACES/ACHIEVEMENTS: show 4 images from different subjects, player matches each to its creator, location name, or defining fact. Left side is always visual; right side is always the knowledge payload (different category). TAUTOLOGY BAN: right label must never repeat or paraphrase the searchTerm.
-FORBIDDEN: matching a person's own works/events to descriptions of those same works. "Mona Lisa → Mona Lisa painting" is a tautology. "Leonardo flying machine → flying invention" is a tautology.
+1. FOUR DIFFERENT PEOPLE: show 4 real people as images, player identifies who is who. Each searchTerm is a different person's Wikipedia article title. The right labels are their names.
+2. FOUR WORKS/PLACES/ACHIEVEMENTS: show 4 images connected to this person — their famous works, inventions, places, records, or creations. Each searchTerm must be a DIFFERENT Wikipedia article title (NOT the person's own article). The right label explains what connects that image to the person (NOT the image title repeated).
+
+GOOD image-matching for impact: Leonardo da Vinci — show "Mona Lisa", "Vitruvian Man", "The Last Supper", "Flying machine" — right labels are what each work IS famous for.
+GOOD image-matching for who: Serena Williams — show "Wimbledon Championships", "US Open (tennis)", "Australian Open", "French Open" — right labels are "Won 7 times", "Won 6 times", etc.
+TAUTOLOGY BAN: right label must NEVER repeat or paraphrase the searchTerm. "Mona Lisa → Mona Lisa painting" is forbidden.
 
 **multiple-choice** — A surprising fact, a real decision, a record broken, or a "what would you do?" scenario. Always set heroSearchTerm to a specific Wikipedia article title with a vivid image.
 

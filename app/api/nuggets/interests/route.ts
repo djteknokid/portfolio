@@ -382,22 +382,28 @@ Generate one high-quality question card and three next directions.`;
   // Map pillar → required mechanic. Enforces variety across the 10-question course.
   const pillarMechanic: Record<string, string> = {
     hook: "multiple-choice",
-    who: "multiple-choice",
+    who: "image-matching",
     breakthrough: "sequence",
     mindset: "multiple-choice",
     surprise: "grouping",
-    impact: "multiple-choice",
+    impact: "image-matching",
     character: "grouping",
     deeper: "multiple-choice",
     connection: "multiple-choice",
     legacy: "sequence",
   };
   const requiredMechanic = coursePillar ? (pillarMechanic[coursePillar] ?? null) : null;
+
+  // Extra guidance for image-matching pillars so the model picks correct searchTerms
+  const imagePillarHint = requiredMechanic === "image-matching"
+    ? `\nFor this image-matching card: show 4 real things directly connected to ${currentFocus ?? topic} — their famous works, places they changed, inventions they made, or records they set. Each searchTerm must be a different Wikipedia article title (NOT the person's own article). The right label must describe what connects that image to ${currentFocus ?? topic} (NOT the image title repeated).`
+    : "";
+
   const visualRule = requiredMechanic
-    ? `\nMECHANIC — REQUIRED: "${requiredMechanic}"\nThis is a ${coursePillar} pillar question. You MUST use "${requiredMechanic}". No other mechanic is acceptable.`
+    ? `\nMECHANIC — REQUIRED: "${requiredMechanic}"\nThis is a ${coursePillar} pillar question. You MUST use "${requiredMechanic}". No other mechanic is acceptable.${imagePillarHint}`
     : lastMechanic
-    ? `\nMECHANIC: Last mechanic was "${lastMechanic}". Pick a DIFFERENT mechanic — multiple-choice, sequence, or grouping. Do NOT use "${lastMechanic}".`
-    : `\nMECHANIC: Pick the mechanic that best fits the question — multiple-choice, sequence, or grouping.`;
+    ? `\nMECHANIC: Last mechanic was "${lastMechanic}". Pick a DIFFERENT mechanic — multiple-choice, sequence, grouping, or image-matching. Do NOT use "${lastMechanic}".`
+    : `\nMECHANIC: Pick the mechanic that best fits the question — multiple-choice, sequence, grouping, or image-matching.`;
 
   const kidsPeoplePrompt = kidsPeople
     ? `Person: "${currentFocus ?? topic}"
