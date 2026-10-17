@@ -23,7 +23,7 @@ interface Props {
   question: string;
   items: GroupingItem[];
   zones: GroupZone[];
-  onComplete: () => void;
+  onComplete: (attempts?: number) => void;
   onSkip?: () => void;
   loadingSkip?: boolean;
   suggestions?: Suggestion[];
@@ -51,6 +51,7 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
   const [evalResults, setEvalResults] = useState<EvalResult[] | null>(null);
   const [allDone, setAllDone] = useState(false);
   const [shuffled] = useState(() => shuffle(items));
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   const dragging = useRef(false);
   const dragId = useRef<string | null>(null);
@@ -144,6 +145,8 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
       setAllDone(true);
       playCorrectBeep();
       playVictory();
+    } else {
+      setWrongAttempts((n) => n + 1);
     }
   }
 
@@ -307,7 +310,7 @@ export default function GroupingGame({ items, zones, onComplete, onSkip, loading
           )}
         </div>
       ) : (
-        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} autoComplete={autoComplete} />
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={() => onComplete(wrongAttempts + 1)} autoComplete={autoComplete} />
       )}
     </div>
   );

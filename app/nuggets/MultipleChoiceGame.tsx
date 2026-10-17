@@ -16,7 +16,7 @@ interface Props {
   mediaUrl?: string;       // YouTube embed URL
   options: MCOption[];
   correctIds: string[];    // 1 id = single-select, >1 = multi-select
-  onComplete: () => void;
+  onComplete: (attempts?: number) => void;
   suggestions?: Suggestion[];
   loadingSuggestions?: boolean;
   onSelectSuggestion?: (q: string) => void;
@@ -29,6 +29,7 @@ export default function MultipleChoiceGame({ question: _q, mediaUrl, options, co
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [allDone, setAllDone] = useState(false);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   function toggle(id: string) {
     if (allDone || revealed.has(id)) return;
@@ -55,8 +56,9 @@ export default function MultipleChoiceGame({ question: _q, mediaUrl, options, co
           setAllDone(true);
           playVictory();
         }
+      } else {
+        setWrongAttempts((n) => n + 1);
       }
-      // wrong selection in multi: keep chip selected so user sees their mistake, don't lock
     } else {
       // single select: reveal immediately
       const nextRevealed = new Set([...revealed, id]);
@@ -67,6 +69,8 @@ export default function MultipleChoiceGame({ question: _q, mediaUrl, options, co
         playCorrectBeep();
         setAllDone(true);
         playVictory();
+      } else {
+        setWrongAttempts((n) => n + 1);
       }
     }
   }
@@ -175,7 +179,7 @@ export default function MultipleChoiceGame({ question: _q, mediaUrl, options, co
       </div>
 
       {allDone && (
-        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={onComplete} autoComplete={autoComplete} />
+        <WhatsNext suggestions={suggestions} loadingSuggestions={loadingSuggestions} loadingNugget={loadingNugget} onSelect={onSelectSuggestion} onDone={() => onComplete(wrongAttempts + 1)} autoComplete={autoComplete} />
       )}
     </div>
   );

@@ -191,15 +191,15 @@ function CardSkeleton({ topic }: { topic: string }) {
 
 // ── Game renderer ─────────────────────────────────────────────────────────────
 
-function GameRenderer({ card, onComplete }: { card: KidsCard; onComplete: (attempts: number) => void }) {
+function GameRenderer({ card, onComplete }: { card: KidsCard; onComplete: (attempts?: number) => void }) {
   if (card.mechanic === "sequence")
-    return <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={(n: number) => onComplete(n)} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
+    return <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={(n?: number) => onComplete(n ?? 1)} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
   if (card.mechanic === "grouping")
-    return <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={(n: number) => onComplete(n)} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
+    return <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={(n?: number) => onComplete(n ?? 1)} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
   if (card.mechanic === "matching")
-    return <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={(n: number) => onComplete(n)} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
+    return <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={(n?: number) => onComplete(n ?? 1)} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
   if (card.mechanic === "multiple-choice")
-    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={(n: number) => onComplete(n)} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
+    return <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={(n?: number) => onComplete(n ?? 1)} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={(_q: string) => {}} loadingNugget={null} autoComplete />;
   return null;
 }
 
@@ -526,9 +526,10 @@ export default function KidsPage() {
     refine(val);
   }
 
-  function handleCardComplete(attempts: number) {
+  function handleCardComplete(attempts?: number) {
     setCardCompleted(true);
-    const points = attempts <= 1 ? 3 : attempts === 2 ? 2 : attempts === 3 ? 1 : 0;
+    const n = attempts ?? 1;
+    const points = n <= 1 ? 3 : n === 2 ? 2 : n === 3 ? 1 : 0;
     if (card) recordCorrect(card.question, undefined, undefined, points);
   }
 

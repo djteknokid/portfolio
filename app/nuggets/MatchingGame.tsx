@@ -16,7 +16,7 @@ export interface MatchPair {
 interface Props {
   question: string;
   pairs: MatchPair[];
-  onComplete: (attempts: number) => void;
+  onComplete: (attempts?: number) => void;
   onSkip?: () => void;
   loadingSkip?: boolean;
   suggestions?: Suggestion[];

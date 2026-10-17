@@ -501,7 +501,7 @@ function CardSkeleton({ topic }: { topic: string }) {
 
 // ── Game renderer ─────────────────────────────────────────────────────────────────
 
-function GameRenderer({ card, onComplete }: { card: InterestCard; onComplete: () => void }) {
+function GameRenderer({ card, onComplete }: { card: InterestCard; onComplete: (attempts?: number) => void }) {
   if (card.mechanic === "sequence") {
     return <SequenceGame key={card.question} question={card.question} sequence={card.sequence} onComplete={onComplete} suggestions={[]} loadingSuggestions={false} onSelectSuggestion={() => {}} loadingNugget={null} autoComplete />;
   }
@@ -707,10 +707,11 @@ export default function InterestsPage() {
     generate(topic).finally(() => setLoadingNext(false));
   }
 
-  function handleCardComplete() {
+  function handleCardComplete(attempts?: number) {
     setCardCompleted(true);
     setCardsAnswered((n) => n + 1);
-    if (card) recordCorrect(card.question);
+    const n = attempts ?? 1; const points = n <= 1 ? 3 : n === 2 ? 2 : n === 3 ? 1 : 0;
+    if (card) recordCorrect(card.question, undefined, undefined, points);
   }
 
   return (
@@ -729,10 +730,10 @@ export default function InterestsPage() {
               <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>Board</span>
             </button>
             <button
-              style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}
+              style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}
             >
-              <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{synced ? profile.score : "—"}</span>
-              <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>solved</span>
+              <span style={{ fontSize: "20px", fontWeight: "800", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em", lineHeight: 1 }}>{synced ? profile.score : "—"}</span>
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "#818cf8", letterSpacing: "0.06em", textTransform: "uppercase", lineHeight: 1 }}>pts</span>
             </button>
             <UserMenu />
           </div>

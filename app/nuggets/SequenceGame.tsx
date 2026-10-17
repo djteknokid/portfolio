@@ -20,7 +20,7 @@ interface EvalResult { id: string; isCorrect: boolean }
 interface Props {
   question: string;
   sequence: { id: string; text: string }[];
-  onComplete: () => void;
+  onComplete: (attempts?: number) => void;
   onSkip?: () => void;
   loadingSkip?: boolean;
   suggestions?: Suggestion[];
@@ -40,6 +40,7 @@ export default function SequenceGame({ question: _question, sequence, onComplete
   const [showReveal, setShowReveal] = useState(false);
   const [justDropped, setJustDropped] = useState<string | null>(null);
   const [itemHeight, setItemHeight] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   const dragging = useRef(false);
   const dragIdx = useRef<number | null>(null);
@@ -199,11 +200,13 @@ export default function SequenceGame({ question: _question, sequence, onComplete
       setShowReveal(true);
       playCorrectBeep();
       playVictory();
+    } else {
+      setWrongAttempts((n) => n + 1);
     }
   }
 
   function handleDone() {
-    onComplete();
+    onComplete(wrongAttempts + 1);
   }
 
   function getTranslateY(i: number): number {
