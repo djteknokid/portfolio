@@ -223,6 +223,7 @@ export async function POST(req: NextRequest) {
     kidsPeople = false,
     courseHook = null,
     courseTitle = null,
+    coursePillar = null,
     kidAge = null,
   } = await req.json() as {
     topic: string;
@@ -237,6 +238,7 @@ export async function POST(req: NextRequest) {
     kidsPeople?: boolean;
     courseHook?: string | null;
     courseTitle?: string | null;
+    coursePillar?: string | null;
     kidAge?: number | null;
   };
 
@@ -377,10 +379,25 @@ Generate one high-quality question card and three next directions.`;
   // Kids Amazing People path uses a dedicated prompt tuned for inspiring historic people
   const lastMechanic = recentMechanics[recentMechanics.length - 1] ?? "";
 
-  // Course cards pick their own mechanic based on the question — we just prevent repetition.
-  const visualRule = lastMechanic
-    ? `\nMECHANIC: Last mechanic was "${lastMechanic}". Pick the mechanic that best fits the question — multiple-choice, sequence, grouping, or image-matching. Do NOT repeat "${lastMechanic}" unless it is clearly the best fit.`
-    : `\nMECHANIC: Pick the mechanic that best fits the question — multiple-choice, sequence, grouping, or image-matching.`;
+  // Map pillar → required mechanic. Enforces variety across the 10-question course.
+  const pillarMechanic: Record<string, string> = {
+    hook: "multiple-choice",
+    who: "multiple-choice",
+    breakthrough: "sequence",
+    mindset: "multiple-choice",
+    surprise: "grouping",
+    impact: "multiple-choice",
+    character: "grouping",
+    deeper: "multiple-choice",
+    connection: "multiple-choice",
+    legacy: "sequence",
+  };
+  const requiredMechanic = coursePillar ? (pillarMechanic[coursePillar] ?? null) : null;
+  const visualRule = requiredMechanic
+    ? `\nMECHANIC — REQUIRED: "${requiredMechanic}"\nThis is a ${coursePillar} pillar question. You MUST use "${requiredMechanic}". No other mechanic is acceptable.`
+    : lastMechanic
+    ? `\nMECHANIC: Last mechanic was "${lastMechanic}". Pick a DIFFERENT mechanic — multiple-choice, sequence, or grouping. Do NOT use "${lastMechanic}".`
+    : `\nMECHANIC: Pick the mechanic that best fits the question — multiple-choice, sequence, or grouping.`;
 
   const kidsPeoplePrompt = kidsPeople
     ? `Person: "${currentFocus ?? topic}"
