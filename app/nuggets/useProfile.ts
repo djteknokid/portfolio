@@ -114,7 +114,6 @@ export function useProfile() {
       if (userId) {
         const supabase = createClient();
 
-        // Write to user_history (source of truth)
         supabase.from("user_history").upsert({
           user_id: userId,
           question,
