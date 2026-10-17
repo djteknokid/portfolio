@@ -66,10 +66,16 @@ async function generate(userPrompt: string, systemPrompt: string = DIRECTOR_PROM
 }
 
 async function resolveImageMatching(parsed: Record<string, unknown>) {
-  if ((parsed.card as Record<string, unknown>)?.mechanic !== "image-matching") return parsed;
+  const card = parsed.card as Record<string, unknown> | undefined;
+  if (!card) return parsed;
+  // Trigger on "image-matching" OR "matching" when pairs have searchTerm fields
+  const mechanic = card.mechanic as string;
+  if (mechanic !== "image-matching" && mechanic !== "matching") return parsed;
 
-  const card = parsed.card as Record<string, unknown>;
   const pairs: ImageMatchPair[] = Array.isArray(card.pairs) ? card.pairs : [];
+  const hasSearchTerms = pairs.some((p) => p.searchTerm);
+  if (!hasSearchTerms) return parsed;
+
   const terms = pairs.map((p) => p.searchTerm).filter(Boolean);
   const images = await resolveWikimediaImages(terms, 400);
 
@@ -396,7 +402,8 @@ Generate one high-quality question card and three next directions.`;
 
   // Extra guidance for image-matching pillars so the model picks correct searchTerms
   const imagePillarHint = requiredMechanic === "image-matching"
-    ? `\nFor this image-matching card: show 4 real things directly connected to ${currentFocus ?? topic} — their famous works, places they changed, inventions they made, or records they set. Each searchTerm must be a different Wikipedia article title (NOT the person's own article). The right label must describe what connects that image to ${currentFocus ?? topic} (NOT the image title repeated).`
+    ? `\nFor this image-matching card: show 4 real things directly connected to ${currentFocus ?? topic} — their famous works, places they changed, inventions they made, or records they set. Each searchTerm must be a different Wikipedia article title (NOT the person's own article). The right label must describe what connects that image to ${currentFocus ?? topic} (NOT the image title repeated).
+CRITICAL JSON FORMAT: use mechanic "image-matching" and pairs with "searchTerm" (Wikipedia article title) and "right" (the label). Example pair: {"id":"p1","searchTerm":"Mona Lisa","right":"The painting that made him world-famous"}`
     : "";
 
   const visualRule = requiredMechanic
