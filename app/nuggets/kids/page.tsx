@@ -111,8 +111,13 @@ function normalizeCard(raw: unknown): KidsCard | null {
 
   if (c.mechanic === "grouping") {
     const zones = Array.isArray(c.zones) ? c.zones : [];
-    const items = Array.isArray(c.items) ? c.items : [];
-    if (zones.length !== 2 || items.length < 4) return null;
+    const rawItems = Array.isArray(c.items) ? c.items : [];
+    if (zones.length !== 2 || rawItems.length < 4) return null;
+    // Normalize: AI sometimes returns "text" instead of "label"
+    const items = rawItems.map((i: Record<string, unknown>) => ({
+      ...i,
+      label: (i.label as string) ?? (i.text as string) ?? "",
+    }));
     const zoneIds = new Set(zones.map((z: { id: string }) => z.id));
     if (items.some((i: { correctGroup: string }) => !zoneIds.has(i.correctGroup))) return null;
     return { ...base, mechanic: "grouping", zones, items } as KidsCard;

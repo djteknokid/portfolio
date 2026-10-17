@@ -264,12 +264,12 @@ Return valid JSON only. No markdown fences, no explanation outside the JSON.
       {"id": "z2", "label": "This is just a myth"}
     ],
     "items": [
-      {"id": "i1", "text": "Failed his first university entrance exam", "correctGroup": "z1"},
-      {"id": "i2", "text": "Failed math as a kid", "correctGroup": "z2"},
-      {"id": "i3", "text": "Played violin his whole life", "correctGroup": "z1"},
-      {"id": "i4", "text": "Never wore socks", "correctGroup": "z1"},
-      {"id": "i5", "text": "Invented the light bulb", "correctGroup": "z2"},
-      {"id": "i6", "text": "Won the Nobel Prize in Physics", "correctGroup": "z1"}
+      {"id": "i1", "label": "Failed his first university entrance exam", "correctGroup": "z1"},
+      {"id": "i2", "label": "Failed math as a kid", "correctGroup": "z2"},
+      {"id": "i3", "label": "Played violin his whole life", "correctGroup": "z1"},
+      {"id": "i4", "label": "Never wore socks", "correctGroup": "z1"},
+      {"id": "i5", "label": "Invented the light bulb", "correctGroup": "z2"},
+      {"id": "i6", "label": "Won the Nobel Prize in Physics", "correctGroup": "z1"}
     ]
   }
 }
