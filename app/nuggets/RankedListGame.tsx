@@ -14,7 +14,7 @@ export interface RankedItem {
 interface Props {
   question: string;
   items: RankedItem[];
-  onComplete: () => void;
+  onComplete: (attempts: number) => void;
   onSkip?: () => void;
   loadingSkip?: boolean;
   suggestions?: string[];
@@ -99,7 +99,7 @@ export default function RankedListGame({
       {/* Actions */}
       <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "24px" }}>
         <button
-          onClick={onComplete}
+          onClick={() => onComplete(1)}
           style={{
             width: "100%", padding: "14px",
             borderRadius: brand.radius.button,

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { brand } from "./brand";
+import LeaderboardPanel from "./LeaderboardPanel";
 import { NUGGET_SETS } from "@/lib/nuggets/sets";
 import { useProfile } from "./useProfile";
 import ShellBar from "./ShellBar";
@@ -71,8 +72,7 @@ function ReviewGame({ card, onBack }: { card: AnyCard; onBack: () => void }) {
           {card.mechanic === "grouping" && <GroupingGame key={card.question} question={card.question} zones={card.zones} items={card.items} onComplete={onBack} />}
           {card.mechanic === "matching" && <MatchingGame key={card.question} question={card.question} pairs={card.pairs} onComplete={onBack} />}
           {card.mechanic === "ranked" && <RankedListGame key={card.question} question={card.question} items={card.items} onComplete={onBack} />}
-          {card.mechanic === "multiple-choice" && <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onBack} />}
-          {card.mechanic === "pronunciation" && (() => {
+          {card.mechanic === "multiple-choice" && <MultipleChoiceGame key={card.question} question={card.question} mediaUrl={card.mediaUrl} options={card.options} correctIds={card.correctIds} onComplete={onBack} />}          {card.mechanic === "pronunciation" && (() => {
             const pc = card as import("./games/questions").PronunciationQuestion & { thumbId: string };
             const displayWord = pc.question.startsWith("Pronounce: ") ? pc.question.slice("Pronounce: ".length) : pc.id.replace(/^wine-/, "").replace(/-/g, " ");
             return <PronunciationGame key={pc.question} word={displayWord} audioUrl={pc.audioUrl} phonetic={pc.phonetic} definition={pc.definition} onComplete={onBack} />;
@@ -283,6 +283,7 @@ export default function NuggetsPage() {
   const router = useRouter();
   const { profile, synced } = useProfile();
   const [showSolved, setShowSolved] = useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [allGold, setAllGold] = useState<SequenceRecord[]>([]);
 
   useEffect(() => {
@@ -313,24 +314,24 @@ export default function NuggetsPage() {
   const scoreButton = (
     <button
       onClick={() => setShowSolved(true)}
-      style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}
+      style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}
     >
-      <span style={{ fontSize: "18px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{synced ? profile.score : "—"}</span>
-      <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>solved</span>
+      <span style={{ fontSize: "20px", fontWeight: "800", color: brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em", lineHeight: 1 }}>{synced ? profile.score : "—"}</span>
+      <span style={{ fontSize: "11px", fontWeight: "600", color: "#818cf8", letterSpacing: "0.06em", textTransform: "uppercase", lineHeight: 1 }}>pts</span>
     </button>
   );
 
   const leaderboardButton = (
     <button
-      onClick={() => router.push("/nuggets/leaderboard")}
+      onClick={() => setLeaderboardOpen(true)}
       style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", borderRadius: "6px", WebkitTapHighlightColor: "transparent" }}
     >
       <span style={{ fontSize: "16px", lineHeight: 1 }}>🏆</span>
-      <span style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>Board</span>
     </button>
   );
 
   return (
+    <>
     <div style={{ minHeight: "100vh", background: brand.bg.page, display: "flex", flexDirection: "column" }}>
 
       <ShellBar title="Table Topics" right={<div style={{ display: "flex", alignItems: "center", gap: "4px" }}>{leaderboardButton}{scoreButton}<UserMenu /></div>} />
@@ -380,6 +381,34 @@ export default function NuggetsPage() {
             <div style={{ color: "rgba(255,255,255,0.25)", fontSize: "18px", flexShrink: 0 }}>›</div>
           </button>
 
+          {/* Kids Corner entry card */}
+          <button
+            onClick={() => router.push("/nuggets/kids")}
+            style={{
+              width: "100%",
+              borderRadius: "20px",
+              border: "1px solid rgba(34,197,94,0.25)",
+              background: "linear-gradient(135deg, #052e16 0%, #064e3b 50%, #065f46 100%)",
+              cursor: "pointer",
+              textAlign: "left",
+              padding: "20px 22px",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "rgba(34,197,94,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>
+              🌟
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: "10px", fontWeight: "700", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(74,222,128,0.5)", marginBottom: "4px" }}>Ages 6–10</div>
+              <div style={{ fontSize: "18px", fontWeight: "800", color: "#f0fdf4", letterSpacing: "-0.02em", lineHeight: 1.2 }}>Kids Corner</div>
+              <div style={{ fontSize: "12px", color: "rgba(134,239,172,0.45)", marginTop: "3px", lineHeight: 1.4 }}>Fun questions about dinosaurs, space & more.</div>
+            </div>
+            <div style={{ color: "rgba(34,197,94,0.3)", fontSize: "18px", flexShrink: 0 }}>›</div>
+          </button>
+
           {/* Driving Mode entry card */}
           <button
             onClick={() => router.push("/nuggets/drive")}
@@ -425,5 +454,7 @@ export default function NuggetsPage() {
         />
       )}
     </div>
+    <LeaderboardPanel open={leaderboardOpen} onClose={() => setLeaderboardOpen(false)} />
+    </>
   );
 }

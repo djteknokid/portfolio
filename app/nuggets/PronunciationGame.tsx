@@ -9,7 +9,7 @@ interface Props {
   audioUrl: string;
   phonetic?: string;
   definition?: string;
-  onComplete: () => void;
+  onComplete: (attempts: number) => void;
 }
 
 type Phase = "idle" | "recording" | "grading" | "pass" | "fail";
@@ -93,7 +93,7 @@ export default function PronunciationGame({ word, audioUrl, phonetic, definition
         haptic(30);
         playCorrectBeep();
         playVictory();
-        setTimeout(() => onComplete(), 1400);
+        setTimeout(() => onComplete(1), 1400);
       } else {
         setPhase("fail");
         setFeedback(data.feedback ?? "Try again.");

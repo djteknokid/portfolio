@@ -14,23 +14,25 @@ interface Props {
   options: VROption[];
   correctId: string;
   explanation?: string;        // shown after answering — teach visual clues
-  onComplete: () => void;
+  onComplete: (attempts: number) => void;
 }
 
 export default function VisualRecognitionGame({ imageIds, options, correctId, explanation, onComplete }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
   const revealed = selected !== null;
 
   function choose(id: string) {
-    if (revealed) return;
+    if (selected === correctId) return;
     setSelected(id);
     if (id === correctId) {
       haptic(30);
       playCorrectBeep();
       playVictory();
-      setTimeout(() => onComplete(), 1500);
+      setTimeout(() => onComplete(wrongAttempts + 1), 1500);
     } else {
       haptic([40, 60, 40]);
+      setWrongAttempts((n) => n + 1);
     }
   }
 

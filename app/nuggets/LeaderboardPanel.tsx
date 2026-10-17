@@ -122,7 +122,10 @@ export default function LeaderboardPanel({ open, onClose }: Props) {
           borderBottom: `1px solid ${brand.border.item}`,
           flexShrink: 0,
         }}>
-          <span style={{ ...brand.type.label, color: brand.text.muted }}>Leaderboard</span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
+            <span style={{ fontSize: "18px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.02em" }}>Top Points</span>
+            <span style={{ fontSize: "11px", fontWeight: "600", color: "#818cf8", letterSpacing: "0.06em", textTransform: "uppercase" }}>pts</span>
+          </div>
           <button
             onClick={onClose}
             style={{
@@ -141,7 +144,6 @@ export default function LeaderboardPanel({ open, onClose }: Props) {
 
         {/* Content */}
         <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "8px" }}>
-          <span style={{ ...brand.type.label, color: brand.text.muted, marginBottom: "8px", display: "block" }}>Top players</span>
 
           {loading && (
             <div style={{ fontSize: "13px", color: brand.text.muted, padding: "8px 0" }}>Loading…</div>
@@ -155,51 +157,58 @@ export default function LeaderboardPanel({ open, onClose }: Props) {
 
           {leaders.map((player, i) => {
             const rank = i + 1;
+            const medal = MEDAL[rank];
             return (
               <div key={player.user_id} style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "14px",
+                gap: "12px",
                 padding: "12px 14px",
                 borderRadius: brand.radius.item,
-                background: brand.bg.raised,
-                border: `1px solid ${brand.border.item}`,
+                background: medal ? `${medal}08` : brand.bg.raised,
+                border: `1px solid ${medal ? `${medal}22` : brand.border.item}`,
               }}>
+                {/* Rank */}
                 <span style={{
-                  width: "20px",
+                  width: "18px",
                   textAlign: "center",
-                  fontSize: "13px",
+                  fontSize: "12px",
                   fontWeight: "700",
-                  color: MEDAL[rank] ?? brand.text.muted,
+                  color: medal ?? brand.text.muted,
                   fontVariantNumeric: "tabular-nums",
                   flexShrink: 0,
                 }}>
-                  {rank}
+                  {rank <= 3 ? ["🥇","🥈","🥉"][rank - 1] : rank}
                 </span>
 
+                {/* Avatar */}
                 <div style={{
-                  width: "32px", height: "32px",
+                  width: "30px", height: "30px",
                   borderRadius: "50%",
                   background: brand.bg.hover,
                   border: `1px solid ${brand.border.card}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "13px", fontWeight: "700",
+                  fontSize: "12px", fontWeight: "700",
                   color: brand.text.secondary,
                   flexShrink: 0,
                 }}>
                   {player.avatar.length === 1 ? player.avatar : "?"}
                 </div>
 
-                <span style={{ flex: 1, fontSize: "14px", fontWeight: "600", color: brand.text.primary }}>
+                {/* Name */}
+                <span style={{ flex: 1, fontSize: "14px", fontWeight: "500", color: brand.text.primary, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {player.name}
                 </span>
 
-                <span style={{ fontSize: "15px", fontWeight: "700", color: brand.text.primary, fontVariantNumeric: "tabular-nums" }}>
-                  {player.total_score}
-                </span>
-                <span style={{ fontSize: "10px", fontWeight: "500", color: brand.text.muted, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                  pts
-                </span>
+                {/* Score — the hero */}
+                <div style={{ display: "flex", alignItems: "baseline", gap: "3px", flexShrink: 0 }}>
+                  <span style={{ fontSize: "20px", fontWeight: "800", color: medal ?? brand.text.primary, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em", lineHeight: 1 }}>
+                    {player.total_score}
+                  </span>
+                  <span style={{ fontSize: "10px", fontWeight: "600", color: "#818cf8", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    pts
+                  </span>
+                </div>
               </div>
             );
           })}
