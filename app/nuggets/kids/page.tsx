@@ -316,13 +316,17 @@ export default function KidsPage() {
     }
   }, [phase, card]);
 
-  // If we're on the loading phase waiting for Q1 and it arrives, auto-advance to card
+  // If we're on the loading phase waiting for a card and it arrives, auto-advance to card
   useEffect(() => {
-    if (phase === "loading" && courseQuestions.length > 0 && generatedCards[0]) {
-      setCard(generatedCards[0]);
-      setCourseIndex(0);
-      setCardCompleted(false);
-      setPhase("card");
+    if (phase === "loading" && courseQuestions.length > 0) {
+      const pendingIndex = courseIndex + 1;
+      const pendingCard = generatedCards[pendingIndex] ?? generatedCards[0];
+      if (pendingCard) {
+        setCard(pendingCard);
+        setCourseIndex(pendingCard === generatedCards[0] ? 0 : pendingIndex);
+        setCardCompleted(false);
+        setPhase("card");
+      }
     }
   }, [phase, generatedCards, courseQuestions.length]);
 
@@ -443,7 +447,13 @@ export default function KidsPage() {
         topic: c.question,
       }));
       setCourseQuestions(syntheticQuestions);
-      setCourseIndex(-1);
+
+      // Resume from first unanswered card
+      const answeredSet = new Set(completedQuestions);
+      const resumeIndex = pack.cards.findIndex((c) => !answeredSet.has(c.question));
+      const startIndex = resumeIndex === -1 ? 0 : resumeIndex; // -1 means all done, restart from 0
+
+      setCourseIndex(startIndex - 1); // handleStartCourse will increment to startIndex
       setIntroPortraitUrl(person.imageUrl ?? null);
       setPhase("intro");
       return;
@@ -564,15 +574,16 @@ export default function KidsPage() {
   }
 
   function handleStartCourse() {
-    // Transition from intro splash to Q1
-    setCourseIndex(0);
-    const q1 = generatedCards[0];
-    if (q1) {
-      setCard(q1);
+    // Transition from intro splash to the first unanswered card
+    const startIndex = courseIndex + 1; // courseIndex was set to startIndex-1 in startPersonCourse
+    setCourseIndex(startIndex);
+    const firstCard = generatedCards[startIndex];
+    if (firstCard) {
+      setCard(firstCard);
       setCardCompleted(false);
       setPhase("card");
     } else {
-      // Q1 not yet generated (still loading) — show loading state
+      // Not yet generated (dynamic course) — show loading state
       setPhase("loading");
       setLoadingTopic(selectedPerson?.name ?? "");
     }
@@ -1254,31 +1265,43 @@ export default function KidsPage() {
                     Did you know?
                   </div>
                   <div style={{ fontSize: "15px", fontWeight: "500", color: brand.text.primary, lineHeight: 1.55, letterSpacing: "-0.01em" }}>
-                    {courseQuestions[0].hook}
+                    {courseQuestions[Math.max(0, courseIndex + 1)]?.hook ?? courseQuestions[0]?.hook}
                   </div>
                 </div>
               )}
 
               {/* Start button */}
-              <button
-                onClick={handleStartCourse}
-                style={{
-                  width: "100%",
-                  padding: "17px 16px",
-                  borderRadius: brand.radius.button,
-                  background: generatedCards[0] ? kids.accent : brand.bg.raised,
-                  border: generatedCards[0] ? "none" : `1px solid ${brand.border.item}`,
-                  color: generatedCards[0] ? "#fff" : brand.text.secondary,
-                  fontSize: "16px",
-                  fontWeight: "700",
-                  cursor: "pointer",
-                  WebkitTapHighlightColor: "transparent",
-                  letterSpacing: "-0.01em",
-                  transition: "background 300ms ease, color 300ms ease",
-                }}
-              >
-                {generatedCards[0] ? `Start course →` : `Preparing course…`}
-              </button>
+              {(() => {
+                const startIndex = courseIndex + 1;
+                const isResuming = startIndex > 0 && startIndex < courseQuestions.length;
+                const isReady = !!generatedCards[startIndex];
+                const buttonLabel = !isReady
+                  ? "Preparing course…"
+                  : isResuming
+                    ? `Continue — Question ${startIndex + 1} of ${courseQuestions.length} →`
+                    : "Start course →";
+                return (
+                  <button
+                    onClick={handleStartCourse}
+                    style={{
+                      width: "100%",
+                      padding: "17px 16px",
+                      borderRadius: brand.radius.button,
+                      background: isReady ? kids.accent : brand.bg.raised,
+                      border: isReady ? "none" : `1px solid ${brand.border.item}`,
+                      color: isReady ? "#fff" : brand.text.secondary,
+                      fontSize: "16px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      WebkitTapHighlightColor: "transparent",
+                      letterSpacing: "-0.01em",
+                      transition: "background 300ms ease, color 300ms ease",
+                    }}
+                  >
+                    {buttonLabel}
+                  </button>
+                );
+              })()}
 
               <button
                 onClick={() => setPhase("people-list")}
