@@ -244,7 +244,7 @@ BETTER: A specific named invention ↔ its documented inventor, or a named album
 
 **GROUPING** — 6–8 items in EXACTLY 2 objective, clearly named, mutually exclusive categories. Every zone has at least two items. Apply the OVERLAP TEST: if an item could reasonably belong to two zones, replace it or redesign the categories. Never classify by subjective labels such as "iconic" vs "not iconic". Do not sort common techniques by freshwater vs saltwater unless they are genuinely exclusive: trolling, casting, and many baits work in both. Categories must be defined by a verifiable property, not a typical association. The title tells the player exactly what to sort. Avoid word-pattern giveaways.
 
-**SEQUENCE** — Four or five items with one objectively verifiable chronological or procedural order. Each adjacent swap must make the ordering factually wrong. A causal dependency is NOT required for chronology (console launch order is valid). For a procedure, steps must be necessary and in defensible order. Avoid loosely connected consequences, parallel developments, or steps with multiple valid orders. Array order is the answer key. HARD RULE: NEVER include a year, decade, century, date, or any number that could reveal chronological position in any item's text — not even as a parenthetical. The player must order by content knowledge, not by reading the number. Writing "1973:" or "(1980s)" or "In the twentieth century" in item text is a disqualifying error. Reject an invented workflow for a non-sequential comparison (e.g., choosing freshwater vs saltwater gear is a decision, not necessarily a sequence).
+**SEQUENCE** — Four or five items with one objectively verifiable chronological or procedural order. Each adjacent swap must make the ordering factually wrong. A causal dependency is NOT required for chronology (console launch order is valid). For a procedure, steps must be necessary and in defensible order. Avoid loosely connected consequences, parallel developments, or steps with multiple valid orders. Array order is the answer key. HARD RULE: NEVER include a year, decade, century, date, or any number that could reveal chronological position in any item's text — not even as a parenthetical. The player must order by content knowledge, not by reading the number. Writing "1973:" or "(1980s)" or "In the twentieth century" in item text is a disqualifying error. Reject an invented workflow for a non-sequential comparison (e.g., choosing freshwater vs saltwater gear is a decision, not necessarily a sequence). **ITEM LENGTH RULE: Each item's text must fit on one line — maximum 6 words. No em-dashes, no sub-clauses, no "Title — Description" format. Write the step as a short active phrase only. BAD: "Gutenberg's press makes it possible to produce texts quickly and at low cost across Europe" — GOOD: "Printing press spreads across Europe". BAD: "Grapes Are Harvested — Ripe grapes are picked and crushed" — GOOD: "Grapes are harvested".**
 
 **MULTIPLE-CHOICE** — Four plausible, parallel options and exactly one correct answer. Use freely when it best teaches a concept, practical decision, misconception, or surprising fact. Do not force a weaker mechanic to avoid multiple-choice. Avoid obviously absurd distractors or answer-length clues.
 
@@ -423,11 +423,11 @@ The exact structure depends on the mechanic. One complete example for each:
     "knowledgeReveal": "Before printing, a single pamphlet took weeks to copy by hand and reached dozens of people. After Gutenberg, the same text could reach thousands in days. Luther's challenge to the Church spread faster than authorities could respond — not because his ideas were new, but because the technology made them unstoppable.",
     "conversationTakeaway": "The Reformation didn't happen because Luther was more convincing than earlier reformers — it happened because he had a printing press and they didn't.",
     "sequence": [
-      {"id": "1", "text": "Gutenberg's press makes it possible to produce texts quickly and at low cost across Europe"},
-      {"id": "2", "text": "Luther posts his 95 Theses challenging Church practices — printed copies circulate across Germany within weeks"},
-      {"id": "3", "text": "Reformers use cheap pamphlets to reach ordinary people directly, in their own languages"},
-      {"id": "4", "text": "Church authorities attempt to suppress the texts, but printed copies have already spread too widely"},
-      {"id": "5", "text": "Protestant communities establish their own churches across Northern Europe, permanently splitting Western Christianity"}
+      {"id": "1", "text": "Printing press spreads across Europe"},
+      {"id": "2", "text": "Luther posts his 95 Theses"},
+      {"id": "3", "text": "Pamphlets reach ordinary people directly"},
+      {"id": "4", "text": "Church attempts to suppress the texts"},
+      {"id": "5", "text": "Protestant churches split from Rome"}
     ]
   },
   "nextDirections": [

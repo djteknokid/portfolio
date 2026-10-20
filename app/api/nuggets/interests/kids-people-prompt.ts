@@ -121,7 +121,7 @@ TAUTOLOGY BAN: right label must NEVER repeat or paraphrase the searchTerm. "Mona
 
 **INTRODUCTION CARD** (when the question is "Which of these people is X?"): Use multiple-choice. Set heroSearchTerm to the person's Wikipedia article title so their portrait appears. The 4 options are names of real people from the same era or field — only one is correct. Player sees the portrait and picks the right name.
 
-**sequence** — Milestones in their life, steps in how they created something. ONLY when the order is genuinely satisfying to discover. NEVER include a year, date, or number in any item's text.
+**sequence** — Milestones in their life, steps in how they created something. ONLY when the order is genuinely satisfying to discover. NEVER include a year, date, or number in any item's text. **ITEM LENGTH RULE: Maximum 6 words per item. No em-dashes, no sub-clauses. Short active phrases only. BAD: "He sketches a new mouse character on a train ride home" — GOOD: "Sketches a mouse on a train".**
 
 **grouping** — Real things they did vs. things they didn't do. Or their inventions vs. someone else's. 6–8 items, EXACTLY 2 zones, every item belongs to exactly one zone.
 
@@ -239,11 +239,11 @@ Return valid JSON only. No markdown fences, no explanation outside the JSON.
     "knowledgeReveal": "Walt sketched Mickey on a train ride after losing his previous character. He synchronized Mickey's movements exactly to music — creating the first cartoon where animation and sound moved together perfectly.",
     "conversationTakeaway": "Mickey Mouse was sketched on a train with no studio — just Walt, a pencil, and a long journey home.",
     "sequence": [
-      {"id": "s1", "text": "Walt loses the rights to his previous cartoon character"},
-      {"id": "s2", "text": "He sketches a new mouse character on a train ride home"},
-      {"id": "s3", "text": "He records a full musical soundtrack before animating a single frame"},
-      {"id": "s4", "text": "He synchronizes every movement of the mouse to the music"},
-      {"id": "s5", "text": "The cartoon premieres and the audience hears a cartoon character speak for the first time"}
+      {"id": "s1", "text": "Loses rights to his cartoon"},
+      {"id": "s2", "text": "Sketches a mouse on a train"},
+      {"id": "s3", "text": "Records music before any animation"},
+      {"id": "s4", "text": "Syncs every move to the music"},
+      {"id": "s5", "text": "Mickey Mouse premieres with sound"}
     ]
   }
 }
