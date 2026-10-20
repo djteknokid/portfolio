@@ -12,6 +12,7 @@ import GroupingGame from "../GroupingGame";
 import MatchingGame from "../MatchingGame";
 import MultipleChoiceGame from "../MultipleChoiceGame";
 import type { Question } from "../games/questions";
+import { getPackForPerson } from "./packs";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -119,7 +120,7 @@ function normalizeCard(raw: unknown): KidsCard | null {
       label: (i.label as string) ?? (i.text as string) ?? "",
     }));
     const zoneIds = new Set(zones.map((z: { id: string }) => z.id));
-    if (items.some((i: { correctGroup: string }) => !zoneIds.has(i.correctGroup))) return null;
+    if (items.some((i: Record<string, unknown>) => !zoneIds.has(i.correctGroup as string))) return null;
     return { ...base, mechanic: "grouping", zones, items } as KidsCard;
   }
   if (c.mechanic === "matching") {
@@ -415,7 +416,7 @@ export default function KidsPage() {
     }
   }
 
-  // Start a person course: fetch titles + begin generating first card in parallel
+  // Start a person course: check for premade pack first, otherwise generate dynamically
   async function startPersonCourse(person: PersonCard) {
     setSelectedPerson(person);
     setAnchorTopic(person.name);
@@ -425,10 +426,32 @@ export default function KidsPage() {
     setHistory([]);
     setRecentMechanics([]);
     setCardCompleted(false);
-    setPhase("loading");
-    setLoadingTopic(person.name);
     setGenerateError(null);
     setIntroPortraitUrl(null);
+
+    // Check for a premade pack
+    const pack = getPackForPerson(person.name);
+    if (pack) {
+      // Convert pack cards directly into generatedCards
+      const cardMap: Record<number, KidsCard> = {};
+      pack.cards.forEach((c, i) => { cardMap[i] = c as KidsCard; });
+      setGeneratedCards(cardMap);
+      // Synthetic course questions (just for length tracking)
+      const syntheticQuestions: CourseQuestion[] = pack.cards.map((c) => ({
+        hook: c.question,
+        title: c.question,
+        topic: c.question,
+      }));
+      setCourseQuestions(syntheticQuestions);
+      setCourseIndex(-1);
+      setIntroPortraitUrl(person.imageUrl ?? null);
+      setPhase("intro");
+      return;
+    }
+
+    // Dynamic path — fetch outline and generate cards via AI
+    setPhase("loading");
+    setLoadingTopic(person.name);
 
     try {
       // Fetch course outline (also returns portrait URL)
@@ -612,7 +635,37 @@ export default function KidsPage() {
         body: JSON.stringify({ category: category.label, kidAge: kidAge ?? 8 }),
       });
       const data = await res.json() as { people: PersonCard[] };
-      setPeopleList(Array.isArray(data.people) ? data.people : []);
+      const fetched: PersonCard[] = Array.isArray(data.people) ? data.people : [];
+
+      // Prepend premade pack entries and resolve their portrait via API
+      const PINNED: Record<string, PersonCard[]> = {
+        "Scientists & Inventors": [
+          { name: "Thomas Edison", tagline: "The man who lit up the world", era: "1847 – 1931", imageSearchTerm: "Thomas Edison" },
+        ],
+      };
+      const pinned = PINNED[category.label] ?? [];
+
+      // Resolve portraits for pinned entries
+      const pinnedWithImages: PersonCard[] = await Promise.all(
+        pinned.map(async (p) => {
+          try {
+            const r = await fetch("/api/nuggets/kids-course", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ personName: p.name, kidAge: kidAge ?? 8, portraitOnly: true }),
+            });
+            const d = await r.json() as { portraitUrl?: string | null };
+            return { ...p, imageUrl: d.portraitUrl ?? undefined };
+          } catch {
+            return p;
+          }
+        })
+      );
+
+      // Merge: pinned first, then API results (excluding any duplicates)
+      const pinnedNames = new Set(pinnedWithImages.map((p) => p.name.toLowerCase()));
+      const merged = [...pinnedWithImages, ...fetched.filter((p) => !pinnedNames.has(p.name.toLowerCase()))];
+      setPeopleList(merged);
     } catch {
       setPeopleList([]);
     } finally {
@@ -1048,7 +1101,9 @@ export default function KidsPage() {
                         backgroundSize: "800px 100%",
                       }} />
                     ))
-                  : peopleList.map((person) => (
+                  : peopleList.map((person) => {
+                    const hasPack = !!getPackForPerson(person.name);
+                    return (
                       <button
                         key={person.name}
                         onClick={() => startPersonCourse(person)}
@@ -1056,8 +1111,8 @@ export default function KidsPage() {
                           width: "100%",
                           borderRadius: "16px",
                           overflow: "hidden",
-                          border: "1px solid rgba(167,139,250,0.2)",
-                          background: brand.bg.raised,
+                          border: `1px solid ${hasPack ? "rgba(251,191,36,0.35)" : "rgba(167,139,250,0.2)"}`,
+                          background: hasPack ? "linear-gradient(135deg, #1c1400 0%, #2a1f00 100%)" : brand.bg.raised,
                           cursor: "pointer",
                           textAlign: "left",
                           padding: 0,
@@ -1065,6 +1120,7 @@ export default function KidsPage() {
                           WebkitTapHighlightColor: "transparent",
                           transition: brand.motion.snap,
                           minHeight: "90px",
+                          position: "relative",
                         }}
                       >
                         {/* Image */}
@@ -1084,10 +1140,17 @@ export default function KidsPage() {
 
                         {/* Info */}
                         <div style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", justifyContent: "center", gap: "4px" }}>
-                          <div style={{ fontSize: "15px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.02em", lineHeight: 1.2 }}>
-                            {person.name}
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div style={{ fontSize: "15px", fontWeight: "800", color: brand.text.primary, letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+                              {person.name}
+                            </div>
+                            {hasPack && (
+                              <div style={{ fontSize: "9px", fontWeight: "700", letterSpacing: "0.08em", textTransform: "uppercase", color: "#fbbf24", background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.3)", borderRadius: "4px", padding: "2px 5px", flexShrink: 0 }}>
+                                Pack
+                              </div>
+                            )}
                           </div>
-                          <div style={{ fontSize: "12px", fontWeight: "500", color: "rgba(167,139,250,0.8)", lineHeight: 1.4 }}>
+                          <div style={{ fontSize: "12px", fontWeight: "500", color: hasPack ? "rgba(251,191,36,0.75)" : "rgba(167,139,250,0.8)", lineHeight: 1.4 }}>
                             {person.tagline}
                           </div>
                           <div style={{ fontSize: "11px", fontWeight: "500", color: brand.text.muted, marginTop: "2px" }}>
@@ -1096,11 +1159,12 @@ export default function KidsPage() {
                         </div>
 
                         {/* Arrow */}
-                        <div style={{ display: "flex", alignItems: "center", paddingRight: "14px", color: brand.text.muted, fontSize: "16px", flexShrink: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", paddingRight: "14px", color: hasPack ? "#fbbf24" : brand.text.muted, fontSize: "16px", flexShrink: 0 }}>
                           ›
                         </div>
                       </button>
-                    ))
+                    );
+                  })
                 }
               </div>
 

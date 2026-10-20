@@ -12,9 +12,19 @@ export type CourseQuestion = {
 };
 
 export async function POST(req: NextRequest) {
-  const { personName, kidAge = 8, answeredQuestions = [] } = await req.json() as { personName: string; kidAge?: number; answeredQuestions?: string[] };
+  const { personName, kidAge = 8, answeredQuestions = [], portraitOnly = false } = await req.json() as { personName: string; kidAge?: number; answeredQuestions?: string[]; portraitOnly?: boolean };
 
   if (!personName) return NextResponse.json({ error: "Missing personName" }, { status: 400 });
+
+  // Fast path: just return the portrait, no outline generation
+  if (portraitOnly) {
+    try {
+      const portraits = await resolveWikimediaImages([personName], 800);
+      return NextResponse.json({ portraitUrl: portraits[personName] ?? null });
+    } catch {
+      return NextResponse.json({ portraitUrl: null });
+    }
+  }
 
   const answeredClause = answeredQuestions.length > 0
     ? `\nIMPORTANT — This child has already answered these questions about ${personName}. Do NOT repeat or closely overlap any of these topics:\n${answeredQuestions.slice(0, 30).map((q, i) => `${i + 1}. ${q}`).join("\n")}\n\nDesign the 10 new questions to cover ground they have NOT explored yet.\n`
