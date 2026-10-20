@@ -604,8 +604,10 @@ export default function KidsPage() {
         setHistory(nextHistory);
         setRecentMechanics(nextMechanics);
         setPhase("card");
-        // Pre-generate the one after
-        preGenerateCourseCard(nextIndex + 1, courseQuestions, anchorTopic ?? "", nextHistory, nextMechanics);
+        // Pre-generate the one after — only if it isn't already in generatedCards (i.e. not a premade pack)
+        if (!generatedCards[nextIndex + 1]) {
+          preGenerateCourseCard(nextIndex + 1, courseQuestions, anchorTopic ?? "", nextHistory, nextMechanics);
+        }
       } else {
         // Not yet generated — generate now and show loading
         const q = courseQuestions[nextIndex];
